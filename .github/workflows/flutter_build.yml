@@ -1,0 +1,43 @@
+name: Flutter CI/CD
+
+on:
+  push:
+    branches: [ "master", "main" ]
+  pull_request:
+    branches: [ "master", "main" ]
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0' # Adjust based on your preferred flutter version, or use 'any'
+          channel: 'stable'
+          cache: true
+
+      - name: Install Dependencies
+        working-directory: ./sartarosh_app
+        run: flutter pub get
+
+      - name: Build APK (Release)
+        working-directory: ./sartarosh_app
+        run: flutter build apk --release
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Sartarosh-Release-APK
+          path: sartarosh_app/build/app/outputs/flutter-apk/app-release.apk
