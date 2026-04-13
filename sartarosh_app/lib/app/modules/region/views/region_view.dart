@@ -13,15 +13,7 @@ class RegionView extends GetView<RegionController> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              AppTheme.darkBg,
-              AppTheme.darkBg.withValues(alpha: 0.95),
-              AppTheme.primary.withValues(alpha: 0.15),
-            ],
-          ),
+          color: Color(0xFFFAF8F5), // Light cream background exactly as image
         ),
         child: SafeArea(
           child: Column(
@@ -39,13 +31,12 @@ class RegionView extends GetView<RegionController> {
                           child: Container(
                             padding: EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.transparent,
                             ),
                             child: Icon(
-                              Icons.arrow_back_ios_new_rounded,
-                              color: Colors.white,
-                              size: 18,
+                              Icons.arrow_back_rounded,
+                              color: Color(0xFF1A1A1A),
+                              size: 24,
                             ),
                           ),
                         ),
@@ -68,13 +59,11 @@ class RegionView extends GetView<RegionController> {
                                       vertical: 8,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: AppTheme.primary.withValues(
-                                        alpha: 0.15,
-                                      ),
-                                      borderRadius: BorderRadius.circular(10),
+                                      color: Colors.white,
+                                      borderRadius: BorderRadius.circular(20),
                                       border: Border.all(
-                                        color: AppTheme.primary.withValues(
-                                          alpha: 0.3,
+                                        color: Colors.black.withValues(
+                                          alpha: 0.05,
                                         ),
                                       ),
                                     ),
@@ -83,14 +72,14 @@ class RegionView extends GetView<RegionController> {
                                       children: [
                                         Icon(
                                           Icons.my_location_rounded,
-                                          color: AppTheme.primary,
+                                          color: AppTheme.gold,
                                           size: 16,
                                         ),
                                         SizedBox(width: 6),
                                         Text(
                                           "GPS",
                                           style: GoogleFonts.poppins(
-                                            color: AppTheme.primary,
+                                            color: Color(0xFF1A1A1A),
                                             fontSize: 13,
                                             fontWeight: FontWeight.w600,
                                           ),
@@ -104,48 +93,36 @@ class RegionView extends GetView<RegionController> {
                     ),
                     SizedBox(height: 24),
                     Text(
-                      "Viloyatingizni\ntanlang",
+                      "Viloyatingizni tanlang",
                       style: GoogleFonts.playfairDisplay(
-                        color: Colors.white,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w800,
-                        height: 1.2,
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 28,
+                        fontWeight: FontWeight.w900,
                       ),
                     ).animate().fadeIn(duration: 400.ms),
-                    SizedBox(height: 8),
-                    Text(
-                      "Sizga yaqin ustalarni ko'rsatish uchun",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 14,
-                      ),
-                    ).animate().fadeIn(delay: 200.ms),
-                    SizedBox(height: 20),
+                    SizedBox(height: 24),
 
                     // ─── SEARCH BAR ───
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.08),
+                        color: Color(0xFFF0EBE1), // Light grayish-cream
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.1),
-                        ),
                       ),
                       child: TextField(
                         onChanged: (v) => controller.searchQuery.value = v,
                         style: GoogleFonts.poppins(
-                          color: Colors.white,
+                          color: Color(0xFF1A1A1A),
                           fontSize: 15,
                         ),
                         decoration: InputDecoration(
-                          hintText: "Qidirish...",
+                          hintText: "Viloyat qidirish...",
                           hintStyle: GoogleFonts.poppins(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Color(0xFF1A1A1A).withValues(alpha: 0.4),
                             fontSize: 15,
                           ),
                           prefixIcon: Icon(
                             Icons.search_rounded,
-                            color: Colors.white.withValues(alpha: 0.4),
+                            color: Color(0xFF1A1A1A).withValues(alpha: 0.4),
                           ),
                           border: InputBorder.none,
                           contentPadding: EdgeInsets.symmetric(vertical: 16),
@@ -182,45 +159,25 @@ class RegionView extends GetView<RegionController> {
                             ),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppTheme.primary.withValues(alpha: 0.15)
-                                  : Colors.white.withValues(alpha: 0.06),
+                                  ? Color(0xFFF0EBE1)
+                                  : Colors.white,
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: isSelected
-                                    ? AppTheme.primary
-                                    : Colors.white.withValues(alpha: 0.08),
-                                width: isSelected ? 1.5 : 1,
+                                    ? AppTheme.gold
+                                    : Colors.black.withValues(alpha: 0.02),
+                                width: isSelected ? 1 : 1,
                               ),
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  width: 42,
-                                  height: 42,
-                                  decoration: BoxDecoration(
-                                    color: isSelected
-                                        ? AppTheme.primary.withValues(
-                                            alpha: 0.2,
-                                          )
-                                        : Colors.white.withValues(alpha: 0.08),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    Icons.location_city_rounded,
-                                    color: isSelected
-                                        ? AppTheme.primary
-                                        : Colors.white.withValues(alpha: 0.4),
-                                    size: 22,
-                                  ),
-                                ),
-                                SizedBox(width: 16),
                                 Expanded(
                                   child: Text(
                                     region['name']!,
                                     style: GoogleFonts.poppins(
                                       color: isSelected
-                                          ? Colors.white
-                                          : Colors.white.withValues(alpha: 0.7),
+                                          ? AppTheme.gold
+                                          : Color(0xFF1A1A1A),
                                       fontSize: 16,
                                       fontWeight: isSelected
                                           ? FontWeight.w600
@@ -228,19 +185,17 @@ class RegionView extends GetView<RegionController> {
                                     ),
                                   ),
                                 ),
-                                if (isSelected)
-                                  Container(
-                                    padding: EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.primary,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: Icon(
-                                      Icons.check_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ),
+                                Icon(
+                                  isSelected
+                                      ? Icons.check_rounded
+                                      : Icons.chevron_right_rounded,
+                                  color: isSelected
+                                      ? AppTheme.gold
+                                      : Color(
+                                          0xFFE07A5F,
+                                        ), // Orange accent chevron like image
+                                  size: 22,
+                                ),
                               ],
                             ),
                           ),
@@ -274,11 +229,11 @@ class RegionView extends GetView<RegionController> {
                     ),
                     child: Center(
                       child: Text(
-                        "Davom etish →",
+                        "Davom etish",
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontSize: 17,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ),

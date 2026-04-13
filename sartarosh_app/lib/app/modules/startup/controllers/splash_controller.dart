@@ -33,132 +33,188 @@ class SplashController extends GetxController {
     Get.dialog(
       Dialog(
         backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.symmetric(horizontal: 24),
         child: Container(
-          padding: EdgeInsets.all(28),
           decoration: BoxDecoration(
-            color: AppTheme.darkBg,
-            borderRadius: BorderRadius.circular(24),
+            color: Color(0xFFFAF8F5), // Light cream color as in image
+            borderRadius: BorderRadius.circular(28),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.3),
-                blurRadius: 30,
-                offset: Offset(0, 10),
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 40,
+                offset: Offset(0, 15),
               ),
             ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Map Illustration Header
               Container(
-                padding: EdgeInsets.all(16),
+                height: 140,
                 decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.location_on_rounded,
-                  color: AppTheme.primary,
-                  size: 36,
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Joylashuvingizni\naniqlaylikmi?",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.playfairDisplay(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  height: 1.3,
-                ),
-              ),
-              SizedBox(height: 10),
-              Text(
-                "Sizga eng yaqin ustalarni ko'rsatish uchun",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 13,
-                ),
-              ),
-              SizedBox(height: 28),
-
-              // GPS Button
-              GestureDetector(
-                onTap: () {
-                  Get.back(); // close dialog
-                  Get.offAllNamed(Routes.region);
-                  // Let RegionController handle GPS detection
-                  Future.delayed(Duration(milliseconds: 500), () {
-                    if (Get.isRegistered<dynamic>()) {
-                      // Auto-trigger GPS from region screen
-                    }
-                  });
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.goldGradient,
-                    borderRadius: BorderRadius.circular(14),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primary.withValues(alpha: 0.3),
-                        blurRadius: 16,
-                        offset: Offset(0, 6),
-                      ),
-                    ],
+                  color: Color(0xFFF3EEDD).withValues(alpha: 0.5),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(28),
+                    topRight: Radius.circular(28),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.my_location_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Joylashuvni aniqlash",
-                        style: GoogleFonts.poppins(
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // A subtle map background or icon stack
+                    Icon(
+                      Icons.map_rounded,
+                      size: 80,
+                      color: AppTheme.gold.withValues(alpha: 0.3),
+                    ),
+                    Positioned(
+                      top: 15,
+                      child: Container(
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Color(0xFF6B48FF), // Purple accent
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF6B48FF).withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: Offset(0, 8),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.location_on_rounded,
                           color: Colors.white,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
+                          size: 32,
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
 
-              SizedBox(height: 12),
-
-              // Manual selection
-              GestureDetector(
-                onTap: () {
-                  Get.back(); // close dialog
-                  Get.offAllNamed(Routes.region);
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.15),
-                    ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Qo'lda tanlash",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 15,
-                        fontWeight: FontWeight.w500,
+              Padding(
+                padding: EdgeInsets.fromLTRB(24, 24, 24, 28),
+                child: Column(
+                  children: [
+                    Text(
+                      "Joylashuv",
+                      style: GoogleFonts.playfairDisplay(
+                        color: Color(0xFF1A1A1A),
+                        fontSize: 26,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  ),
+                    SizedBox(height: 12),
+                    Text(
+                      "Joylashuvingizni aniqlaymizmi?\n\nHozirda eng yaqin sartaroshlarni ko'rish uchun",
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.poppins(
+                        color: Color(0xFF666666),
+                        fontSize: 14,
+                        height: 1.4,
+                      ),
+                    ),
+                    SizedBox(height: 32),
+
+                    // Purple GPS Button
+                    GestureDetector(
+                      onTap: () {
+                        Get.back();
+                        Get.offAllNamed(Routes.region);
+                        Future.delayed(Duration(milliseconds: 500), () {
+                          // Let RegionController handle GPS detection
+                        });
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFF8A5DFF), Color(0xFF5E38E6)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF6B48FF).withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.location_on_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Ruxsat berish",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+
+                    SizedBox(height: 16),
+
+                    // Gold Manual Button
+                    GestureDetector(
+                      onTap: () {
+                        Get.back();
+                        Get.offAllNamed(Routes.region);
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Color(0xFFE5C170), Color(0xFFD4AF37)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFFD4AF37).withValues(alpha: 0.3),
+                              blurRadius: 15,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.check_rounded,
+                              color: Colors.white,
+                              size: 22,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              "Qo'lda tanlash",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
