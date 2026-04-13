@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/input_sanitizer.dart';
 
@@ -26,17 +27,36 @@ class AuthController extends GetxController {
     Get.toNamed('/otp');
   }
 
-  /// Google Sign-In via Firebase Auth popup (web-friendly)
+  /// Google Sign-In via Native Google SDK
   Future<void> signInWithGoogle() async {
     try {
       isLoading.value = true;
 
-      final googleProvider = GoogleAuthProvider();
-      googleProvider.addScope('email');
-      googleProvider.addScope('profile');
+      // Trigger Native Google Sign In
+      final GoogleSignIn googleSignIn = GoogleSignIn(
+        scopes: ['email', 'profile'],
+      );
 
-      final userCredential = await FirebaseAuth.instance.signInWithPopup(
-        googleProvider,
+      final GoogleSignInAccount? googleUser = await googleSignIn.signIn();
+
+      if (googleUser == null) {
+        // User cancelled the login flow
+        isLoading.value = false;
+        return;
+      }
+
+      final GoogleSignInAuthentication googleAuth =
+          await googleUser.authentication;
+
+      // Create a new credential for Firebase
+      final AuthCredential credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth.accessToken,
+        idToken: googleAuth.idToken,
+      );
+
+      // Sign in to Firebase with the credential
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
       );
 
       final user = userCredential.user;

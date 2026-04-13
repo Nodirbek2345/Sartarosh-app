@@ -50,26 +50,26 @@ class OtpView extends GetView<AuthController> {
 
                 Spacer(flex: 2),
 
-                // Logo
+                // Logo replacing vector graphics with user provided image
                 Container(
-                  padding: EdgeInsets.all(28),
+                  width: 140,
+                  height: 140,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: [AppTheme.primary, AppTheme.accent],
-                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.primary.withValues(alpha: 0.4),
+                        color: AppTheme.primary.withValues(alpha: 0.3),
                         blurRadius: 40,
                         spreadRadius: 5,
                       ),
                     ],
                   ),
-                  child: Icon(
-                    Icons.content_cut_rounded,
-                    size: 48,
-                    color: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(70),
+                    child: Image.asset(
+                      'assets/images/barber_3d.png',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ).animate().scale(duration: 800.ms, curve: Curves.easeOutBack),
 
