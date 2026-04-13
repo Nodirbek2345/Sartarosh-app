@@ -8,8 +8,6 @@ import 'core/services/user_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Get.putAsync(() => UserService().init());
-
   try {
     await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -24,6 +22,8 @@ void main() async {
   } catch (e) {
     debugPrint("Firebase init error: $e");
   }
+
+  await Get.putAsync(() => UserService().init());
 
   runApp(
     GetMaterialApp(
