@@ -665,7 +665,6 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
   // ─── BOTTOM BAR ───
   Widget _buildBottomBar() {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -676,14 +675,19 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _bottomItem(Icons.dashboard_rounded, "Dashboard", true, () {}),
-          _bottomItem(Icons.person_rounded, "Profil", false, () {
-            Get.toNamed('/profile');
-          }),
-        ],
+      child: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 12),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _bottomItem(Icons.dashboard_rounded, "Dashboard", true, () {}),
+              _bottomItem(Icons.person_rounded, "Profil", false, () {
+                Get.toNamed('/profile');
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }

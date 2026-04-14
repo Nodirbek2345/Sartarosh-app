@@ -1120,7 +1120,6 @@ class HomeView extends GetView<HomeController> {
   // ─── BOTTOM NAV ───
   Widget _buildBottomNav() {
     return Container(
-      height: 72,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -1131,29 +1130,34 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          _navItem(Icons.home_rounded, "Bosh sahifa", true),
-          _navItem(
-            Icons.search_rounded,
-            "Qidirish",
-            false,
-            onTap: () => Get.toNamed('/services'),
+      child: SafeArea(
+        child: SizedBox(
+          height: 72,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _navItem(Icons.home_rounded, "Bosh sahifa", true),
+              _navItem(
+                Icons.search_rounded,
+                "Qidirish",
+                false,
+                onTap: () => Get.toNamed('/services'),
+              ),
+              _navItem(
+                Icons.calendar_month_rounded,
+                "Bronlar",
+                false,
+                onTap: () => Get.toNamed('/my-bookings'),
+              ),
+              _navItem(
+                Icons.person_rounded,
+                "Profil",
+                false,
+                onTap: () => Get.toNamed('/profile'),
+              ),
+            ],
           ),
-          _navItem(
-            Icons.calendar_month_rounded,
-            "Bronlar",
-            false,
-            onTap: () => Get.toNamed('/my-bookings'),
-          ),
-          _navItem(
-            Icons.person_rounded,
-            "Profil",
-            false,
-            onTap: () => Get.toNamed('/profile'),
-          ),
-        ],
+        ),
       ),
     );
   }

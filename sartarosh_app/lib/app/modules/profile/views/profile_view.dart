@@ -134,75 +134,78 @@ class ProfileView extends StatelessWidget {
 
           // Menu items
           Expanded(
-            child: Padding(
-              padding: EdgeInsets.all(20),
-              child: SingleChildScrollView(
-                physics: BouncingScrollPhysics(),
-                child: Obx(() {
-                  final isBarber = Get.find<UserService>().isBarberMode.value;
-                  if (isBarber) {
-                    return Column(
-                      children: [
-                        _menuItem(
-                          Icons.design_services_rounded,
-                          "Xizmatlar va narxlarni tahrirlash",
-                          0,
-                          () => _showManageServices(),
-                        ),
-                        _menuItem(
-                          Icons.settings_rounded,
-                          "Sozlamalar",
-                          1,
-                          () => _showSettings(),
-                        ),
-                        _menuItem(
-                          Icons.help_outline_rounded,
-                          "Yordam",
-                          2,
-                          () => _showHelp(),
-                        ),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        _menuItem(
-                          Icons.calendar_month_rounded,
-                          "Mening bronlarim",
-                          0,
-                          () => Get.toNamed('/my-bookings'),
-                        ),
-                        _menuItem(
-                          Icons.storefront_rounded,
-                          "Sartarosh sifatida qo'shilish",
-                          1,
-                          () => Get.toNamed('/add_barber'),
-                        ),
-                        _menuItem(
-                          Icons.swap_horiz_rounded,
-                          "Usta rejimiga o'tish",
-                          2,
-                          () {
-                            Get.find<UserService>().toggleBarberMode();
-                            Get.offAllNamed('/home');
-                          },
-                        ),
-                        _menuItem(
-                          Icons.settings_rounded,
-                          "Sozlamalar",
-                          3,
-                          () => _showSettings(),
-                        ),
-                        _menuItem(
-                          Icons.help_outline_rounded,
-                          "Yordam",
-                          4,
-                          () => _showHelp(),
-                        ),
-                      ],
-                    );
-                  }
-                }),
+            child: SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
+                  child: Obx(() {
+                    final isBarber = Get.find<UserService>().isBarberMode.value;
+                    if (isBarber) {
+                      return Column(
+                        children: [
+                          _menuItem(
+                            Icons.design_services_rounded,
+                            "Xizmatlar va narxlarni tahrirlash",
+                            0,
+                            () => _showManageServices(),
+                          ),
+                          _menuItem(
+                            Icons.settings_rounded,
+                            "Sozlamalar",
+                            1,
+                            () => _showSettings(),
+                          ),
+                          _menuItem(
+                            Icons.help_outline_rounded,
+                            "Yordam",
+                            2,
+                            () => _showHelp(),
+                          ),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          _menuItem(
+                            Icons.calendar_month_rounded,
+                            "Mening bronlarim",
+                            0,
+                            () => Get.toNamed('/my-bookings'),
+                          ),
+                          _menuItem(
+                            Icons.storefront_rounded,
+                            "Sartarosh sifatida qo'shilish",
+                            1,
+                            () => Get.toNamed('/add_barber'),
+                          ),
+                          _menuItem(
+                            Icons.swap_horiz_rounded,
+                            "Usta rejimiga o'tish",
+                            2,
+                            () {
+                              Get.find<UserService>().toggleBarberMode();
+                              Get.offAllNamed('/home');
+                            },
+                          ),
+                          _menuItem(
+                            Icons.settings_rounded,
+                            "Sozlamalar",
+                            3,
+                            () => _showSettings(),
+                          ),
+                          _menuItem(
+                            Icons.help_outline_rounded,
+                            "Yordam",
+                            4,
+                            () => _showHelp(),
+                          ),
+                        ],
+                      );
+                    }
+                  }),
+                ),
               ),
             ),
           ),
