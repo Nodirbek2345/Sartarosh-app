@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "328525443303",
+    "project_id": "sartarosh-eaf90",
+    "storage_bucket": "sartarosh-eaf90.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:328525443303:android:5bb5a689f326312b25f242",
+        "android_client_info": {
+          "package_name": "com.sartarosh.sartarosh_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "328525443303-d5moa5bimo799ts4regh44uuhu21nsen.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCmsqmwAjXzwTGqcMAgSVaI3mwdcXC_36I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "328525443303-d5moa5bimo799ts4regh44uuhu21nsen.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

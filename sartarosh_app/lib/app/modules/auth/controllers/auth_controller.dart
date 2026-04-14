@@ -118,7 +118,7 @@ class AuthController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "Xatolik",
-        "Tizimga kirishda xatolik yuz berdi",
+        "Xatolik yuz berdi: ${e.toString()}",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
