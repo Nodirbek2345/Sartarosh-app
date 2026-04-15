@@ -178,7 +178,7 @@ class ProfileView extends StatelessWidget {
                             Icons.storefront_rounded,
                             "Sartarosh sifatida qo'shilish",
                             1,
-                            () => Get.toNamed('/add_barber'),
+                            () => Get.toNamed('/add-barber'),
                           ),
                           _menuItem(
                             Icons.swap_horiz_rounded,
@@ -910,120 +910,158 @@ class ProfileView extends StatelessWidget {
 
   // ─── BONUS CARD ───
   Widget _buildBonusCard() {
-    return Container(
-      margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-      padding: EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppTheme.gold.withValues(alpha: 0.15),
-            blurRadius: 20,
-            offset: Offset(0, 8),
-          ),
-        ],
-        border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.gold.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.star_rounded,
-                      color: AppTheme.gold,
-                      size: 20,
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Sizning bonusingiz",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textMedium,
-                          fontSize: 12,
+    final userService = Get.find<UserService>();
+    return Obx(() {
+      final uid = userService.currentUid;
+      final name = userService.name.value;
+
+      final query = uid.isNotEmpty
+          ? FirebaseFirestore.instance
+                .collection('bookings')
+                .where('clientUid', isEqualTo: uid)
+                .where('status', isEqualTo: 'completed')
+          : FirebaseFirestore.instance
+                .collection('bookings')
+                .where('client', isEqualTo: name)
+                .where('status', isEqualTo: 'completed');
+
+      return StreamBuilder<QuerySnapshot>(
+        stream: query.snapshots(),
+        builder: (context, snapshot) {
+          int visits = 0;
+          if (snapshot.hasData) {
+            visits = snapshot.data!.docs.length;
+          }
+
+          int points = visits * 20; // Example: 20 ball per visit
+          int currentCycle = visits % 6; // 6-marta BEPUL (0..5)
+          int visitsLeft = 5 - currentCycle;
+          if (visitsLeft <= 0) visitsLeft = 0; // If 5, next is free
+
+          String visitsLeftText = visitsLeft == 0
+              ? "Sizning navbatdagi tashrifingiz BEPUL!"
+              : "Yana $visitsLeft ta tashrif qoldi";
+
+          return Container(
+            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppTheme.gold.withValues(alpha: 0.15),
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                ),
+              ],
+              border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.gold.withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.star_rounded,
+                            color: AppTheme.gold,
+                            size: 20,
+                          ),
                         ),
+                        SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Sizning bonusingiz",
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.textMedium,
+                                fontSize: 12,
+                              ),
+                            ),
+                            Text(
+                              "$points ball",
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.textDark,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      Text(
-                        "120 ball",
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.goldGradient,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        "Premium",
                         style: GoogleFonts.poppins(
-                          color: AppTheme.textDark,
-                          fontSize: 18,
+                          color: Colors.white,
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  gradient: AppTheme.goldGradient,
-                  borderRadius: BorderRadius.circular(10),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  "Premium",
+                SizedBox(height: 16),
+                Text(
+                  "5 marta keling → 6-marta BEPUL!",
                   style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.5,
+                    color: AppTheme.textDark,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
-              ),
-            ],
-          ),
-          SizedBox(height: 16),
-          Text(
-            "5 marta keling → 6-marta BEPUL!",
-            style: GoogleFonts.poppins(
-              color: AppTheme.textDark,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          SizedBox(height: 10),
-          Row(
-            children: List.generate(6, (index) {
-              final isCompleted = index < 3; // simulated 3 visits
-              return Expanded(
-                child: Container(
-                  margin: EdgeInsets.only(right: index == 5 ? 0 : 6),
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: isCompleted
-                        ? AppTheme.gold
-                        : AppTheme.textMedium.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(3),
+                SizedBox(height: 10),
+                Row(
+                  children: List.generate(6, (index) {
+                    final isCompleted = index < currentCycle;
+                    return Expanded(
+                      child: Container(
+                        margin: EdgeInsets.only(right: index == 5 ? 0 : 6),
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: isCompleted
+                              ? AppTheme.gold
+                              : AppTheme.textMedium.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: 8),
+                Text(
+                  visitsLeftText,
+                  style: GoogleFonts.poppins(
+                    color: AppTheme.textMedium,
+                    fontSize: 11,
+                    fontStyle: FontStyle.italic,
                   ),
                 ),
-              );
-            }),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "Yana 2 ta tashrif qoldi",
-            style: GoogleFonts.poppins(
-              color: AppTheme.textMedium,
-              fontSize: 11,
-              fontStyle: FontStyle.italic,
+              ],
             ),
-          ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.05);
+          ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.05);
+        },
+      );
+    });
   }
 }
