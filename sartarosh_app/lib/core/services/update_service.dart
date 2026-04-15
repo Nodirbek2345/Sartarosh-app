@@ -4,11 +4,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:open_filex/open_filex.dart';
 
 class UpdateService extends GetxService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String currentVersion = "1.0.0";
+  final isDownloading = false.obs;
+  final downloadProgress = 0.0.obs;
 
   Future<UpdateService> init() async {
     try {
@@ -29,7 +34,7 @@ class UpdateService extends GetxService {
       final updateUrl = data['updateUrl'] as String?;
       final releaseNotes =
           data['releaseNotes'] ??
-          'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish uchun hoziroq yuklab oling.';
+          'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish hoziroq yuklab oling.';
 
       if (latestVersion != null &&
           _isUpdateAvailable(currentVersion, latestVersion)) {
@@ -67,12 +72,42 @@ class UpdateService extends GetxService {
     return false;
   }
 
+  Future<void> _downloadAndInstallApp(String url) async {
+    isDownloading.value = true;
+    downloadProgress.value = 0.0;
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final filePath = '${tempDir.path}/sartarosh_update.apk';
+
+      final dio = Dio();
+      await dio.download(
+        url,
+        filePath,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            downloadProgress.value = received / total;
+          }
+        },
+      );
+
+      await OpenFilex.open(filePath);
+    } catch (e) {
+      Get.snackbar("Xatolik", "Ilovani yuklab olishda xatolik yuz berdi");
+    } finally {
+      isDownloading.value = false;
+    }
+  }
+
   void _showUpdateDialog({
     required String latestVersion,
     required bool isRequired,
     required String updateUrl,
     required String releaseNotes,
   }) {
+    // Reset state each time we show dialog
+    isDownloading.value = false;
+    downloadProgress.value = 0.0;
+
     Get.dialog(
       Dialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -128,61 +163,96 @@ class UpdateService extends GetxService {
                 style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
               ),
               SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  if (!isRequired)
-                    TextButton(
-                      onPressed: () => Get.back(),
-                      style: TextButton.styleFrom(
+              Obx(() {
+                if (isDownloading.value) {
+                  return Column(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: downloadProgress.value,
+                          minHeight: 8,
+                          backgroundColor: Colors.blue.withValues(alpha: 0.2),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.blue,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Center(
+                        child: Text(
+                          "${(downloadProgress.value * 100).toStringAsFixed(1)}% yuklandi",
+                          style: GoogleFonts.poppins(
+                            color: Colors.blue,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (!isRequired)
+                      TextButton(
+                        onPressed: () => Get.back(),
+                        style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 12,
+                          ),
+                        ),
+                        child: Text(
+                          "KEYINROQ",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black45,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    if (!isRequired) SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: () async {
+                        if (updateUrl.toLowerCase().endsWith('.apk')) {
+                          _downloadAndInstallApp(updateUrl);
+                        } else {
+                          final uri = Uri.parse(updateUrl);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          }
+                          if (!isRequired) Get.back();
+                        }
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
                         padding: EdgeInsets.symmetric(
-                          horizontal: 16,
+                          horizontal: 24,
                           vertical: 12,
+                        ),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: Text(
-                        "KEYINROQ",
+                        "YUKLAB OLISH",
                         style: GoogleFonts.poppins(
-                          color: Colors.black45,
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
                           fontSize: 13,
                         ),
                       ),
                     ),
-                  if (!isRequired) SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () async {
-                      final uri = Uri.parse(updateUrl);
-                      if (await canLaunchUrl(uri)) {
-                        await launchUrl(
-                          uri,
-                          mode: LaunchMode.externalApplication,
-                        );
-                      }
-                      if (!isRequired) Get.back();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(
-                      "YUKLAB OLISH",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                  ],
+                );
+              }),
             ],
           ),
         ),
