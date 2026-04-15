@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/utils/image_helper.dart';
 
 class BarberDetailView extends StatelessWidget {
   const BarberDetailView({super.key});
@@ -25,9 +26,9 @@ class BarberDetailView extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(
-                      barber['image'] ??
-                          'https://i.pravatar.cc/500?u=${barber['id']}',
+                    image: ImageHelper.getBarberImage(
+                      barber['image']?.toString(),
+                      barber['id']?.toString() ?? 'unknown',
                     ),
                     fit: BoxFit.cover,
                   ),

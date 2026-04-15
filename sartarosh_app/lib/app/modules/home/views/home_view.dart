@@ -6,6 +6,7 @@ import 'dart:convert';
 import '../controllers/home_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/utils/image_helper.dart';
 import '../../barber_dashboard/views/barber_dashboard_view.dart';
 import '../../barber_dashboard/controllers/barber_dashboard_controller.dart';
 import '../../barber_dashboard/bindings/barber_dashboard_binding.dart';
@@ -807,9 +808,9 @@ class HomeView extends GetView<HomeController> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
                         image: DecorationImage(
-                          image: NetworkImage(
-                            barber['image'] ??
-                                'https://i.pravatar.cc/400?u=${barber['id']}',
+                          image: ImageHelper.getBarberImage(
+                            barber['image']?.toString(),
+                            barber['id']?.toString() ?? 'unknown',
                           ),
                           fit: BoxFit.cover,
                         ),

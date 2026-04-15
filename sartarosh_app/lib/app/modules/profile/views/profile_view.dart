@@ -217,7 +217,6 @@ class ProfileView extends StatelessWidget {
   // ─── XIZMATLAR VA NARXLARNI TAHRIRLASH (BARBER MODE) ───
   void _showManageServices() {
     final userService = Get.find<UserService>();
-    final barberName = userService.name.value;
 
     Get.bottomSheet(
       Container(
@@ -277,7 +276,7 @@ class ProfileView extends StatelessWidget {
                   return StreamBuilder<QuerySnapshot>(
                     stream: FirebaseFirestore.instance
                         .collection('barbers')
-                        .where('name', isEqualTo: barberName)
+                        .where('uid', isEqualTo: userService.currentUid)
                         .snapshots(),
                     builder: (context, barberSnapshot) {
                       if (barberSnapshot.connectionState ==
@@ -300,229 +299,324 @@ class ProfileView extends StatelessWidget {
                               ?.cast<Map<String, dynamic>>() ??
                           [];
 
-                      return ListView.builder(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: globalServices.length,
-                        itemBuilder: (context, index) {
-                          final gSvc =
-                              globalServices[index].data()
-                                  as Map<String, dynamic>;
-                          final gName = gSvc['name'] ?? '';
-                          final gCat = gSvc['category'] ?? '';
-
-                          // Find if barber already has this service
-                          final existing = currentServices.firstWhere(
-                            (s) => s['name'] == gName,
-                            orElse: () =>
-                                <
-                                  String,
-                                  dynamic
-                                >{}, // Changed this line to ensure proper typing
-                          );
-
-                          final bool isEnabled = existing.isNotEmpty;
-                          final priceCtrl = TextEditingController(
-                            text: isEnabled
-                                ? existing['price']?.toString()
-                                : '',
-                          );
-                          final durationCtrl = TextEditingController(
-                            text: isEnabled
-                                ? existing['duration']?.toString()
-                                : '',
-                          );
-
-                          return Container(
-                            margin: const EdgeInsets.only(bottom: 16),
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isEnabled
-                                  ? AppTheme.primary.withValues(alpha: 0.05)
-                                  : AppTheme.background,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: isEnabled
-                                    ? AppTheme.primary.withValues(alpha: 0.3)
-                                    : AppTheme.textLight.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          gName,
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w700,
-                                            color: AppTheme.textDark,
-                                          ),
-                                        ),
-                                        Text(
-                                          gCat,
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: AppTheme.textMedium,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Switch(
-                                      value: isEnabled,
-                                      activeThumbColor: AppTheme.primary,
-                                      onChanged: (val) async {
-                                        final newServices =
-                                            List<Map<String, dynamic>>.from(
-                                              currentServices,
-                                            );
-                                        if (val) {
-                                          newServices.add({
-                                            'name': gName,
-                                            'price': 0,
-                                            'duration': 30,
-                                            'category': gCat,
-                                          });
-                                        } else {
-                                          newServices.removeWhere(
-                                            (s) => s['name'] == gName,
-                                          );
-                                        }
-                                        await barberDoc.reference.update({
-                                          'services': newServices,
-                                        });
-                                      },
-                                    ),
-                                  ],
-                                ),
-                                if (isEnabled) ...[
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: priceCtrl,
-                                          keyboardType: TextInputType.number,
-                                          decoration: InputDecoration(
-                                            labelText: "Narxi (so'm)",
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide.none,
-                                            ),
-                                          ),
-                                          onSubmitted: (val) async {
-                                            final price =
-                                                int.tryParse(val) ?? 0;
-                                            final newServices =
-                                                List<Map<String, dynamic>>.from(
-                                                  currentServices,
-                                                );
-                                            final idx = newServices.indexWhere(
-                                              (s) => s['name'] == gName,
-                                            );
-                                            if (idx != -1) {
-                                              newServices[idx]['price'] = price;
-                                              await barberDoc.reference.update({
-                                                'services': newServices,
-                                              });
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Expanded(
-                                        child: TextField(
-                                          controller: durationCtrl,
-                                          keyboardType: TextInputType.number,
-                                          decoration: InputDecoration(
-                                            labelText: "Vaqt (daqiqa)",
-                                            filled: true,
-                                            fillColor: Colors.white,
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              borderSide: BorderSide.none,
-                                            ),
-                                          ),
-                                          onSubmitted: (val) async {
-                                            final duration =
-                                                int.tryParse(val) ?? 30;
-                                            final newServices =
-                                                List<Map<String, dynamic>>.from(
-                                                  currentServices,
-                                                );
-                                            final idx = newServices.indexWhere(
-                                              (s) => s['name'] == gName,
-                                            );
-                                            if (idx != -1) {
-                                              newServices[idx]['duration'] =
-                                                  duration;
-                                              await barberDoc.reference.update({
-                                                'services': newServices,
-                                              });
-                                            }
-                                          },
-                                        ),
-                                      ),
-                                    ],
+                      return Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () async {
+                              final picker = ImagePicker();
+                              final XFile? image = await picker.pickImage(
+                                source: ImageSource.gallery,
+                                maxWidth: 800,
+                                maxHeight: 800,
+                                imageQuality: 85,
+                              );
+                              if (image != null) {
+                                final bytes = await image.readAsBytes();
+                                final base64String = base64Encode(bytes);
+                                await barberDoc.reference.update({
+                                  'image': base64String,
+                                });
+                                Get.snackbar(
+                                  'Muvaffaqiyatli',
+                                  'Muqova rasmi yangilandi',
+                                  backgroundColor: AppTheme.success,
+                                  colorText: Colors.white,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                );
+                              }
+                            },
+                            child: Container(
+                              margin: const EdgeInsets.all(16),
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.3,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton.icon(
-                                      onPressed: () async {
-                                        final price =
-                                            int.tryParse(priceCtrl.text) ?? 0;
-                                        final duration =
-                                            int.tryParse(durationCtrl.text) ??
-                                            30;
-                                        final newServices =
-                                            List<Map<String, dynamic>>.from(
-                                              currentServices,
-                                            );
-                                        final idx = newServices.indexWhere(
-                                          (s) => s['name'] == gName,
-                                        );
-                                        if (idx != -1) {
-                                          newServices[idx]['price'] = price;
-                                          newServices[idx]['duration'] =
-                                              duration;
-                                          await barberDoc.reference.update({
-                                            'services': newServices,
-                                          });
-                                          Get.snackbar(
-                                            "Saqlandi",
-                                            "$gName narxi yangilandi",
-                                            snackPosition: SnackPosition.BOTTOM,
-                                            backgroundColor: AppTheme.success,
-                                            colorText: Colors.white,
-                                          );
-                                        }
-                                      },
-                                      icon: const Icon(
-                                        Icons.check_circle_rounded,
-                                        size: 18,
-                                      ),
-                                      label: const Text("Saqlash"),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: AppTheme.primary,
-                                      ),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.photo_camera_back_rounded,
+                                    color: AppTheme.primary,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Muqova rasmini almashtirish",
+                                    style: TextStyle(
+                                      color: AppTheme.primary,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                                 ],
-                              ],
+                              ),
                             ),
-                          );
-                        },
+                          ),
+                          Expanded(
+                            child: ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
+                              itemCount: globalServices.length,
+                              itemBuilder: (context, index) {
+                                final gSvc =
+                                    globalServices[index].data()
+                                        as Map<String, dynamic>;
+                                final gName = gSvc['name'] ?? '';
+                                final gCat = gSvc['category'] ?? '';
+
+                                // Find if barber already has this service
+                                final existing = currentServices.firstWhere(
+                                  (s) => s['name'] == gName,
+                                  orElse: () =>
+                                      <
+                                        String,
+                                        dynamic
+                                      >{}, // Changed this line to ensure proper typing
+                                );
+
+                                final bool isEnabled = existing.isNotEmpty;
+                                final priceCtrl = TextEditingController(
+                                  text: isEnabled
+                                      ? existing['price']?.toString()
+                                      : '',
+                                );
+                                final durationCtrl = TextEditingController(
+                                  text: isEnabled
+                                      ? existing['duration']?.toString()
+                                      : '',
+                                );
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: isEnabled
+                                        ? AppTheme.primary.withValues(
+                                            alpha: 0.05,
+                                          )
+                                        : AppTheme.background,
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: isEnabled
+                                          ? AppTheme.primary.withValues(
+                                              alpha: 0.3,
+                                            )
+                                          : AppTheme.textLight.withValues(
+                                              alpha: 0.2,
+                                            ),
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                gName,
+                                                style: TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppTheme.textDark,
+                                                ),
+                                              ),
+                                              Text(
+                                                gCat,
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppTheme.textMedium,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          Switch(
+                                            value: isEnabled,
+                                            activeThumbColor: AppTheme.primary,
+                                            onChanged: (val) async {
+                                              final newServices =
+                                                  List<
+                                                    Map<String, dynamic>
+                                                  >.from(currentServices);
+                                              if (val) {
+                                                newServices.add({
+                                                  'name': gName,
+                                                  'price': 0,
+                                                  'duration': 30,
+                                                  'category': gCat,
+                                                });
+                                              } else {
+                                                newServices.removeWhere(
+                                                  (s) => s['name'] == gName,
+                                                );
+                                              }
+                                              await barberDoc.reference.update({
+                                                'services': newServices,
+                                              });
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                      if (isEnabled) ...[
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: TextField(
+                                                controller: priceCtrl,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: "Narxi (so'm)",
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    borderSide: BorderSide.none,
+                                                  ),
+                                                ),
+                                                onSubmitted: (val) async {
+                                                  final price =
+                                                      int.tryParse(val) ?? 0;
+                                                  final newServices =
+                                                      List<
+                                                        Map<String, dynamic>
+                                                      >.from(currentServices);
+                                                  final idx = newServices
+                                                      .indexWhere(
+                                                        (s) =>
+                                                            s['name'] == gName,
+                                                      );
+                                                  if (idx != -1) {
+                                                    newServices[idx]['price'] =
+                                                        price;
+                                                    await barberDoc.reference
+                                                        .update({
+                                                          'services':
+                                                              newServices,
+                                                        });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: TextField(
+                                                controller: durationCtrl,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                decoration: InputDecoration(
+                                                  labelText: "Vaqt (daqiqa)",
+                                                  filled: true,
+                                                  fillColor: Colors.white,
+                                                  border: OutlineInputBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          12,
+                                                        ),
+                                                    borderSide: BorderSide.none,
+                                                  ),
+                                                ),
+                                                onSubmitted: (val) async {
+                                                  final duration =
+                                                      int.tryParse(val) ?? 30;
+                                                  final newServices =
+                                                      List<
+                                                        Map<String, dynamic>
+                                                      >.from(currentServices);
+                                                  final idx = newServices
+                                                      .indexWhere(
+                                                        (s) =>
+                                                            s['name'] == gName,
+                                                      );
+                                                  if (idx != -1) {
+                                                    newServices[idx]['duration'] =
+                                                        duration;
+                                                    await barberDoc.reference
+                                                        .update({
+                                                          'services':
+                                                              newServices,
+                                                        });
+                                                  }
+                                                },
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Align(
+                                          alignment: Alignment.centerRight,
+                                          child: TextButton.icon(
+                                            onPressed: () async {
+                                              final price =
+                                                  int.tryParse(
+                                                    priceCtrl.text,
+                                                  ) ??
+                                                  0;
+                                              final duration =
+                                                  int.tryParse(
+                                                    durationCtrl.text,
+                                                  ) ??
+                                                  30;
+                                              final newServices =
+                                                  List<
+                                                    Map<String, dynamic>
+                                                  >.from(currentServices);
+                                              final idx = newServices
+                                                  .indexWhere(
+                                                    (s) => s['name'] == gName,
+                                                  );
+                                              if (idx != -1) {
+                                                newServices[idx]['price'] =
+                                                    price;
+                                                newServices[idx]['duration'] =
+                                                    duration;
+                                                await barberDoc.reference
+                                                    .update({
+                                                      'services': newServices,
+                                                    });
+                                                Get.snackbar(
+                                                  "Saqlandi",
+                                                  "$gName narxi yangilandi",
+                                                  snackPosition:
+                                                      SnackPosition.BOTTOM,
+                                                  backgroundColor:
+                                                      AppTheme.success,
+                                                  colorText: Colors.white,
+                                                );
+                                              }
+                                            },
+                                            icon: const Icon(
+                                              Icons.check_circle_rounded,
+                                              size: 18,
+                                            ),
+                                            label: const Text("Saqlash"),
+                                            style: TextButton.styleFrom(
+                                              foregroundColor: AppTheme.primary,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       );
                     },
                   );

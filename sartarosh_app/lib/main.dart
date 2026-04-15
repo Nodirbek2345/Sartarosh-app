@@ -5,6 +5,7 @@ import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 
 import 'core/services/user_service.dart';
+import 'core/services/update_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -24,6 +25,7 @@ void main() async {
   }
 
   await Get.putAsync(() => UserService().init());
+  await Get.putAsync(() => UpdateService().init());
 
   runApp(
     GetMaterialApp(

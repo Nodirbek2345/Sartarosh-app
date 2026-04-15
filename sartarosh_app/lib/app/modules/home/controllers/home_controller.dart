@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/services/update_service.dart';
 
 class HomeController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -24,6 +25,12 @@ class HomeController extends GetxController {
     _fetchServices();
     _fetchUpcomingBookings();
     _fetchPastBookings();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    Get.find<UpdateService>().checkUpdate();
   }
 
   void _fetchServices() {

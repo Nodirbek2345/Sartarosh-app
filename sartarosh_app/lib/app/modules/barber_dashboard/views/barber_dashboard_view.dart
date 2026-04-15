@@ -68,27 +68,32 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Salom, ${userService.name.value} 👋",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Salom, ${userService.name.value} 👋",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Usta boshqaruv paneli",
-                      style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontSize: 14,
+                      SizedBox(height: 4),
+                      Text(
+                        "Usta boshqaruv paneli",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                SizedBox(width: 8),
                 GestureDetector(
                   onTap: () {
                     userService.toggleBarberMode();
