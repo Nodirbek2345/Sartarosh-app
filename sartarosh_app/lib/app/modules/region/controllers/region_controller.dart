@@ -83,7 +83,7 @@ class RegionController extends GetxController {
       }
 
       final position = await Geolocator.getCurrentPosition(
-        locationSettings: LocationSettings(accuracy: LocationAccuracy.low),
+        locationSettings: LocationSettings(accuracy: LocationAccuracy.high),
       );
 
       final placemarks = await placemarkFromCoordinates(
@@ -92,8 +92,35 @@ class RegionController extends GetxController {
       );
 
       if (placemarks.isNotEmpty) {
-        final region = _matchRegion(placemarks.first);
-        _saveAndNavigate(region);
+        final place = placemarks.first;
+        final regionKey = _matchRegion(place);
+
+        // Ularni oynada tanlab qo'yamiz (lekin o'zgartirmaymiz/ketmaymiz)
+        selectRegion(regionKey);
+
+        // Aniq nima topilganini ko'rsatamiz
+        final street = place.street ?? '';
+        final subLocality = place.subLocality ?? '';
+        final locality = place.locality ?? '';
+        final adminArea = place.administrativeArea ?? '';
+
+        // Form a nice string
+        final parts = [
+          street,
+          subLocality,
+          locality,
+          adminArea,
+        ].where((e) => e.isNotEmpty).toList();
+        final exactPlace = parts.join(', ');
+
+        Get.snackbar(
+          "📍 Joylashuv aniqlandi",
+          exactPlace.isNotEmpty ? exactPlace : "$regionKey tanlandi",
+          backgroundColor: AppTheme.gold,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.TOP,
+          duration: Duration(seconds: 4),
+        );
       } else {
         _showError("Joylashuvni aniqlab bo'lmadi");
       }
