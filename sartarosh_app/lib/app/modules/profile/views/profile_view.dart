@@ -141,7 +141,9 @@ class ProfileView extends StatelessWidget {
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Obx(() {
-                    final isBarber = Get.find<UserService>().isBarberMode.value;
+                    final userService = Get.find<UserService>();
+                    final isBarber = userService.isBarberMode.value;
+                    final isBarberRole = userService.userRole.value == 'barber';
                     if (isBarber) {
                       return Column(
                         children: [
@@ -166,39 +168,43 @@ class ProfileView extends StatelessWidget {
                         ],
                       );
                     } else {
+                      int idx = 0;
                       return Column(
                         children: [
                           _menuItem(
                             Icons.calendar_month_rounded,
                             "Mening bronlarim",
-                            0,
+                            idx++,
                             () => Get.toNamed('/my-bookings'),
                           ),
-                          _menuItem(
-                            Icons.storefront_rounded,
-                            "Sartarosh sifatida qo'shilish",
-                            1,
-                            () => Get.toNamed('/add-barber'),
-                          ),
-                          _menuItem(
-                            Icons.swap_horiz_rounded,
-                            "Usta rejimiga o'tish",
-                            2,
-                            () {
-                              Get.find<UserService>().toggleBarberMode();
-                              Get.offAllNamed('/home');
-                            },
-                          ),
+                          // Faqat sartarosh rolidagi foydalanuvchilarga ko'rsatiladi
+                          if (isBarberRole) ...[
+                            _menuItem(
+                              Icons.storefront_rounded,
+                              "Sartarosh sifatida qo'shilish",
+                              idx++,
+                              () => Get.toNamed('/add-barber'),
+                            ),
+                            _menuItem(
+                              Icons.swap_horiz_rounded,
+                              "Usta rejimiga o'tish",
+                              idx++,
+                              () {
+                                userService.toggleBarberMode();
+                                Get.offAllNamed('/home');
+                              },
+                            ),
+                          ],
                           _menuItem(
                             Icons.settings_rounded,
                             "Sozlamalar",
-                            3,
+                            idx++,
                             () => _showSettings(),
                           ),
                           _menuItem(
                             Icons.help_outline_rounded,
                             "Yordam",
-                            4,
+                            idx++,
                             () => _showHelp(),
                           ),
                         ],

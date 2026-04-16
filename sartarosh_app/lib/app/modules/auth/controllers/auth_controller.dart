@@ -34,6 +34,8 @@ class AuthController extends GetxController {
 
       // Trigger Native Google Sign In
       final GoogleSignIn googleSignIn = GoogleSignIn(
+        clientId:
+            '328525443303-d5moa5bimo799ts4regh44uuhu21nsen.apps.googleusercontent.com',
         scopes: ['email', 'profile'],
       );
 
@@ -84,6 +86,7 @@ class AuthController extends GetxController {
           'phone': userPhone,
           'email': user.email ?? '',
           'photoUrl': userPhoto,
+          'role': 'client', // default, updated in welcome screen
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));

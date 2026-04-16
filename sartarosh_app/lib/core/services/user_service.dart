@@ -13,6 +13,7 @@ class UserService extends GetxService {
   final targetGender = 'male'.obs;
   final selectedRegion = ''.obs;
   final uid = ''.obs; // Firebase Auth UID for secure queries
+  final userRole = 'client'.obs; // 'client' or 'barber'
 
   late SharedPreferences _prefs;
 
@@ -37,6 +38,7 @@ class UserService extends GetxService {
     isBarberMode.value = _prefs.getBool('is_barber_mode') ?? false;
     targetGender.value = _prefs.getString('target_gender') ?? 'male';
     selectedRegion.value = _prefs.getString('selected_region') ?? '';
+    userRole.value = _prefs.getString('user_role') ?? 'client';
     uid.value = _prefs.getString('user_uid') ?? '';
 
     // Sync with Firebase Auth if available
@@ -92,6 +94,11 @@ class UserService extends GetxService {
     await _prefs.setString('selected_region', region);
   }
 
+  void setUserRole(String role) async {
+    userRole.value = role;
+    await _prefs.setString('user_role', role);
+  }
+
   void updateUser(String newName, String newPhone) async {
     if (newName.isNotEmpty) {
       name.value = newName;
@@ -115,6 +122,7 @@ class UserService extends GetxService {
     phone.value = "+998 -- --- -- --";
     isLogged.value = false;
     isBarberMode.value = false;
+    userRole.value = 'client';
     uid.value = '';
     favoriteBarberIds.clear();
     await _prefs.clear();
