@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -79,28 +78,27 @@ class UpdateService extends GetxService {
     try {
       final tempDir = await getTemporaryDirectory();
       final filePath = '${tempDir.path}/sartarosh_update.apk';
-      final file = File(filePath);
 
-      // Agar fayl allaqachon yuklangan bo'lsa, qayta yuklash kerak emas
-      if (await file.exists()) {
-        downloadProgress.value = 1.0;
-        await Future.delayed(Duration(milliseconds: 300));
-        await OpenFilex.open(filePath);
-      } else {
-        final dio = Dio();
-        await dio.download(
-          url,
-          filePath,
-          onReceiveProgress: (received, total) {
-            if (total != -1) {
-              downloadProgress.value = received / total;
-            }
-          },
-        );
-        await OpenFilex.open(filePath);
-      }
+      final dio = Dio();
+      await dio.download(
+        url,
+        filePath,
+        deleteOnError: true,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            downloadProgress.value = received / total;
+          }
+        },
+      );
+
+      await OpenFilex.open(filePath);
     } catch (e) {
-      Get.snackbar("Xatolik", "Ilovani yuklab olishda xatolik yuz berdi");
+      Get.snackbar(
+        "Xatolik",
+        "Ilovani yuklab olishda xatolik yuz berdi. URL ni tekshiring.",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
     } finally {
       isDownloading.value = false;
     }

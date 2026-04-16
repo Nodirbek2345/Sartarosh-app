@@ -137,36 +137,71 @@ class RegionController extends GetxController {
     final sub = (placemark.subAdministrativeArea ?? '').toLowerCase();
     final combined = '$admin $locality $sub';
 
-    if (combined.contains('toshkent') || combined.contains('tashkent')) {
-      return 'Toshkent';
-    } else if (combined.contains('andijon') || combined.contains('andijan')) {
+    // Surxondaryo — Google maps returns 'Surxondaryo Region', 'Surkhondaryо', 'Сурхандарья' etc.
+    if (combined.contains('surxon') ||
+        combined.contains('surkhan') ||
+        combined.contains('surkhon') ||
+        combined.contains('сурхан') ||
+        combined.contains('termiz') ||
+        combined.contains('termez')) {
+      return 'Surxondaryo';
+    } else if (combined.contains('qashqa') ||
+        combined.contains('kashka') ||
+        combined.contains('qashqadaryo') ||
+        combined.contains('кашкадарья')) {
+      return 'Qashqadaryo';
+    } else if (combined.contains('andijon') ||
+        combined.contains('andijan') ||
+        combined.contains('андижан')) {
       return 'Andijon';
-    } else if (combined.contains('farg') || combined.contains('fergana')) {
+    } else if (combined.contains('farg') ||
+        combined.contains('fergana') ||
+        combined.contains('фергана')) {
       return "Farg'ona";
-    } else if (combined.contains('namangan')) {
+    } else if (combined.contains('namangan') || combined.contains('наманган')) {
       return 'Namangan';
     } else if (combined.contains('samarqand') ||
-        combined.contains('samarkand')) {
+        combined.contains('samarkand') ||
+        combined.contains('самарканд')) {
       return 'Samarqand';
-    } else if (combined.contains('buxoro') || combined.contains('bukhara')) {
+    } else if (combined.contains('buxoro') ||
+        combined.contains('bukhara') ||
+        combined.contains('бухара')) {
       return 'Buxoro';
-    } else if (combined.contains('xorazm') || combined.contains('khorezm')) {
+    } else if (combined.contains('xorazm') ||
+        combined.contains('khorezm') ||
+        combined.contains('хорезм')) {
       return 'Xorazm';
-    } else if (combined.contains('qashqa') || combined.contains('kashka')) {
-      return 'Qashqadaryo';
-    } else if (combined.contains('surxon') || combined.contains('surkhan')) {
-      return 'Surxondaryo';
-    } else if (combined.contains('sirdaryo') || combined.contains('syrdarya')) {
+    } else if (combined.contains('sirdaryo') ||
+        combined.contains('syrdarya') ||
+        combined.contains('сырдарья')) {
       return 'Sirdaryo';
-    } else if (combined.contains('jizzax') || combined.contains('jizzakh')) {
+    } else if (combined.contains('jizzax') ||
+        combined.contains('jizzakh') ||
+        combined.contains('джизак')) {
       return 'Jizzax';
-    } else if (combined.contains('navoiy') || combined.contains('navoi')) {
+    } else if (combined.contains('navoiy') ||
+        combined.contains('navoi') ||
+        combined.contains('навои')) {
       return 'Navoiy';
     } else if (combined.contains('qoraqalpog') ||
-        combined.contains('karakalpak')) {
+        combined.contains('karakalpak') ||
+        combined.contains('каракалпак')) {
       return "Qoraqalpog'iston";
+    } else if (combined.contains('tashkent') ||
+        combined.contains('toshkent') ||
+        combined.contains('ташкент')) {
+      // Distinguish city from region
+      if (combined.contains('viloyat') ||
+          combined.contains('region') ||
+          combined.contains('oblast')) {
+        return 'Toshkent viloyati';
+      }
+      return 'Toshkent';
     }
-    return 'Toshkent';
+
+    // Aniqlash imkoni bo'lmasa bo'sh qaytaramiz (Toshkentga majburan yo'naltirmaymiz)
+    return '';
   }
 
   void _saveAndNavigate(String region) {
