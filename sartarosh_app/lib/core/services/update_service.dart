@@ -104,96 +104,132 @@ class UpdateService extends GetxService {
     required String updateUrl,
     required String releaseNotes,
   }) {
-    // Reset state each time we show dialog
     isDownloading.value = false;
     downloadProgress.value = 0.0;
 
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: Container(
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: Obx(() {
+          if (isDownloading.value) {
+            // === NEW DARK UI: LOADING BAR (IMAGE 2) ===
+            return Container(
+              padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.9), // Dark background
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      Icons.download_rounded,
-                      color: Colors.blue,
-                      size: 24,
+                  Text(
+                    "Loading",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      "Yangilanish mavjud!",
-                      style: GoogleFonts.poppins(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Text(
-                releaseNotes,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: Colors.black87.withValues(alpha: 0.8),
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: 16),
-              Text(
-                "Sizdagi versiya: $currentVersion",
-                style: GoogleFonts.poppins(fontSize: 13, color: Colors.black54),
-              ),
-              SizedBox(height: 24),
-              Obx(() {
-                if (isDownloading.value) {
-                  return Column(
+                  SizedBox(height: 16),
+                  Stack(
                     children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(4),
-                        child: LinearProgressIndicator(
-                          value: downloadProgress.value,
-                          minHeight: 8,
-                          backgroundColor: Colors.blue.withValues(alpha: 0.2),
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.blue,
+                      Container(
+                        height: 24,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: Colors
+                              .transparent, // Background of the bar string
+                          border: Border.all(color: Colors.white, width: 3),
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: downloadProgress.value,
+                        child: Container(
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: Colors.deepOrange,
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Center(
-                        child: Text(
-                          "${(downloadProgress.value * 100).toStringAsFixed(1)}% yuklandi",
-                          style: GoogleFonts.poppins(
-                            color: Colors.blue,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
+                      Positioned.fill(
+                        child: Center(
+                          child: Text(
+                            "${(downloadProgress.value * 100).toStringAsFixed(0)}%",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
                     ],
-                  );
-                }
+                  ),
+                ],
+              ),
+            );
+          }
 
-                return Row(
+          // === STANDARD UPDATE DIALOG (IMAGE 1) ===
+          return Container(
+            padding: EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.download_rounded,
+                        color: Colors.blue,
+                        size: 24,
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Yangilanish mavjud!",
+                        style: GoogleFonts.poppins(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  releaseNotes,
+                  style: GoogleFonts.poppins(
+                    fontSize: 14,
+                    color: Colors.black87.withValues(alpha: 0.8),
+                    height: 1.5,
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(
+                  "Sizdagi versiya: $currentVersion",
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.black54,
+                  ),
+                ),
+                SizedBox(height: 24),
+                Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (!isRequired)
@@ -217,7 +253,9 @@ class UpdateService extends GetxService {
                     if (!isRequired) SizedBox(width: 8),
                     ElevatedButton(
                       onPressed: () async {
-                        if (updateUrl.toLowerCase().endsWith('.apk')) {
+                        // Agar URL .apk bilan tugasa YOKI Github Releases bo'lsa
+                        if (updateUrl.toLowerCase().endsWith('.apk') ||
+                            updateUrl.contains('github.com')) {
                           _downloadAndInstallApp(updateUrl);
                         } else {
                           final uri = Uri.parse(updateUrl);
@@ -251,11 +289,11 @@ class UpdateService extends GetxService {
                       ),
                     ),
                   ],
-                );
-              }),
-            ],
-          ),
-        ),
+                ),
+              ],
+            ),
+          );
+        }),
       ),
       barrierDismissible: !isRequired,
     );
