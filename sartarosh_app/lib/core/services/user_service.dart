@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserService extends GetxService {
@@ -12,40 +13,48 @@ class UserService extends GetxService {
   final isBarberMode = false.obs;
   final targetGender = 'male'.obs;
   final selectedRegion = ''.obs;
-  final uid = ''.obs; // Firebase Auth UID for secure queries
-  final userRole = 'client'.obs; // 'client' or 'barber'
+  final uid = ''.obs;
+  final userRole = 'client'.obs;
 
-  late SharedPreferences _prefs;
+  late FlutterSecureStorage _storage;
 
-  /// Get current Firebase Auth UID (live)
   String get currentUid {
     final firebaseUser = FirebaseAuth.instance.currentUser;
     return firebaseUser?.uid ?? uid.value;
   }
 
-  /// Check if user is truly authenticated
   bool get isAuthenticated =>
       FirebaseAuth.instance.currentUser != null && isLogged.value;
 
   Future<UserService> init() async {
-    _prefs = await SharedPreferences.getInstance();
-    name.value = _prefs.getString('user_name') ?? "Mijoz";
-    phone.value = _prefs.getString('user_phone') ?? "+998 -- --- -- --";
-    isLogged.value = _prefs.getBool('is_logged') ?? false;
-    avatarBase64.value = _prefs.getString('user_avatar') ?? "";
-    photoUrl.value = _prefs.getString('user_photo_url') ?? "";
-    favoriteBarberIds.value = _prefs.getStringList('favorite_barbers') ?? [];
-    isBarberMode.value = _prefs.getBool('is_barber_mode') ?? false;
-    targetGender.value = _prefs.getString('target_gender') ?? 'male';
-    selectedRegion.value = _prefs.getString('selected_region') ?? '';
-    userRole.value = _prefs.getString('user_role') ?? 'client';
-    uid.value = _prefs.getString('user_uid') ?? '';
+    _storage = const FlutterSecureStorage();
 
-    // Sync with Firebase Auth if available
+    name.value = await _storage.read(key: 'user_name') ?? "Mijoz";
+    phone.value = await _storage.read(key: 'user_phone') ?? "+998 -- --- -- --";
+    isLogged.value = (await _storage.read(key: 'is_logged')) == 'true';
+    avatarBase64.value = await _storage.read(key: 'user_avatar') ?? "";
+    photoUrl.value = await _storage.read(key: 'user_photo_url') ?? "";
+
+    final favListString = await _storage.read(key: 'favorite_barbers');
+    if (favListString != null && favListString.isNotEmpty) {
+      try {
+        favoriteBarberIds.value = List<String>.from(jsonDecode(favListString));
+      } catch (e) {
+        favoriteBarberIds.value = [];
+      }
+    }
+
+    isBarberMode.value = (await _storage.read(key: 'is_barber_mode')) == 'true';
+    targetGender.value = await _storage.read(key: 'target_gender') ?? 'male';
+    selectedRegion.value = await _storage.read(key: 'selected_region') ?? '';
+    userRole.value = await _storage.read(key: 'user_role') ?? 'client';
+    uid.value = await _storage.read(key: 'user_uid') ?? '';
+
+    // Sync with Firebase Auth
     final firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser != null && uid.value.isEmpty) {
       uid.value = firebaseUser.uid;
-      await _prefs.setString('user_uid', firebaseUser.uid);
+      await _storage.write(key: 'user_uid', value: firebaseUser.uid);
     }
 
     return this;
@@ -57,7 +66,10 @@ class UserService extends GetxService {
     } else {
       favoriteBarberIds.add(barberId);
     }
-    await _prefs.setStringList('favorite_barbers', favoriteBarberIds.toList());
+    await _storage.write(
+      key: 'favorite_barbers',
+      value: jsonEncode(favoriteBarberIds.toList()),
+    );
   }
 
   bool isFavorite(String barberId) {
@@ -66,54 +78,56 @@ class UserService extends GetxService {
 
   void updateAvatar(String base64Image) async {
     avatarBase64.value = base64Image;
-    await _prefs.setString('user_avatar', base64Image);
+    await _storage.write(key: 'user_avatar', value: base64Image);
   }
 
   void updatePhotoUrl(String url) async {
     photoUrl.value = url;
-    await _prefs.setString('user_photo_url', url);
+    await _storage.write(key: 'user_photo_url', value: url);
   }
 
   void updateUid(String newUid) async {
     uid.value = newUid;
-    await _prefs.setString('user_uid', newUid);
+    await _storage.write(key: 'user_uid', value: newUid);
   }
 
   void toggleBarberMode() async {
     isBarberMode.value = !isBarberMode.value;
-    await _prefs.setBool('is_barber_mode', isBarberMode.value);
+    await _storage.write(
+      key: 'is_barber_mode',
+      value: isBarberMode.value.toString(),
+    );
   }
 
   void setTargetGender(String gender) async {
     targetGender.value = gender;
-    await _prefs.setString('target_gender', gender);
+    await _storage.write(key: 'target_gender', value: gender);
   }
 
   void setRegion(String region) async {
     selectedRegion.value = region;
-    await _prefs.setString('selected_region', region);
+    await _storage.write(key: 'selected_region', value: region);
   }
 
   void setUserRole(String role) async {
     userRole.value = role;
-    await _prefs.setString('user_role', role);
+    await _storage.write(key: 'user_role', value: role);
   }
 
   void updateUser(String newName, String newPhone) async {
     if (newName.isNotEmpty) {
       name.value = newName;
-      await _prefs.setString('user_name', newName);
+      await _storage.write(key: 'user_name', value: newName);
     }
     if (newPhone.isNotEmpty) {
       phone.value = newPhone;
-      await _prefs.setString('user_phone', newPhone);
+      await _storage.write(key: 'user_phone', value: newPhone);
     }
     isLogged.value = true;
-    await _prefs.setBool('is_logged', true);
+    await _storage.write(key: 'is_logged', value: 'true');
   }
 
   Future<void> logout() async {
-    // Sign out from Firebase Auth
     try {
       await FirebaseAuth.instance.signOut();
     } catch (_) {}
@@ -125,6 +139,6 @@ class UserService extends GetxService {
     userRole.value = 'client';
     uid.value = '';
     favoriteBarberIds.clear();
-    await _prefs.clear();
+    await _storage.deleteAll();
   }
 }

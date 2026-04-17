@@ -1,0 +1,65 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Foydalanuvchi tizimga kirganligini tekshirish
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    // --------------------------------------------------------
+    // 1. Foydalanuvchilar (Users) To'plami
+    // --------------------------------------------------------
+    match /users/{userId} {
+      // Faqat o'zi ko'ra oladi va yozadi
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+    
+    // --------------------------------------------------------
+    // 2. Sartaroshlar (Barbers) To'plami
+    // --------------------------------------------------------
+    match /barbers/{barberDocId} {
+      // Hammaga o'qish ruxsat (ro'yxat uchun)
+      allow read: if true;
+      
+      // Yangi sartarosh kiritilganda uning "uid" si token uid (auth.uid) ga aynan teng bo'lishi MAJBURIY
+      allow create: if isSignedIn() 
+                    && request.resource.data.uid == request.auth.uid;
+      
+      // Yangilashda eskirib qolgan uid bilan auth uid bir xil bo'lishi va uid ni umuman o'zgartira olmasligi kerak (injection guard)
+      allow update: if isSignedIn() 
+                    && resource.data.uid == request.auth.uid 
+                    && request.resource.data.uid == resource.data.uid; // qat'iy himoya
+                    
+      // O'chirish faqat hujjat egasiga ruxsat
+      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // --------------------------------------------------------
+    // 3. Xizmatlar (Services) To'plami (Faqat Admin)
+    // --------------------------------------------------------
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if false; // Tizim tarafidan kiritiladi, mijoz yo usta tegolmaydi
+    }
+
+    // --------------------------------------------------------
+    // 4. Bronlar (Bookings) To'plami
+    // --------------------------------------------------------
+    match /bookings/{bookingId} {
+      // Ro'yxatdan o'tganlar (ustalar) o'qiy oladi
+      allow read: if isSignedIn();
+      
+      // "clientUid" mijozning o'zi (auth.uid) ga tegishli bo'lsa yaratiladi, faqat mijoz o'zi nomidan yozadi
+      allow create: if isSignedIn() 
+                    && request.resource.data.clientUid == request.auth.uid;
+      
+      // Bron o'zgarayotganda (masalan sartarosh qabul qilganda) hujjatning original clientUid si o'zgartirilmasligi kerak (hakker klient idsini o'zgartira olmaydi)
+      allow update: if isSignedIn() 
+                    && request.resource.data.clientUid == resource.data.clientUid;
+                    
+      // Faqat bronning mijozi uni o'chirib yuborishi mumkin
+      allow delete: if isSignedIn() && resource.data.clientUid == request.auth.uid;
+    }
+  }
+}

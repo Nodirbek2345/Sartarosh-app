@@ -604,7 +604,59 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
               ),
             ],
           ),
-          if (status == 'pending' || status == 'confirmed') ...[
+          if (status == 'pending') ...[
+            SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => controller.acceptBooking(booking['docId']),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.success.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Qabul qilish",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.success,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () => controller.rejectBooking(booking['docId']),
+                    child: Container(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.redAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "Qaytarish",
+                          style: GoogleFonts.poppins(
+                            color: Colors.redAccent,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (status == 'confirmed') ...[
             SizedBox(height: 14),
             Row(
               children: [

@@ -88,7 +88,7 @@ class BarberDetailView extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 20),
+              padding: EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -322,7 +322,7 @@ class BarberDetailView extends StatelessWidget {
 
           // CTA
           Container(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 28),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 20),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [

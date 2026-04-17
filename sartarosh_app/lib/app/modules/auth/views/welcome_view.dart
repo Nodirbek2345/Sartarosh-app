@@ -27,7 +27,7 @@ class WelcomeView extends GetView<AuthController> {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: 16),
             child: Obx(
               () => currentStep.value == 0
                   ? _buildRoleSelection(currentStep)
@@ -219,7 +219,7 @@ class WelcomeView extends GetView<AuthController> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 28, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -293,7 +293,7 @@ class WelcomeView extends GetView<AuthController> {
         controller.goToHome();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 30, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),

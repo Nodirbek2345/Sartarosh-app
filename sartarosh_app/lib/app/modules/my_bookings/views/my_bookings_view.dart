@@ -25,10 +25,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
           elevation: 0,
           centerTitle: true,
           leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_rounded,
-              color: AppTheme.textDark,
-            ),
+            icon: Icon(Icons.arrow_back_rounded, color: AppTheme.textDark),
             onPressed: () => Get.back(),
           ),
           bottom: TabBar(
@@ -86,14 +83,14 @@ class MyBookingsView extends GetView<MyBookingsController> {
     }
 
     return ListView.builder(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16),
       physics: BouncingScrollPhysics(),
       itemCount: items.length,
       itemBuilder: (context, index) {
         final b = items[index];
         final status = b['status'] ?? 'pending';
         return Container(
-              margin: EdgeInsets.only(bottom: 16),
+              margin: EdgeInsets.only(bottom: 12),
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.white,

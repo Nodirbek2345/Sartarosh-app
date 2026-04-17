@@ -175,7 +175,7 @@ class HomeView extends GetView<HomeController> {
   // ─── SEARCH BAR ───
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+      padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -226,11 +226,11 @@ class HomeView extends GetView<HomeController> {
         (a, b) => (a['rating'] ?? 0) >= (b['rating'] ?? 0) ? a : b,
       );
       return Padding(
-        padding: EdgeInsets.fromLTRB(20, 16, 20, 4),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 4),
         child: GestureDetector(
           onTap: () => Get.toNamed('/barber-detail', arguments: featured),
           child: Container(
-            height: 180,
+            height: 150,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
@@ -398,7 +398,7 @@ class HomeView extends GetView<HomeController> {
       }
 
       return Padding(
-        padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+        padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -490,7 +490,7 @@ class HomeView extends GetView<HomeController> {
   // ─── SECTION TITLE ───
   Widget _buildSectionTitle(String title, String action) {
     return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 12),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -526,11 +526,11 @@ class HomeView extends GetView<HomeController> {
         // If there's an upcoming booking, they don't necessarily need a strict 'rebook' right now.
         // We can just show standard upcoming booking overview.
         return Padding(
-          padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+          padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: GestureDetector(
             onTap: () => Get.toNamed('/my-bookings'),
             child: Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -609,7 +609,7 @@ class HomeView extends GetView<HomeController> {
       final smartRecommendationText = controller.smartRecommendationText.value;
 
       return Padding(
-        padding: EdgeInsets.fromLTRB(20, 12, 20, 0),
+        padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: GestureDetector(
           onTap: () {
             // Find the barber reference
@@ -784,8 +784,8 @@ class HomeView extends GetView<HomeController> {
     return GestureDetector(
           onTap: () => Get.toNamed('/barber-detail', arguments: barber),
           child: Container(
-            margin: EdgeInsets.only(bottom: 14),
-            padding: EdgeInsets.all(14),
+            margin: EdgeInsets.only(bottom: 12),
+            padding: EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
@@ -1321,15 +1321,16 @@ class HomeView extends GetView<HomeController> {
               ),
               Divider(color: AppTheme.background, height: 30),
               // Settings / Role Toggle
-              _menuItem(
-                icon: Icons.storefront_rounded,
-                title: "Usta rejimiga o'tish",
-                color: AppTheme.primary,
-                onTap: () {
-                  Get.back();
-                  userService.toggleBarberMode();
-                },
-              ),
+              if (userService.userRole.value == 'barber')
+                _menuItem(
+                  icon: Icons.storefront_rounded,
+                  title: "Usta rejimiga o'tish",
+                  color: AppTheme.primary,
+                  onTap: () {
+                    Get.back();
+                    userService.toggleBarberMode();
+                  },
+                ),
               _menuItem(
                 icon: Icons.logout_rounded,
                 title: "Tizimdan chiqish",

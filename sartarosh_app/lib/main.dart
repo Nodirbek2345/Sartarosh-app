@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 
@@ -20,6 +21,7 @@ void main() async {
         storageBucket: "sartarosh-eaf90.firebasestorage.app",
       ),
     );
+    await FirebaseAppCheck.instance.activate();
   } catch (e) {
     debugPrint("Firebase init error: $e");
   }

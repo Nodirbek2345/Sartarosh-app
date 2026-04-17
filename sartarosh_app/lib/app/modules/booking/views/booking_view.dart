@@ -76,7 +76,7 @@ class BookingView extends GetView<BookingController> {
 
   Widget _step1(Color bgColor, Color cardColor, Color goldColor) {
     return Padding(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -84,7 +84,7 @@ class BookingView extends GetView<BookingController> {
             "Xizmatni tanlang",
             style: GoogleFonts.playfairDisplay(
               color: goldColor,
-              fontSize: 26,
+              fontSize: 22,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w800,
               height: 1.2,
@@ -93,9 +93,9 @@ class BookingView extends GetView<BookingController> {
           SizedBox(height: 6),
           Text(
             "Siz uchun eng yaxshi usta tanlandi",
-            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 14),
+            style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13),
           ).animate().fadeIn(delay: 100.ms),
-          SizedBox(height: 24),
+          SizedBox(height: 16),
           Expanded(
             child: Obx(
               () => ListView.builder(
@@ -208,7 +208,7 @@ class BookingView extends GetView<BookingController> {
   Widget _modernBookingForm(Color bgColor, Color cardColor, Color goldColor) {
     return SingleChildScrollView(
       physics: BouncingScrollPhysics(),
-      padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -222,7 +222,7 @@ class BookingView extends GetView<BookingController> {
                 "Sana tanlang",
                 style: GoogleFonts.playfairDisplay(
                   color: goldColor,
-                  fontSize: 24,
+                  fontSize: 20,
                   fontStyle: FontStyle.italic,
                   fontWeight: FontWeight.w700,
                 ),
@@ -241,41 +241,41 @@ class BookingView extends GetView<BookingController> {
               }),
             ],
           ).animate().fadeIn(delay: 100.ms),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           // CALENDAR CARD
           _buildCalendarCard(cardColor, goldColor),
 
-          SizedBox(height: 32),
+          SizedBox(height: 24),
 
           // VAQT TANLANG
           Text(
             "Vaqt tanlang",
             style: GoogleFonts.playfairDisplay(
               color: goldColor,
-              fontSize: 24,
+              fontSize: 20,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w700,
             ),
           ).animate().fadeIn(delay: 200.ms),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           _buildTimeSlots(goldColor),
 
-          SizedBox(height: 32),
+          SizedBox(height: 24),
 
           // XIZMAT MA'LUMOTLARI
           Text(
             "Xizmat ma'lumotlari",
             style: GoogleFonts.playfairDisplay(
               color: goldColor,
-              fontSize: 24,
+              fontSize: 20,
               fontStyle: FontStyle.italic,
               fontWeight: FontWeight.w700,
             ),
           ).animate().fadeIn(delay: 300.ms),
-          SizedBox(height: 16),
+          SizedBox(height: 12),
           _buildServiceInfoCard(cardColor, goldColor),
 
-          SizedBox(height: 32),
+          SizedBox(height: 24),
 
           // CONFIRM BUTTON
           Obx(
@@ -287,7 +287,7 @@ class BookingView extends GetView<BookingController> {
                   : () => controller.confirmBooking(),
               child: Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 18),
+                padding: EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
                   color: controller.selectedTime.value.isNotEmpty
                       ? goldColor
@@ -297,8 +297,8 @@ class BookingView extends GetView<BookingController> {
                       ? [
                           BoxShadow(
                             color: goldColor.withValues(alpha: 0.3),
-                            blurRadius: 16,
-                            offset: Offset(0, 6),
+                            blurRadius: 12,
+                            offset: Offset(0, 4),
                           ),
                         ]
                       : [],
@@ -312,7 +312,7 @@ class BookingView extends GetView<BookingController> {
                       color: controller.selectedTime.value.isNotEmpty
                           ? Color(0xFF141522)
                           : Colors.white60,
-                      fontSize: 17,
+                      fontSize: 15,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -320,7 +320,7 @@ class BookingView extends GetView<BookingController> {
               ),
             ),
           ).animate().fadeIn(delay: 400.ms),
-          SizedBox(height: 30),
+          SizedBox(height: 20),
         ],
       ),
     );
@@ -328,7 +328,7 @@ class BookingView extends GetView<BookingController> {
 
   Widget _buildCalendarCard(Color cardColor, Color goldColor) {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -420,46 +420,68 @@ class BookingView extends GetView<BookingController> {
 
   Widget _buildTimeSlots(Color goldColor) {
     return Obx(() {
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          childAspectRatio: 2.2,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-        ),
-        itemCount: controller.availableTimes.length,
-        itemBuilder: (context, i) {
-          final t = controller.availableTimes[i];
-          bool isSelected = controller.selectedTime.value == t;
-          return GestureDetector(
-            onTap: () => controller.selectTime(t),
-            child: Container(
-              decoration: BoxDecoration(
-                color: isSelected ? goldColor : Color(0xFF282A40),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Center(
-                child: Text(
-                  t,
-                  style: GoogleFonts.poppins(
-                    color: isSelected ? Color(0xFF141522) : Colors.white70,
-                    fontSize: 16,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+      final t = controller.selectedTime.value;
+      return GestureDetector(
+        onTap: () async {
+          final TimeOfDay? picked = await showTimePicker(
+            context: Get.context!,
+            initialTime: TimeOfDay.now(),
+            builder: (context, child) {
+              return Theme(
+                data: ThemeData.dark().copyWith(
+                  colorScheme: ColorScheme.dark(
+                    primary: goldColor,
+                    onPrimary: Colors.black,
+                    surface: Color(0xFF282A40),
+                    onSurface: Colors.white,
                   ),
                 ),
-              ),
-            ),
+                child: child!,
+              );
+            },
           );
+          if (picked != null) {
+            final formattedTime =
+                '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
+            controller.selectTime(formattedTime);
+          }
         },
+        child: Container(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+          decoration: BoxDecoration(
+            color: Color(0xFF282A40),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: t.isNotEmpty ? goldColor : Colors.transparent,
+              width: 1.5,
+            ),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                t.isNotEmpty ? t : "Soat va daqiqani tanlang",
+                style: GoogleFonts.poppins(
+                  color: t.isNotEmpty ? Colors.white : Colors.white60,
+                  fontSize: 16,
+                  fontWeight: t.isNotEmpty ? FontWeight.w600 : FontWeight.w500,
+                ),
+              ),
+              Icon(
+                Icons.access_time_rounded,
+                color: t.isNotEmpty ? goldColor : Colors.white60,
+              ),
+            ],
+          ),
+        ),
       );
     }).animate().fadeIn(delay: 250.ms);
   }
 
   Widget _buildServiceInfoCard(Color cardColor, Color goldColor) {
     return Container(
-      padding: EdgeInsets.all(20),
+      padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: cardColor,
         borderRadius: BorderRadius.circular(20),
@@ -548,7 +570,7 @@ class BookingView extends GetView<BookingController> {
         onTap: onTap,
         child: Container(
           width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 18),
+          padding: EdgeInsets.symmetric(vertical: 14),
           decoration: BoxDecoration(
             color: onTap != null ? goldColor : goldColor.withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
@@ -556,8 +578,8 @@ class BookingView extends GetView<BookingController> {
                 ? [
                     BoxShadow(
                       color: goldColor.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: Offset(0, 6),
+                      blurRadius: 12,
+                      offset: Offset(0, 4),
                     ),
                   ]
                 : [],

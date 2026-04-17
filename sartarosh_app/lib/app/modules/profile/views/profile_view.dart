@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/services/update_service.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -19,7 +20,7 @@ class ProfileView extends StatelessWidget {
         children: [
           // Header
           Container(
-            padding: EdgeInsets.fromLTRB(20, 12, 20, 28),
+            padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
             decoration: BoxDecoration(
               gradient: AppTheme.darkGradient,
               borderRadius: BorderRadius.only(
@@ -137,7 +138,7 @@ class ProfileView extends StatelessWidget {
             child: SafeArea(
               top: false,
               child: Padding(
-                padding: EdgeInsets.all(20),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Obx(() {
@@ -245,7 +246,7 @@ class ProfileView extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               child: Row(
                 children: [
                   Icon(
@@ -661,7 +662,7 @@ class ProfileView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.fromLTRB(24, 12, 24, 32),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -897,7 +898,7 @@ class ProfileView extends StatelessWidget {
   void _showHelp() {
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.fromLTRB(24, 12, 24, 32),
+        padding: EdgeInsets.fromLTRB(16, 12, 16, 24),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -945,8 +946,11 @@ class ProfileView extends StatelessWidget {
             _helpItem(
               Icons.info_outline_rounded,
               "Ilova versiyasi",
-              "1.0.0",
-              null,
+              "${Get.find<UpdateService>().currentVersion} (Tekshirish)",
+              () {
+                Get.back();
+                Get.find<UpdateService>().checkUpdate();
+              },
             ),
             SizedBox(height: 12),
             Container(
@@ -1047,7 +1051,7 @@ class ProfileView extends StatelessWidget {
       child: GestureDetector(
         onTap: onTap,
         child: Container(
-          padding: EdgeInsets.all(18),
+          padding: EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(16),
@@ -1126,8 +1130,8 @@ class ProfileView extends StatelessWidget {
               : "Yana $visitsLeft ta tashrif qoldi";
 
           return Container(
-            margin: EdgeInsets.fromLTRB(20, 20, 20, 0),
-            padding: EdgeInsets.all(20),
+            margin: EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),

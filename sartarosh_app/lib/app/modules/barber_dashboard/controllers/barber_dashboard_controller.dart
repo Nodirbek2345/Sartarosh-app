@@ -158,6 +158,18 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  Future<void> acceptBooking(String docId) async {
+    await _firestore.collection('bookings').doc(docId).update({
+      'status': 'confirmed',
+    });
+  }
+
+  Future<void> rejectBooking(String docId) async {
+    await _firestore.collection('bookings').doc(docId).update({
+      'status': 'cancelled',
+    });
+  }
+
   Future<void> startClient(String docId) async {
     await _firestore.collection('bookings').doc(docId).update({
       'status': 'in-progress',
