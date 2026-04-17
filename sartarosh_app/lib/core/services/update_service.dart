@@ -72,16 +72,48 @@ class UpdateService extends GetxService {
     return false;
   }
 
+  Future<String> _resolveGithubUrl(String url) async {
+    if (url.contains('github.com') && !url.endsWith('.apk')) {
+      try {
+        final uri = Uri.parse(url);
+        final pathSegments = uri.pathSegments;
+        if (pathSegments.length >= 2) {
+          final owner = pathSegments[0];
+          final repo = pathSegments[1];
+          final apiUrl =
+              "https://api.github.com/repos/$owner/$repo/releases/latest";
+          final dio = Dio();
+          final response = await dio.get(apiUrl);
+          final assets = response.data['assets'] as List?;
+          if (assets != null) {
+            for (var asset in assets) {
+              final dlUrl = asset['browser_download_url'] as String?;
+              if (dlUrl != null && dlUrl.endsWith('.apk')) {
+                return dlUrl;
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("GitHub release URL ni resolve qilishda xatolik: $e");
+      }
+    }
+    return url;
+  }
+
   Future<void> _downloadAndInstallApp(String url) async {
     isDownloading.value = true;
     downloadProgress.value = 0.0;
     try {
-      final tempDir = await getTemporaryDirectory();
-      final filePath = '${tempDir.path}/sartarosh_update.apk';
+      final resolvedUrl = await _resolveGithubUrl(url);
+
+      var dir = await getExternalStorageDirectory();
+      dir ??= await getTemporaryDirectory();
+      final filePath = '${dir.path}/sartarosh_update.apk';
 
       final dio = Dio();
       await dio.download(
-        url,
+        resolvedUrl,
         filePath,
         deleteOnError: true,
         onReceiveProgress: (received, total) {
