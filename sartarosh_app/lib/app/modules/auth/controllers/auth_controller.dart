@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../../core/utils/input_sanitizer.dart';
 
 class AuthController extends GetxController {
@@ -90,6 +91,11 @@ class AuthController extends GetxController {
           'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
+
+        // Upload FCM token for new user
+        if (Get.isRegistered<NotificationService>()) {
+          Get.find<NotificationService>().uploadTokenIfNeeded();
+        }
 
         Get.snackbar(
           "Muvaffaqiyatli!",

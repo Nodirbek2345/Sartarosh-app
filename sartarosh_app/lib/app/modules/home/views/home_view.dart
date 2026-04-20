@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:convert';
 import '../controllers/home_controller.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -34,38 +35,63 @@ class HomeView extends GetView<HomeController> {
       backgroundColor: AppTheme.background,
       body: Obx(() {
         if (controller.isLoading.value) {
-          return Center(
-            child: CircularProgressIndicator(color: AppTheme.primary),
-          );
-        }
-        return CustomScrollView(
-          physics: BouncingScrollPhysics(),
-          slivers: [
-            SliverToBoxAdapter(child: _buildHeader()),
-            SliverToBoxAdapter(child: _buildSearchBar()),
-            SliverToBoxAdapter(child: _buildQuickAction()),
-            SliverToBoxAdapter(child: _buildBarberOfWeek()),
-            SliverToBoxAdapter(child: _buildCategories()),
-            SliverToBoxAdapter(
-              child: _buildSectionTitle("Yaqindagi ustalar", "Barchasi"),
-            ),
-            if (controller.rxBarbers.isEmpty)
-              SliverToBoxAdapter(child: _buildEmptyState())
-            else
-              SliverPadding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20,
-                ).copyWith(bottom: 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) => _buildBarberListItem(
-                      controller.rxBarbers[index],
-                      index,
-                    ),
-                    childCount: controller.rxBarbers.length,
-                  ),
+          return Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(color: AppTheme.primary),
                 ),
               ),
+            ],
+          );
+        }
+        return Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  controller.refreshBarbers();
+                  await Future.delayed(const Duration(milliseconds: 1000));
+                },
+                color: AppTheme.primary,
+                child: CustomScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  slivers: [
+                    SliverToBoxAdapter(child: _buildSearchBar()),
+                    SliverToBoxAdapter(child: _buildQuickAction()),
+                    SliverToBoxAdapter(child: _buildBarberOfWeek()),
+                    SliverToBoxAdapter(child: _buildCategories()),
+                    SliverToBoxAdapter(
+                      child: _buildSectionTitle(
+                        "Yaqindagi ustalar",
+                        "Barchasi",
+                      ),
+                    ),
+                    if (controller.rxBarbers.isEmpty)
+                      SliverToBoxAdapter(child: _buildEmptyState())
+                    else
+                      SliverPadding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20,
+                        ).copyWith(bottom: 100),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildBarberListItem(
+                              controller.rxBarbers[index],
+                              index,
+                            ),
+                            childCount: controller.rxBarbers.length,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ],
         );
       }),
@@ -342,15 +368,19 @@ class HomeView extends GetView<HomeController> {
                 Expanded(
                   flex: 2,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.horizontal(
+                    borderRadius: const BorderRadius.horizontal(
                       right: Radius.circular(22),
                     ),
-                    child: Image.network(
-                      featured['image'] ??
+                    child: CachedNetworkImage(
+                      imageUrl:
+                          featured['image'] ??
                           'https://i.pravatar.cc/400?u=${featured['id']}',
                       fit: BoxFit.cover,
                       height: double.infinity,
-                      errorBuilder: (_, _, _) => Container(
+                      placeholder: (context, url) => Container(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                      ),
+                      errorWidget: (context, url, error) => Container(
                         color: AppTheme.primary.withValues(alpha: 0.1),
                         child: Icon(
                           Icons.person,
@@ -1137,7 +1167,7 @@ class HomeView extends GetView<HomeController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _navItem(Icons.home_rounded, "Bosh sahifa", true),
+              _navItem(Icons.home_rounded, "Asosiy", true),
               _navItem(
                 Icons.search_rounded,
                 "Qidirish",
@@ -1149,6 +1179,12 @@ class HomeView extends GetView<HomeController> {
                 "Bronlar",
                 false,
                 onTap: () => Get.toNamed('/my-bookings'),
+              ),
+              _navItem(
+                Icons.favorite_rounded,
+                "Sevimlilar",
+                false,
+                onTap: () => Get.toNamed('/favorites'),
               ),
               _navItem(
                 Icons.person_rounded,
@@ -1171,33 +1207,37 @@ class HomeView extends GetView<HomeController> {
   }) {
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: EdgeInsets.all(8),
-            decoration: isActive
-                ? BoxDecoration(
-                    color: AppTheme.primary.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                  )
-                : null,
-            child: Icon(
-              icon,
-              color: isActive ? AppTheme.primary : AppTheme.textLight,
-              size: 24,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(6),
+              decoration: isActive
+                  ? BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    )
+                  : null,
+              child: Icon(
+                icon,
+                color: isActive ? AppTheme.primary : AppTheme.textLight,
+                size: 22,
+              ),
             ),
-          ),
-          SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: isActive ? AppTheme.primary : AppTheme.textLight,
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+            SizedBox(height: 3),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                color: isActive ? AppTheme.primary : AppTheme.textLight,
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1213,40 +1253,51 @@ class HomeView extends GetView<HomeController> {
         ),
         child: SingleChildScrollView(
           physics: BouncingScrollPhysics(),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header
-              Row(
-                children: [
-                  Obx(() {
-                    final avatarBase64 = userService.avatarBase64.value;
-                    return Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(16),
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        image: avatarBase64.isNotEmpty
-                            ? DecorationImage(
-                                image: MemoryImage(base64Decode(avatarBase64)),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
-                      ),
-                      child: avatarBase64.isEmpty
-                          ? Icon(Icons.person, color: AppTheme.primary)
-                          : null,
-                    );
-                  }),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Obx(
-                          () => Text(
+          child: Obx(() {
+            final role = userService.userRole.value;
+            final isBarber = userService.isBarberMode.value;
+            final roleName = isBarber
+                ? "Sartarosh"
+                : (role == 'barber' ? "Mijoz (Sartarosh)" : "Mijoz");
+            final roleColor = isBarber ? AppTheme.gold : AppTheme.primary;
+
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Row(
+                  children: [
+                    Builder(
+                      builder: (_) {
+                        final avatarBase64 = userService.avatarBase64.value;
+                        return Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            color: AppTheme.primary.withValues(alpha: 0.1),
+                            image: avatarBase64.isNotEmpty
+                                ? DecorationImage(
+                                    image: MemoryImage(
+                                      base64Decode(avatarBase64),
+                                    ),
+                                    fit: BoxFit.cover,
+                                  )
+                                : null,
+                          ),
+                          child: avatarBase64.isEmpty
+                              ? Icon(Icons.person, color: AppTheme.primary)
+                              : null,
+                        );
+                      },
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
                             userService.name.value,
                             style: GoogleFonts.poppins(
                               color: AppTheme.textDark,
@@ -1254,96 +1305,140 @@ class HomeView extends GetView<HomeController> {
                               fontWeight: FontWeight.w700,
                             ),
                           ),
-                        ),
-                        Obx(
-                          () => Text(
+                          Text(
                             userService.phone.value,
                             style: GoogleFonts.poppins(
                               color: AppTheme.textMedium,
                               fontSize: 13,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      "Mijoz",
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.primaryDark,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
+                        ],
                       ),
                     ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: roleColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        roleName,
+                        style: GoogleFonts.poppins(
+                          color: roleColor,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 30),
+
+                // ─── MIJOZ (Client) MENU ───
+                if (!isBarber) ...[
+                  _menuItem(
+                    icon: Icons.person_outline_rounded,
+                    title: "Mening profilim",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/profile');
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.calendar_today_rounded,
+                    title: "Mening bronlarim",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/my-bookings');
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.favorite_border_rounded,
+                    title: "Sevimlilar",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/favorites');
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.support_agent_rounded,
+                    title: "Qo'llab-quvvatlash",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/support-chat');
+                    },
                   ),
                 ],
-              ),
-              SizedBox(height: 30),
 
-              // Menu Items
-              _menuItem(
-                icon: Icons.person_outline_rounded,
-                title: "Mening profilim",
-                onTap: () {
-                  Get.back();
-                  Get.toNamed('/profile');
-                },
-              ),
-              _menuItem(
-                icon: Icons.calendar_today_rounded,
-                title: "Mening bronlarim",
-                onTap: () {
-                  Get.back();
-                  Get.toNamed('/my-bookings');
-                },
-              ),
-              _menuItem(
-                icon: Icons.favorite_border_rounded,
-                title: "Sevimlilar",
-                onTap: () {
-                  Get.back();
-                  Get.toNamed('/favorites');
-                },
-              ),
-              _menuItem(
-                icon: Icons.support_agent_rounded,
-                title: "Qo'llab-quvvatlash",
-                onTap: () {
-                  Get.back();
-                  Get.toNamed('/support-chat');
-                },
-              ),
-              Divider(color: AppTheme.background, height: 30),
-              // Settings / Role Toggle
-              if (userService.userRole.value == 'barber')
+                // ─── SARTAROSH (Barber) MENU ───
+                if (isBarber) ...[
+                  _menuItem(
+                    icon: Icons.person_outline_rounded,
+                    title: "Mening profilim",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/profile');
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.design_services_rounded,
+                    title: "Xizmatlar va narxlar",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/profile');
+                    },
+                  ),
+                  _menuItem(
+                    icon: Icons.support_agent_rounded,
+                    title: "Qo'llab-quvvatlash",
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/support-chat');
+                    },
+                  ),
+                ],
+
+                Divider(color: AppTheme.background, height: 30),
+
+                // Rol almashish
+                if (role == 'barber' && !isBarber)
+                  _menuItem(
+                    icon: Icons.storefront_rounded,
+                    title: "Usta rejimiga o'tish",
+                    color: AppTheme.gold,
+                    onTap: () {
+                      Get.back();
+                      userService.toggleBarberMode();
+                    },
+                  ),
+                if (isBarber)
+                  _menuItem(
+                    icon: Icons.swap_horiz_rounded,
+                    title: "Mijoz rejimiga o'tish",
+                    color: AppTheme.primary,
+                    onTap: () {
+                      Get.back();
+                      userService.toggleBarberMode();
+                    },
+                  ),
+
                 _menuItem(
-                  icon: Icons.storefront_rounded,
-                  title: "Usta rejimiga o'tish",
-                  color: AppTheme.primary,
+                  icon: Icons.logout_rounded,
+                  title: "Tizimdan chiqish",
+                  color: Colors.redAccent,
                   onTap: () {
                     Get.back();
-                    userService.toggleBarberMode();
+                    userService.logout();
+                    Get.offAllNamed('/welcome');
                   },
                 ),
-              _menuItem(
-                icon: Icons.logout_rounded,
-                title: "Tizimdan chiqish",
-                color: Colors.redAccent,
-                onTap: () {
-                  Get.back();
-                  userService.logout();
-                  Get.offAllNamed('/welcome');
-                },
-              ),
-              SizedBox(height: 20),
-            ],
-          ),
+                SizedBox(height: 20),
+              ],
+            );
+          }),
         ),
       ),
       isScrollControlled: true,

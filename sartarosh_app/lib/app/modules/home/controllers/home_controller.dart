@@ -166,8 +166,7 @@ class HomeController extends GetxController {
   }
 
   void refreshBarbers() {
-    isLoading.value = true;
-    // Cancel old barber subscription and re-fetch
+    // Swipe-to-refresh shouldn't trigger initial loading UI
     _fetchBarbers();
   }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/input_sanitizer.dart';
 
@@ -18,8 +19,10 @@ class BookingController extends GetxController {
   // Step 2: Date & Time
   final selectedDate = DateTime.now().obs;
   final selectedTime = ''.obs;
+  final allTimes = <String>[].obs;
   final availableTimes = <String>[].obs;
-  final _allTimes = ['10:00', '12:00', '14:00', '16:00', '18:00'];
+
+  StreamSubscription<QuerySnapshot>? _bookingsSub;
 
   // Step 3: Service info (passed from arguments)
   String serviceName = 'Soch olish';
@@ -47,7 +50,35 @@ class BookingController extends GetxController {
 
     ever(selectedDate, (_) => _updateAvailableTimes());
     ever(selectedBarber, (_) => _updateAvailableTimes());
+    _generateTimeSlots();
     _updateAvailableTimes(); // initial load
+  }
+
+  int get serviceDurationMinutes {
+    final lower = serviceName.toLowerCase();
+    if (lower.contains('soch')) return 30;
+    if (lower.contains('soqol')) return 20;
+    if (lower.contains('kompleks') || lower.contains('komplex')) return 60;
+    if (lower.contains('bo\'yash') || lower.contains('makiyaj')) return 60;
+    return 30; // default 30 mins
+  }
+
+  void _generateTimeSlots() {
+    List<String> slots = [];
+    int startHour = 9;
+    int endHour = 20; // 09:00 to 20:00
+    for (int h = startHour; h < endHour; h++) {
+      String hr = h.toString().padLeft(2, '0');
+      slots.add('$hr:00');
+      slots.add('$hr:30');
+    }
+    allTimes.value = slots;
+  }
+
+  @override
+  void onClose() {
+    _bookingsSub?.cancel();
+    super.onClose();
   }
 
   void _fetchBarbers() {
@@ -75,36 +106,69 @@ class BookingController extends GetxController {
         });
   }
 
-  Future<void> _updateAvailableTimes() async {
+  void _updateAvailableTimes() {
     final dateStr = DateFormat('yyyy-MM-dd').format(selectedDate.value);
-    final barberName = selectedBarber.value?['name'];
+    final barberId = selectedBarber.value?['id'];
 
-    if (barberName == null) {
-      availableTimes.value = List.from(_allTimes);
+    if (barberId == null) {
+      availableTimes.value = List.from(allTimes);
       return;
     }
 
-    try {
-      final bookingsSnap = await _firestore
-          .collection('bookings')
-          .where('barberName', isEqualTo: barberName)
-          .where('date', isEqualTo: dateStr)
-          .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
-          .get();
+    _bookingsSub?.cancel();
+    _bookingsSub = _firestore
+        .collection('bookings')
+        .where('barberId', isEqualTo: barberId)
+        .where('date', isEqualTo: dateStr)
+        .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
+        .snapshots()
+        .listen((bookingsSnap) {
+          Set<String> blockedTimes = {};
 
-      final bookedTimes = bookingsSnap.docs
-          .map((doc) => doc.data()['time'] as String)
-          .toList();
-      availableTimes.value = _allTimes
-          .where((t) => !bookedTimes.contains(t))
-          .toList();
+          for (var doc in bookingsSnap.docs) {
+            final data = doc.data();
+            final t = data['time'] as String;
+            final dur = data['durationMinutes'] ?? 30; // fallbacks
 
-      if (bookedTimes.contains(selectedTime.value)) {
-        selectedTime.value = '';
-      }
-    } catch (_) {
-      availableTimes.value = List.from(_allTimes);
-    }
+            try {
+              DateTime baseTime = DateFormat('HH:mm').parse(t);
+              int slotsToBlock = (dur / 30).ceil();
+              if (slotsToBlock < 1) slotsToBlock = 1;
+
+              for (int i = 0; i < slotsToBlock; i++) {
+                final blocked = baseTime.add(Duration(minutes: i * 30));
+                blockedTimes.add(DateFormat('HH:mm').format(blocked));
+              }
+            } catch (_) {}
+          }
+
+          availableTimes.value = allTimes.where((t) {
+            // Also check if selecting this time would overlap with existing bookings dynamically
+            // Since duration blocks forwards, if I pick 10:00 and this service takes 1h, 10:30 MUST be free.
+            int requiredSlots = (serviceDurationMinutes / 30).ceil();
+            if (requiredSlots < 1) requiredSlots = 1;
+
+            try {
+              DateTime candidateTime = DateFormat('HH:mm').parse(t);
+              for (int i = 0; i < requiredSlots; i++) {
+                final forwardSlot = candidateTime.add(
+                  Duration(minutes: i * 30),
+                );
+                if (blockedTimes.contains(
+                  DateFormat('HH:mm').format(forwardSlot),
+                )) {
+                  return false; // Intersection found!
+                }
+              }
+            } catch (_) {}
+
+            return true;
+          }).toList();
+
+          if (!availableTimes.contains(selectedTime.value)) {
+            selectedTime.value = '';
+          }
+        });
   }
 
   void nextStep() {
@@ -129,6 +193,19 @@ class BookingController extends GetxController {
 
   void selectTime(String time) {
     selectedTime.value = time;
+  }
+
+  void selectNearestAvailableTime() {
+    if (availableTimes.isNotEmpty) {
+      selectedTime.value = availableTimes.first;
+    } else {
+      Get.snackbar(
+        "Kechirasiz",
+        "Bugun uchun bo'sh vaqt qolmadi",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
   }
 
   String get formattedDate =>
@@ -178,16 +255,9 @@ class BookingController extends GetxController {
         return;
       }
 
-      // Smart Booking Check (Prevent double booking)
-      final existingBookings = await _firestore
-          .collection('bookings')
-          .where('barberName', isEqualTo: barberName)
-          .where('date', isEqualTo: dateStr)
-          .where('time', isEqualTo: selectedTime.value)
-          .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
-          .get();
-
-      if (existingBookings.docs.isNotEmpty) {
+      // We already checked overlaps client-side in the StreamSubscription
+      // But verify strictly!
+      if (!availableTimes.contains(selectedTime.value)) {
         Get.snackbar(
           "Vaqt band!",
           "Kechirasiz, ustaning bu vaqti allaqachon band. Boshqa vaqt tanlang.",
@@ -225,9 +295,10 @@ class BookingController extends GetxController {
         'barberId': selectedBarber.value?['id'] ?? '',
         'service': InputSanitizer.sanitizeText(serviceName),
         'price': servicePrice,
+        'durationMinutes': serviceDurationMinutes,
         'date': dateStr,
         'time': selectedTime.value,
-        'status': 'pending',
+        'status': 'pending', // Colored integration mapping relies on raw string
         'createdAt': FieldValue.serverTimestamp(),
       });
 

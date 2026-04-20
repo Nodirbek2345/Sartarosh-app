@@ -297,7 +297,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
   Color _statusColor(String status) {
     switch (status) {
       case 'confirmed':
-        return Color(0xFF0284C7);
+        return Color(0xFF16A34A); // Green as requested
       case 'in-progress':
         return AppTheme.primary;
       case 'completed':

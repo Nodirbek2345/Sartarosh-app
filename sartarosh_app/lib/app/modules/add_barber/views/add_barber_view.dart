@@ -49,18 +49,20 @@ class AddBarberView extends GetView<AddBarberController> {
         ),
         centerTitle: true,
       ),
-      body: Obx(() {
-        switch (controller.currentStep.value) {
-          case 0:
-            return _stepInfo();
-          case 1:
-            return _stepServices();
-          case 2:
-            return _stepPreview();
-          default:
-            return SizedBox();
-        }
-      }),
+      body: SafeArea(
+        child: Obx(() {
+          switch (controller.currentStep.value) {
+            case 0:
+              return _stepInfo();
+            case 1:
+              return _stepServices();
+            case 2:
+              return _stepPreview();
+            default:
+              return SizedBox();
+          }
+        }),
+      ),
     );
   }
 
@@ -123,12 +125,29 @@ class AddBarberView extends GetView<AddBarberController> {
             inputType: TextInputType.phone,
           ),
           SizedBox(height: 14),
-          _goldField(
-            "Manzil *",
-            "Toshkent, Chilonzor tumani, 7-mavze",
-            Icons.location_on_rounded,
-            controller.addressCtrl,
-            400,
+          Obx(
+            () => _goldField(
+              "Manzil *",
+              "Toshkent, Chilonzor tumani, 7-mavze",
+              Icons.location_on_rounded,
+              controller.addressCtrl,
+              400,
+              suffixIcon: IconButton(
+                icon: controller.isLocating.value
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: AppTheme.primary,
+                        ),
+                      )
+                    : Text("📍", style: TextStyle(fontSize: 18)),
+                onPressed: controller.isLocating.value
+                    ? null
+                    : () => controller.fetchLocation(),
+              ),
+            ),
           ),
           SizedBox(height: 14),
           _goldField(
@@ -430,7 +449,7 @@ class AddBarberView extends GetView<AddBarberController> {
               ),
             ),
           ),
-          SizedBox(height: 20),
+          SizedBox(height: MediaQuery.paddingOf(Get.context!).bottom + 20),
         ],
       ),
     );
@@ -446,6 +465,7 @@ class AddBarberView extends GetView<AddBarberController> {
     int delay, {
     TextInputType? inputType,
     int? maxLines,
+    Widget? suffixIcon,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -498,6 +518,7 @@ class AddBarberView extends GetView<AddBarberController> {
                   size: 22,
                 ),
               ),
+              suffixIcon: suffixIcon,
               border: InputBorder.none,
               contentPadding: EdgeInsets.symmetric(vertical: 16),
             ),

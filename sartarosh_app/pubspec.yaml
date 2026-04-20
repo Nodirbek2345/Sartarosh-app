@@ -54,6 +54,11 @@ dependencies:
   open_filex: ^4.7.0
   firebase_app_check: ^0.4.3
   flutter_secure_storage: ^10.0.0
+  firebase_messaging: ^16.2.0
+  flutter_local_notifications: ^21.0.0
+  firebase_storage: ^13.3.0
+  flutter_image_compress: ^2.4.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:

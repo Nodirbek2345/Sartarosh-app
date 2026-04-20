@@ -84,22 +84,47 @@ class ProfileView extends StatelessWidget {
                       child: Obx(() {
                         final avatarBase64 =
                             Get.find<UserService>().avatarBase64.value;
-                        if (avatarBase64.isNotEmpty) {
-                          return CircleAvatar(
-                            radius: 40,
-                            backgroundImage: MemoryImage(
-                              base64Decode(avatarBase64),
+                        return Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            CircleAvatar(
+                              radius: 42,
+                              backgroundColor: Colors.transparent,
+                              backgroundImage: avatarBase64.isNotEmpty
+                                  ? MemoryImage(base64Decode(avatarBase64))
+                                        as ImageProvider
+                                  : const AssetImage(
+                                      'assets/images/default_avatar.png',
+                                    ),
                             ),
-                          );
-                        }
-                        return CircleAvatar(
-                          radius: 40,
-                          backgroundColor: Colors.white24,
-                          child: Icon(
-                            Icons.person_rounded,
-                            size: 40,
-                            color: Colors.white,
-                          ),
+                            Container(
+                              width: 84,
+                              height: 84,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.black.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.camera_alt_rounded,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  "Rasm",
+                                  style: GoogleFonts.poppins(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
                         );
                       }),
                     ).animate().scale(duration: 500.ms),
@@ -145,7 +170,9 @@ class ProfileView extends StatelessWidget {
                     final userService = Get.find<UserService>();
                     final isBarber = userService.isBarberMode.value;
                     final isBarberRole = userService.userRole.value == 'barber';
+
                     if (isBarber) {
+                      // ─── SARTAROSH (Barber) REJIMI MENYULARI ───
                       return Column(
                         children: [
                           _menuItem(
@@ -155,20 +182,30 @@ class ProfileView extends StatelessWidget {
                             () => _showManageServices(),
                           ),
                           _menuItem(
+                            Icons.swap_horiz_rounded,
+                            "Mijoz rejimiga o'tish",
+                            1,
+                            () {
+                              userService.toggleBarberMode();
+                              Get.offAllNamed('/home');
+                            },
+                          ),
+                          _menuItem(
                             Icons.settings_rounded,
                             "Sozlamalar",
-                            1,
+                            2,
                             () => _showSettings(),
                           ),
                           _menuItem(
                             Icons.help_outline_rounded,
                             "Yordam",
-                            2,
+                            3,
                             () => _showHelp(),
                           ),
                         ],
                       );
                     } else {
+                      // ─── MIJOZ (Client) REJIMI MENYULARI ───
                       int idx = 0;
                       return Column(
                         children: [
@@ -178,7 +215,7 @@ class ProfileView extends StatelessWidget {
                             idx++,
                             () => Get.toNamed('/my-bookings'),
                           ),
-                          // Faqat sartarosh rolidagi foydalanuvchilarga ko'rsatiladi
+                          // Faqat "barber" rolidagi foydalanuvchilarga ko'rsatiladi
                           if (isBarberRole) ...[
                             _menuItem(
                               Icons.storefront_rounded,

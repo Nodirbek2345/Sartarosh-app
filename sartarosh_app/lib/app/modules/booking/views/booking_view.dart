@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/booking_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 
@@ -57,20 +58,22 @@ class BookingView extends GetView<BookingController> {
           SizedBox(width: 16),
           CircleAvatar(
             radius: 16,
-            backgroundImage: NetworkImage(
+            backgroundImage: CachedNetworkImageProvider(
               'https://i.pravatar.cc/100?u=user',
             ), // You can change this if needed
           ),
           SizedBox(width: 20),
         ],
       ),
-      body: Obx(() {
-        if (controller.currentStep.value == 0) {
-          return _step1(bgColor, cardColor, goldColor);
-        } else {
-          return _modernBookingForm(bgColor, cardColor, goldColor);
-        }
-      }),
+      body: SafeArea(
+        child: Obx(() {
+          if (controller.currentStep.value == 0) {
+            return _step1(bgColor, cardColor, goldColor);
+          } else {
+            return _modernBookingForm(bgColor, cardColor, goldColor);
+          }
+        }),
+      ),
     );
   }
 
@@ -132,7 +135,7 @@ class BookingView extends GetView<BookingController> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 image: DecorationImage(
-                                  image: NetworkImage(
+                                  image: CachedNetworkImageProvider(
                                     b['image'] ??
                                         'https://i.pravatar.cc/200?u=${b['id']}',
                                   ),
@@ -420,63 +423,103 @@ class BookingView extends GetView<BookingController> {
 
   Widget _buildTimeSlots(Color goldColor) {
     return Obx(() {
-      final t = controller.selectedTime.value;
-      return GestureDetector(
-        onTap: () async {
-          final TimeOfDay? picked = await showTimePicker(
-            context: Get.context!,
-            initialTime: TimeOfDay.now(),
-            builder: (context, child) {
-              return Theme(
-                data: ThemeData.dark().copyWith(
-                  colorScheme: ColorScheme.dark(
-                    primary: goldColor,
-                    onPrimary: Colors.black,
-                    surface: Color(0xFF282A40),
-                    onSurface: Colors.white,
-                  ),
-                ),
-                child: child!,
-              );
-            },
-          );
-          if (picked != null) {
-            final formattedTime =
-                '${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}';
-            controller.selectTime(formattedTime);
-          }
-        },
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-          decoration: BoxDecoration(
-            color: Color(0xFF282A40),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: t.isNotEmpty ? goldColor : Colors.transparent,
-              width: 1.5,
+      if (controller.allTimes.isEmpty) {
+        return Center(
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Text(
+              "Hozircha bo'sh vaqt yo'q...",
+              style: GoogleFonts.poppins(color: Colors.white60),
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                t.isNotEmpty ? t : "Soat va daqiqani tanlang",
-                style: GoogleFonts.poppins(
-                  color: t.isNotEmpty ? Colors.white : Colors.white60,
-                  fontSize: 16,
-                  fontWeight: t.isNotEmpty ? FontWeight.w600 : FontWeight.w500,
-                ),
+        );
+      }
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          GestureDetector(
+            onTap: () => controller.selectNearestAvailableTime(),
+            child: Container(
+              margin: EdgeInsets.only(bottom: 16),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: goldColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: goldColor.withValues(alpha: 0.5)),
               ),
-              Icon(
-                Icons.access_time_rounded,
-                color: t.isNotEmpty ? goldColor : Colors.white60,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.bolt_rounded, color: goldColor, size: 20),
+                  SizedBox(width: 8),
+                  Text(
+                    "Eng yaqin bo'sh vaqtni tanlash",
+                    style: GoogleFonts.poppins(
+                      color: goldColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: controller.allTimes.map((t) {
+              final isAvailable = controller.availableTimes.contains(t);
+              final isSelected = controller.selectedTime.value == t;
+
+              return GestureDetector(
+                onTap: isAvailable ? () => controller.selectTime(t) : null,
+                child: Container(
+                  width: (MediaQuery.sizeOf(Get.context!).width - 70) / 3,
+                  padding: EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? goldColor
+                        : (isAvailable ? Color(0xFF282A40) : Color(0xFF1B1D2C)),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isSelected
+                          ? goldColor
+                          : (isAvailable ? Colors.white24 : Colors.transparent),
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: goldColor.withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ]
+                        : [],
+                  ),
+                  child: Center(
+                    child: Text(
+                      t,
+                      style: GoogleFonts.poppins(
+                        color: isSelected
+                            ? Color(0xFF141522)
+                            : (isAvailable ? Colors.white : Colors.white30),
+                        fontSize: 15,
+                        fontWeight: isSelected
+                            ? FontWeight.w700
+                            : FontWeight.w500,
+                        decoration: isAvailable
+                            ? TextDecoration.none
+                            : TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ).animate().fadeIn(delay: 250.ms),
+        ],
       );
-    }).animate().fadeIn(delay: 250.ms);
+    });
   }
 
   Widget _buildServiceInfoCard(Color cardColor, Color goldColor) {
@@ -531,7 +574,7 @@ class BookingView extends GetView<BookingController> {
               Icon(Icons.access_time_rounded, color: Colors.white60, size: 18),
               SizedBox(width: 6),
               Text(
-                "45 daqiqa",
+                "${controller.serviceDurationMinutes} daqiqa",
                 style: GoogleFonts.poppins(
                   color: Colors.white70,
                   fontSize: 13,
@@ -565,7 +608,10 @@ class BookingView extends GetView<BookingController> {
 
   Widget _nextBtn(Color goldColor, String label, VoidCallback? onTap) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 16),
+      // Ensure extra padding unconditionally at the bottom
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.paddingOf(Get.context!).bottom + 20,
+      ),
       child: GestureDetector(
         onTap: onTap,
         child: Container(

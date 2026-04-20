@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/image_helper.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class BarberDetailView extends StatelessWidget {
   const BarberDetailView({super.key});
@@ -322,7 +323,12 @@ class BarberDetailView extends StatelessWidget {
 
           // CTA
           Container(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 20),
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              MediaQuery.paddingOf(Get.context!).bottom + 20,
+            ),
             decoration: BoxDecoration(
               color: Colors.white,
               boxShadow: [
@@ -461,7 +467,7 @@ class BarberDetailView extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: DecorationImage(
-                    image: NetworkImage(portfolio[index]),
+                    image: CachedNetworkImageProvider(portfolio[index]),
                     fit: BoxFit.cover,
                   ),
                   boxShadow: [

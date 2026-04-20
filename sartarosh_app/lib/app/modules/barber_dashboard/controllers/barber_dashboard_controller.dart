@@ -1,8 +1,14 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:path_provider/path_provider.dart';
 import '../../../../core/services/user_service.dart';
+import 'package:flutter/material.dart';
 
 class BarberDashboardController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -11,6 +17,7 @@ class BarberDashboardController extends GetxController {
   final isActive = true.obs;
   final isLoading = true.obs;
   final queueLimit = 1.obs;
+  final portfolioImages = <String>[].obs;
 
   // Stats
   final todayEarnings = 0.obs;
@@ -92,6 +99,11 @@ class BarberDashboardController extends GetxController {
             isActive.value = data['isActive'] ?? true;
             if (data.containsKey('queueLimit')) {
               queueLimit.value = data['queueLimit'] as int;
+            }
+            if (data.containsKey('portfolioImages')) {
+              portfolioImages.value = List<String>.from(
+                data['portfolioImages'] ?? [],
+              );
             }
             // Cache reference if not already cached
             _barberDocRef ??= snapshot.docs.first.reference;
@@ -182,6 +194,186 @@ class BarberDashboardController extends GetxController {
       'status': 'completed',
       'completedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // ============== PHOTO COMPRESSION & UPLOAD ==============
+  final isUploadingPhoto = false.obs;
+
+  Future<void> uploadProfileImage() async {
+    isUploadingPhoto.value = true;
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        isUploadingPhoto.value = false;
+        return; // User cancelled
+      }
+
+      File nativeFile = File(pickedFile.path);
+
+      // Compress Image (Pro optimization)
+      final tempDir = await getTemporaryDirectory();
+      final targetPath =
+          '${tempDir.path}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final XFile? compressedFile =
+          await FlutterImageCompress.compressAndGetFile(
+            nativeFile.absolute.path,
+            targetPath,
+            quality: 60,
+            minWidth: 800,
+            minHeight: 800,
+          );
+
+      if (compressedFile == null) {
+        Get.snackbar("Xato", "Rasmni tayyorlashda xatolik");
+        isUploadingPhoto.value = false;
+        return;
+      }
+
+      final fileToUpload = File(compressedFile.path);
+
+      // Upload to Firebase Storage
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('barbers')
+          .child('${Get.find<UserService>().currentUid}.jpg');
+
+      await storageRef.putFile(fileToUpload);
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      // Update Firestore Barber Collection
+      if (_barberDocRef != null) {
+        await _barberDocRef!.update({'image': downloadUrl});
+      } else {
+        final snapshot = await _firestore
+            .collection('barbers')
+            .where('name', isEqualTo: barberName)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          _barberDocRef = snapshot.docs.first.reference;
+          await _barberDocRef!.update({'image': downloadUrl});
+        }
+      }
+
+      // Update Global User Service
+      Get.find<UserService>().updatePhotoUrl(downloadUrl);
+
+      Get.snackbar(
+        "Muvaffaqiyatli",
+        "Rasm yuklandi va SIQILDI",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Rasm yuklashda xatolik: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    } finally {
+      isUploadingPhoto.value = false;
+    }
+  }
+
+  // ============== PORTFOLIO COMPRESSION & UPLOAD ==============
+  final isUploadingPortfolio = false.obs;
+
+  Future<void> uploadPortfolioImage() async {
+    isUploadingPortfolio.value = true;
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      if (pickedFile == null) {
+        isUploadingPortfolio.value = false;
+        return;
+      }
+
+      File nativeFile = File(pickedFile.path);
+
+      final tempDir = await getTemporaryDirectory();
+      final targetPath =
+          '${tempDir.path}/portfolio_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final XFile? compressedFile =
+          await FlutterImageCompress.compressAndGetFile(
+            nativeFile.absolute.path,
+            targetPath,
+            quality: 65,
+            minWidth: 1080,
+            minHeight: 1080,
+          );
+
+      if (compressedFile == null) {
+        Get.snackbar("Xato", "Rasmni tayyorlashda xatolik");
+        isUploadingPortfolio.value = false;
+        return;
+      }
+
+      final fileToUpload = File(compressedFile.path);
+      final fileName = 'portfolio_${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('barbers')
+          .child(Get.find<UserService>().currentUid)
+          .child('portfolio')
+          .child(fileName);
+
+      await storageRef.putFile(fileToUpload);
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      if (_barberDocRef != null) {
+        await _barberDocRef!.update({
+          'portfolioImages': FieldValue.arrayUnion([downloadUrl]),
+        });
+      }
+
+      Get.snackbar(
+        "Muvaffaqiyatli",
+        "Portfolio rasm yuklandi",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Portfolio rasm yuklashda xatolik: $e",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    } finally {
+      isUploadingPortfolio.value = false;
+    }
+  }
+
+  Future<void> deletePortfolioImage(String url) async {
+    try {
+      Get.dialog(
+        const Center(child: CircularProgressIndicator()),
+        barrierDismissible: false,
+      );
+
+      // Attempt to delete from storage. Ignore if fails (e.g. wrong url struct)
+      try {
+        final ref = FirebaseStorage.instance.refFromURL(url);
+        await ref.delete();
+      } catch (_) {}
+
+      // Remove from firestore
+      if (_barberDocRef != null) {
+        await _barberDocRef!.update({
+          'portfolioImages': FieldValue.arrayRemove([url]),
+        });
+      }
+
+      Get.back(); // close dialog
+      Get.snackbar("O'chirildi", "Rasm portfoliodan olib tashlandi");
+    } catch (e) {
+      Get.back();
+      Get.snackbar("Xatolik", "Rasmni o'chirishda xatolik: $e");
+    }
   }
 
   @override

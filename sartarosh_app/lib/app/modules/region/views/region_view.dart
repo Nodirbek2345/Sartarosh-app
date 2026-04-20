@@ -210,7 +210,13 @@ class RegionView extends GetView<RegionController> {
 
               // ─── BOTTOM BUTTON ───
               Padding(
-                padding: EdgeInsets.fromLTRB(20, 12, 20, 20),
+                // Ensure dynamic clearance above home indicator/navigation bar
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  12,
+                  20,
+                  MediaQuery.paddingOf(Get.context!).bottom + 20,
+                ),
                 child: GestureDetector(
                   onTap: () => controller.confirmAndGo(),
                   child: Container(
