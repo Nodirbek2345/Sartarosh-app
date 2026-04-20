@@ -34,7 +34,7 @@ class NotificationService extends GetxService {
         InitializationSettings(android: initializationSettingsAndroid);
 
     await _localNotificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
         // Handle physical tap on foreground notification
       },
@@ -64,10 +64,10 @@ class NotificationService extends GetxService {
 
       if (notification != null && android != null) {
         _localNotificationsPlugin.show(
-          notification.hashCode,
-          notification.title,
-          notification.body,
-          NotificationDetails(
+          id: notification.hashCode,
+          title: notification.title,
+          body: notification.body,
+          notificationDetails: NotificationDetails(
             android: AndroidNotificationDetails(
               channel.id,
               channel.name,
