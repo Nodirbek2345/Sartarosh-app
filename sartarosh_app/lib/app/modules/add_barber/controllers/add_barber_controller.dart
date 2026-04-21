@@ -219,36 +219,41 @@ class AddBarberController extends GetxController {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        child: Column(
-          children: [
-            Text(
-              "Viloyatni qo'lda tanlang",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-            Expanded(
-              child: ListView.builder(
-                physics: BouncingScrollPhysics(),
-                itemCount: regions.length,
-                itemBuilder: (context, index) {
-                  final region = regions[index];
-                  return ListTile(
-                    leading: Icon(Icons.location_city, color: AppTheme.primary),
-                    title: Text(region['name'] as String),
-                    onTap: () {
-                      addressCtrl.text = region['name'] as String;
-                      location.value = (region['name'] as String)
-                          .replaceAll(' viloyati', '')
-                          .replaceAll(' shahri', '');
-                      lat.value = region['lat'] as double;
-                      lng.value = region['lng'] as double;
-                      Get.back();
-                    },
-                  );
-                },
+        child: SafeArea(
+          child: Column(
+            children: [
+              Text(
+                "Viloyatni qo'lda tanlang",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              SizedBox(height: 10),
+              Expanded(
+                child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
+                  itemCount: regions.length,
+                  itemBuilder: (context, index) {
+                    final region = regions[index];
+                    return ListTile(
+                      leading: Icon(
+                        Icons.location_city,
+                        color: AppTheme.primary,
+                      ),
+                      title: Text(region['name'] as String),
+                      onTap: () {
+                        addressCtrl.text = region['name'] as String;
+                        location.value = (region['name'] as String)
+                            .replaceAll(' viloyati', '')
+                            .replaceAll(' shahri', '');
+                        lat.value = region['lat'] as double;
+                        lng.value = region['lng'] as double;
+                        Get.back();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       isScrollControlled: true,

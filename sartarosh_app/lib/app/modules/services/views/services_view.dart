@@ -141,86 +141,88 @@ class ServicesView extends GetView<ServicesController> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.textLight.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 20),
-            Icon(
-              IconData(s['icon'], fontFamily: 'MaterialIcons'),
-              color: AppTheme.primary,
-              size: 48,
-            ),
-            SizedBox(height: 16),
-            Text(
-              s['name'],
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w800,
-                color: AppTheme.textDark,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              s['description'] ?? '',
-              style: TextStyle(color: AppTheme.textMedium, fontSize: 14),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _chip(
-                  Icons.access_time_rounded,
-                  s['duration'] != null ? "${s['duration']} daqiqa" : "—",
-                ),
-                SizedBox(width: 12),
-                _chip(
-                  Icons.payments_rounded,
-                  s['price'] != null && s['price'] > 0
-                      ? "${(s['price'] as int) ~/ 1000} ming so'm"
-                      : "Narx belgilanmagan",
-                ),
-              ],
-            ),
-            SizedBox(height: 28),
-            GestureDetector(
-              onTap: () {
-                Get.back();
-                Get.toNamed(
-                  '/booking',
-                  arguments: {'service': s['name'], 'price': s['price']},
-                );
-              },
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 18),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppTheme.primary, AppTheme.accent],
-                  ),
-                  borderRadius: BorderRadius.circular(16),
+                  color: AppTheme.textLight.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                child: Center(
-                  child: Text(
-                    "Tanlash",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+              ),
+              SizedBox(height: 20),
+              Icon(
+                IconData(s['icon'], fontFamily: 'MaterialIcons'),
+                color: AppTheme.primary,
+                size: 48,
+              ),
+              SizedBox(height: 16),
+              Text(
+                s['name'],
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                s['description'] ?? '',
+                style: TextStyle(color: AppTheme.textMedium, fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _chip(
+                    Icons.access_time_rounded,
+                    s['duration'] != null ? "${s['duration']} daqiqa" : "—",
+                  ),
+                  SizedBox(width: 12),
+                  _chip(
+                    Icons.payments_rounded,
+                    s['price'] != null && s['price'] > 0
+                        ? "${(s['price'] as int) ~/ 1000} ming so'm"
+                        : "Narx belgilanmagan",
+                  ),
+                ],
+              ),
+              SizedBox(height: 28),
+              GestureDetector(
+                onTap: () {
+                  Get.back();
+                  Get.toNamed(
+                    '/booking',
+                    arguments: {'service': s['name'], 'price': s['price']},
+                  );
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 18),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [AppTheme.primary, AppTheme.accent],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Tanlash",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       isScrollControlled: true,

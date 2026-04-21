@@ -1251,194 +1251,196 @@ class HomeView extends GetView<HomeController> {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
-        child: SingleChildScrollView(
-          physics: BouncingScrollPhysics(),
-          child: Obx(() {
-            final role = userService.userRole.value;
-            final isBarber = userService.isBarberMode.value;
-            final roleName = isBarber
-                ? "Sartarosh"
-                : (role == 'barber' ? "Mijoz (Sartarosh)" : "Mijoz");
-            final roleColor = isBarber ? AppTheme.gold : AppTheme.primary;
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: BouncingScrollPhysics(),
+            child: Obx(() {
+              final role = userService.userRole.value;
+              final isBarber = userService.isBarberMode.value;
+              final roleName = isBarber
+                  ? "Sartarosh"
+                  : (role == 'barber' ? "Mijoz (Sartarosh)" : "Mijoz");
+              final roleColor = isBarber ? AppTheme.gold : AppTheme.primary;
 
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header
-                Row(
-                  children: [
-                    Builder(
-                      builder: (_) {
-                        final avatarBase64 = userService.avatarBase64.value;
-                        return Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: AppTheme.primary.withValues(alpha: 0.1),
-                            image: avatarBase64.isNotEmpty
-                                ? DecorationImage(
-                                    image: MemoryImage(
-                                      base64Decode(avatarBase64),
-                                    ),
-                                    fit: BoxFit.cover,
-                                  )
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header
+                  Row(
+                    children: [
+                      Builder(
+                        builder: (_) {
+                          final avatarBase64 = userService.avatarBase64.value;
+                          return Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(16),
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              image: avatarBase64.isNotEmpty
+                                  ? DecorationImage(
+                                      image: MemoryImage(
+                                        base64Decode(avatarBase64),
+                                      ),
+                                      fit: BoxFit.cover,
+                                    )
+                                  : null,
+                            ),
+                            child: avatarBase64.isEmpty
+                                ? Icon(Icons.person, color: AppTheme.primary)
                                 : null,
-                          ),
-                          child: avatarBase64.isEmpty
-                              ? Icon(Icons.person, color: AppTheme.primary)
-                              : null,
-                        );
-                      },
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userService.name.value,
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textDark,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+                          );
+                        },
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userService.name.value,
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.textDark,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
-                          ),
-                          Text(
-                            userService.phone.value,
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textMedium,
-                              fontSize: 13,
+                            Text(
+                              userService.phone.value,
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.textMedium,
+                                fontSize: 13,
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: roleColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        roleName,
-                        style: GoogleFonts.poppins(
-                          color: roleColor,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
+                          ],
                         ),
                       ),
+                      Container(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: roleColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          roleName,
+                          style: GoogleFonts.poppins(
+                            color: roleColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 30),
+
+                  // ─── MIJOZ (Client) MENU ───
+                  if (!isBarber) ...[
+                    _menuItem(
+                      icon: Icons.person_outline_rounded,
+                      title: "Mening profilim",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/profile');
+                      },
+                    ),
+                    _menuItem(
+                      icon: Icons.calendar_today_rounded,
+                      title: "Mening bronlarim",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/my-bookings');
+                      },
+                    ),
+                    _menuItem(
+                      icon: Icons.favorite_border_rounded,
+                      title: "Sevimlilar",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/favorites');
+                      },
+                    ),
+                    _menuItem(
+                      icon: Icons.support_agent_rounded,
+                      title: "Qo'llab-quvvatlash",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/support-chat');
+                      },
                     ),
                   ],
-                ),
-                SizedBox(height: 30),
 
-                // ─── MIJOZ (Client) MENU ───
-                if (!isBarber) ...[
+                  // ─── SARTAROSH (Barber) MENU ───
+                  if (isBarber) ...[
+                    _menuItem(
+                      icon: Icons.person_outline_rounded,
+                      title: "Mening profilim",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/profile');
+                      },
+                    ),
+                    _menuItem(
+                      icon: Icons.design_services_rounded,
+                      title: "Xizmatlar va narxlar",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/profile');
+                      },
+                    ),
+                    _menuItem(
+                      icon: Icons.support_agent_rounded,
+                      title: "Qo'llab-quvvatlash",
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/support-chat');
+                      },
+                    ),
+                  ],
+
+                  Divider(color: AppTheme.background, height: 30),
+
+                  // Rol almashish
+                  if (role == 'barber' && !isBarber)
+                    _menuItem(
+                      icon: Icons.storefront_rounded,
+                      title: "Usta rejimiga o'tish",
+                      color: AppTheme.gold,
+                      onTap: () {
+                        Get.back();
+                        userService.toggleBarberMode();
+                      },
+                    ),
+                  if (isBarber)
+                    _menuItem(
+                      icon: Icons.swap_horiz_rounded,
+                      title: "Mijoz rejimiga o'tish",
+                      color: AppTheme.primary,
+                      onTap: () {
+                        Get.back();
+                        userService.toggleBarberMode();
+                      },
+                    ),
+
                   _menuItem(
-                    icon: Icons.person_outline_rounded,
-                    title: "Mening profilim",
+                    icon: Icons.logout_rounded,
+                    title: "Tizimdan chiqish",
+                    color: Colors.redAccent,
                     onTap: () {
                       Get.back();
-                      Get.toNamed('/profile');
+                      userService.logout();
+                      Get.offAllNamed('/welcome');
                     },
                   ),
-                  _menuItem(
-                    icon: Icons.calendar_today_rounded,
-                    title: "Mening bronlarim",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/my-bookings');
-                    },
-                  ),
-                  _menuItem(
-                    icon: Icons.favorite_border_rounded,
-                    title: "Sevimlilar",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/favorites');
-                    },
-                  ),
-                  _menuItem(
-                    icon: Icons.support_agent_rounded,
-                    title: "Qo'llab-quvvatlash",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/support-chat');
-                    },
-                  ),
+                  SizedBox(height: 20),
                 ],
-
-                // ─── SARTAROSH (Barber) MENU ───
-                if (isBarber) ...[
-                  _menuItem(
-                    icon: Icons.person_outline_rounded,
-                    title: "Mening profilim",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/profile');
-                    },
-                  ),
-                  _menuItem(
-                    icon: Icons.design_services_rounded,
-                    title: "Xizmatlar va narxlar",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/profile');
-                    },
-                  ),
-                  _menuItem(
-                    icon: Icons.support_agent_rounded,
-                    title: "Qo'llab-quvvatlash",
-                    onTap: () {
-                      Get.back();
-                      Get.toNamed('/support-chat');
-                    },
-                  ),
-                ],
-
-                Divider(color: AppTheme.background, height: 30),
-
-                // Rol almashish
-                if (role == 'barber' && !isBarber)
-                  _menuItem(
-                    icon: Icons.storefront_rounded,
-                    title: "Usta rejimiga o'tish",
-                    color: AppTheme.gold,
-                    onTap: () {
-                      Get.back();
-                      userService.toggleBarberMode();
-                    },
-                  ),
-                if (isBarber)
-                  _menuItem(
-                    icon: Icons.swap_horiz_rounded,
-                    title: "Mijoz rejimiga o'tish",
-                    color: AppTheme.primary,
-                    onTap: () {
-                      Get.back();
-                      userService.toggleBarberMode();
-                    },
-                  ),
-
-                _menuItem(
-                  icon: Icons.logout_rounded,
-                  title: "Tizimdan chiqish",
-                  color: Colors.redAccent,
-                  onTap: () {
-                    Get.back();
-                    userService.logout();
-                    Get.offAllNamed('/welcome');
-                  },
-                ),
-                SizedBox(height: 20),
-              ],
-            );
-          }),
+              );
+            }),
+          ),
         ),
       ),
       isScrollControlled: true,
