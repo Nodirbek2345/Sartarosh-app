@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/image_helper.dart';
@@ -80,7 +81,14 @@ class BarberDetailView extends StatelessWidget {
               Positioned(
                 top: 48,
                 right: 16,
-                child: _circleButton(Icons.share_rounded, () {}),
+                child: _circleButton(Icons.share_rounded, () {
+                  SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          "Sartarosh ${barber['name'] ?? ''} bilan tanishing!\nManzil: ${barber['address'] ?? 'Toshkent'}\n\nHozir Sartarosh ilovasi orqali bron qiling!",
+                    ),
+                  );
+                }),
               ),
             ],
           ).animate().fadeIn(),
@@ -138,6 +146,7 @@ class BarberDetailView extends StatelessWidget {
                   SizedBox(height: 8),
 
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Icon(
                         Icons.location_on_rounded,
@@ -145,11 +154,15 @@ class BarberDetailView extends StatelessWidget {
                         color: AppTheme.textMedium,
                       ),
                       SizedBox(width: 4),
-                      Text(
-                        barber['address'] ?? "Toshkent",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textMedium,
-                          fontSize: 13,
+                      Expanded(
+                        child: Text(
+                          barber['address'] ?? "Toshkent",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.textMedium,
+                            fontSize: 13,
+                          ),
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(width: 16),
@@ -200,7 +213,14 @@ class BarberDetailView extends StatelessWidget {
                           "https://maps.google.com/?q=${Uri.encodeComponent(barber['address'] ?? 'Toshkent')}",
                         ),
                       ),
-                      _actionButton(Icons.share_rounded, "Ulashish", () {}),
+                      _actionButton(Icons.share_rounded, "Ulashish", () {
+                        SharePlus.instance.share(
+                          ShareParams(
+                            text:
+                                "Sartarosh ${barber['name'] ?? ''} bilan tanishing!\nManzil: ${barber['address'] ?? 'Toshkent'}\n\nHozir Sartarosh ilovasi orqali bron qiling!",
+                          ),
+                        );
+                      }),
                     ],
                   ).animate().fadeIn(delay: 300.ms),
 

@@ -1626,13 +1626,10 @@ class _BarberProfileTab extends StatelessWidget {
                   onTap: () => controller.uploadProfileImage(),
                   child: Obx(() {
                     final photoUrl = userService.photoUrl.value;
-                    final avatarBase64 = userService.avatarBase64.value;
 
                     ImageProvider? imageProvider;
                     if (photoUrl.isNotEmpty) {
                       imageProvider = CachedNetworkImageProvider(photoUrl);
-                    } else if (avatarBase64.isNotEmpty) {
-                      imageProvider = MemoryImage(base64Decode(avatarBase64));
                     }
 
                     return Stack(

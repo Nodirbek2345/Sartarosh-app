@@ -2,17 +2,17 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { FaHome, FaCut, FaCalendarCheck, FaWallet, FaCog, FaBars, FaTimes, FaSignOutAlt, FaServer, FaBuilding, FaUserShield, FaComments } from "react-icons/fa";
+import { FaHome, FaCut, FaCalendarCheck, FaWallet, FaCog, FaBars, FaTimes, FaSignOutAlt, FaServer, FaBuilding, FaUserShield, FaComments, FaUsers } from "react-icons/fa";
 
 const menuItems = [
     { name: "Bosh sahifa", href: "/dashboard", icon: FaHome },
     { name: "Sartaroshlar", href: "/dashboard/barbers", icon: FaCut },
     { name: "Bronlar", href: "/dashboard/bookings", icon: FaCalendarCheck },
     { name: "Xizmatlar", href: "/dashboard/services", icon: FaServer },
+    { name: "Mijozlar", href: "/dashboard/clients", icon: FaUsers },
     { name: "Filiallar", href: "/dashboard/branches", icon: FaBuilding },
     { name: "Daromad", href: "/dashboard/earnings", icon: FaWallet },
     { name: "Murojaatlar", href: "/dashboard/support", icon: FaComments },
-    { name: "Rollar", href: "/dashboard/roles", icon: FaUserShield },
     { name: "Sozlamalar", href: "/dashboard/settings", icon: FaCog },
 ];
 

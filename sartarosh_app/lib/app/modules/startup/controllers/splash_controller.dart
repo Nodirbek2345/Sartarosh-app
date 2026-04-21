@@ -18,11 +18,7 @@ class SplashController extends GetxController {
       return;
     }
 
-    // Check if region is already selected
-    if (userService.selectedRegion.value.isNotEmpty) {
-      Get.offAllNamed(Routes.home);
-    } else {
-      Get.offAllNamed(Routes.region);
-    }
+    // Go straight to Home (Region can be selected manually from Home)
+    Get.offAllNamed(Routes.home);
   }
 }

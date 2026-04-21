@@ -83,17 +83,6 @@ class UserService extends GetxService {
 
     if (currentUid.isNotEmpty) {
       try {
-        if (isBarberMode.value) {
-          final snap = await FirebaseFirestore.instance
-              .collection('barbers')
-              .where('uid', isEqualTo: currentUid)
-              .limit(1)
-              .get();
-          if (snap.docs.isNotEmpty) {
-            await snap.docs.first.reference.update({'image': base64Image});
-          }
-        }
-
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUid)
