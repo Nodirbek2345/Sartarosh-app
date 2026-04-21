@@ -68,10 +68,7 @@ class SplashView extends GetView<SplashController> {
               SizedBox(height: 12),
 
               Container(
-                padding: EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 6,
-                ),
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 6),
                 decoration: BoxDecoration(
                   border: Border.all(
                     color: AppTheme.primary.withValues(alpha: 0.4),
@@ -99,7 +96,7 @@ class SplashView extends GetView<SplashController> {
                 ),
               ).animate().fadeIn(delay: 1000.ms),
 
-              SizedBox(height: 48),
+              SizedBox(height: 80),
             ],
           ),
         ),
