@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -9,8 +8,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
 
 class UpdateService extends GetxService {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-
   String currentVersion = "1.0.0";
   final isDownloading = false.obs;
   final downloadProgress = 0.0.obs;
@@ -25,30 +22,36 @@ class UpdateService extends GetxService {
 
   void checkUpdate() async {
     try {
-      final doc = await _firestore.collection('settings').doc('app').get();
-      if (!doc.exists) return;
+      final dio = Dio();
+      final response = await dio.get(
+        'https://raw.githubusercontent.com/Nodirbek2345/Sartarosh-app/master/sartarosh_app/pubspec.yaml',
+      );
+      final yaml = response.data.toString();
 
-      final data = doc.data() as Map<String, dynamic>;
-      final latestVersion = data['latestVersion'] as String?;
-      final isRequired = data['isRequired'] as bool? ?? false;
-      final updateUrl = data['updateUrl'] as String?;
+      // Extract version using regex
+      final versionMatch = RegExp(
+        r'version:\s*([0-9]+\.[0-9]+\.[0-9]+)',
+      ).firstMatch(yaml);
+      if (versionMatch == null) return;
+
+      final latestVersion = versionMatch.group(1);
+
+      final updateUrl =
+          "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest";
       final releaseNotes =
-          data['releaseNotes'] ??
           'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish hoziroq yuklab oling.';
 
       if (latestVersion != null &&
           _isUpdateAvailable(currentVersion, latestVersion)) {
         _showUpdateDialog(
           latestVersion: latestVersion,
-          isRequired: isRequired,
-          updateUrl:
-              updateUrl ??
-              "https://play.google.com/store/apps/details?id=com.sartarosh.app",
+          isRequired: false,
+          updateUrl: updateUrl,
           releaseNotes: releaseNotes,
         );
       }
     } catch (e) {
-      debugPrint("Update check failed: $e");
+      debugPrint("Update check from GitHub failed: $e");
     }
   }
 
