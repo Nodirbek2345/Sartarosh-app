@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
+import '../views/widgets/review_bottom_sheet.dart';
 
 class HomeController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -104,12 +105,31 @@ class HomeController extends GetxController {
               .where('client', isEqualTo: userService.name.value)
               .where('status', whereIn: ['completed']);
 
+    // Add the import at the top of the file mentally (will do another replace block)
     final sub = query.snapshots().listen((snapshot) {
       if (snapshot.docs.isNotEmpty) {
-        final docs = snapshot.docs.map((e) => e.data()).toList();
+        final docs = snapshot.docs.map((e) {
+          final data = e.data();
+          data['id'] = e.id;
+          return data;
+        }).toList();
         docs.sort((a, b) => (b['date'] ?? '').compareTo(a['date'] ?? ''));
         final doc = docs.first;
         lastBooking.value = doc;
+
+        // Trigger Review Bottom Sheet if not rated
+        if (doc['isRated'] != true) {
+          Future.delayed(const Duration(seconds: 2), () {
+            if (Get.isBottomSheetOpen != true) {
+              Get.bottomSheet(
+                ReviewBottomSheet(booking: doc),
+                isScrollControlled: true,
+                isDismissible: false,
+                enableDrag: false,
+              );
+            }
+          });
+        }
 
         // Smart AI recommendation logic
         final dateStr = doc['date'] as String?;
