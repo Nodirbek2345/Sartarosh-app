@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class UserService extends GetxService {
   final name = "Mijoz".obs;
@@ -79,6 +80,31 @@ class UserService extends GetxService {
   void updateAvatar(String base64Image) async {
     avatarBase64.value = base64Image;
     await _storage.write(key: 'user_avatar', value: base64Image);
+
+    if (currentUid.isNotEmpty) {
+      try {
+        if (isBarberMode.value) {
+          final snap = await FirebaseFirestore.instance
+              .collection('barbers')
+              .where('uid', isEqualTo: currentUid)
+              .limit(1)
+              .get();
+          if (snap.docs.isNotEmpty) {
+            await snap.docs.first.reference.update({'image': base64Image});
+          }
+        }
+
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .get();
+        if (userDoc.exists) {
+          await userDoc.reference.update({'avatar': base64Image});
+        }
+      } catch (e) {
+        // Exception intentionally ignored for minor avatar sync issues
+      }
+    }
   }
 
   void updatePhotoUrl(String url) async {
