@@ -704,226 +704,233 @@ class ProfileView extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: AppTheme.textLight.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              SizedBox(height: 20),
-              Row(
-                children: [
-                  Icon(
-                    Icons.settings_rounded,
-                    color: AppTheme.primary,
-                    size: 24,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppTheme.textLight.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  SizedBox(width: 12),
-                  Text(
-                    "Sozlamalar",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: AppTheme.textDark,
+                ),
+                SizedBox(height: 20),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.settings_rounded,
+                      color: AppTheme.primary,
+                      size: 24,
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24),
-              // Name field
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(
-                  labelText: "Ismingiz",
-                  labelStyle: TextStyle(color: AppTheme.textMedium),
-                  prefixIcon: Icon(
-                    Icons.person_rounded,
-                    color: AppTheme.primary,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppTheme.textLight),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppTheme.primary, width: 2),
-                  ),
+                    SizedBox(width: 12),
+                    Text(
+                      "Sozlamalar",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              SizedBox(height: 16),
-              // Personal Phone field
-              TextField(
-                controller: phoneCtrl,
-                keyboardType: TextInputType.phone,
-                decoration: InputDecoration(
-                  labelText: isBarber ? "Shaxsiy raqamingiz" : "Telefon raqam",
-                  labelStyle: TextStyle(color: AppTheme.textMedium),
-                  prefixIcon: Icon(
-                    Icons.phone_rounded,
-                    color: AppTheme.primary,
-                  ),
-                  helperText: isBarber
-                      ? "Bu raqam faqat sizning akkauntingiz uchun"
-                      : null,
-                  helperStyle: TextStyle(
-                    color: AppTheme.textMedium,
-                    fontSize: 11,
-                  ),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppTheme.textLight),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppTheme.primary, width: 2),
-                  ),
-                ),
-              ),
-              // Barber business phone — only visible in barber mode
-              if (isBarber) ...[
-                SizedBox(height: 16),
+                SizedBox(height: 24),
+                // Name field
                 TextField(
-                  controller: barberPhoneCtrl,
-                  keyboardType: TextInputType.phone,
+                  controller: nameCtrl,
                   decoration: InputDecoration(
-                    labelText: "Usta telefon raqami (mijozlar ko'radi)",
+                    labelText: "Ismingiz",
                     labelStyle: TextStyle(color: AppTheme.textMedium),
                     prefixIcon: Icon(
-                      Icons.phone_in_talk_rounded,
-                      color: AppTheme.gold,
+                      Icons.person_rounded,
+                      color: AppTheme.primary,
                     ),
-                    helperText:
-                        "Bu raqamni mijozlar ko'radi va qo'ng'iroq qiladi",
-                    helperStyle: TextStyle(color: AppTheme.gold, fontSize: 11),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(
-                        color: AppTheme.gold.withValues(alpha: 0.3),
-                      ),
+                      borderSide: BorderSide(color: AppTheme.textLight),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: AppTheme.gold, width: 2),
+                      borderSide: BorderSide(color: AppTheme.primary, width: 2),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 16),
+                // Personal Phone field
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: InputDecoration(
+                    labelText: isBarber
+                        ? "Shaxsiy raqamingiz"
+                        : "Telefon raqam",
+                    labelStyle: TextStyle(color: AppTheme.textMedium),
+                    prefixIcon: Icon(
+                      Icons.phone_rounded,
+                      color: AppTheme.primary,
+                    ),
+                    helperText: isBarber
+                        ? "Bu raqam faqat sizning akkauntingiz uchun"
+                        : null,
+                    helperStyle: TextStyle(
+                      color: AppTheme.textMedium,
+                      fontSize: 11,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.textLight),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: AppTheme.primary, width: 2),
+                    ),
+                  ),
+                ),
+                // Barber business phone — only visible in barber mode
+                if (isBarber) ...[
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: barberPhoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: "Usta telefon raqami (mijozlar ko'radi)",
+                      labelStyle: TextStyle(color: AppTheme.textMedium),
+                      prefixIcon: Icon(
+                        Icons.phone_in_talk_rounded,
+                        color: AppTheme.gold,
+                      ),
+                      helperText:
+                          "Bu raqamni mijozlar ko'radi va qo'ng'iroq qiladi",
+                      helperStyle: TextStyle(
+                        color: AppTheme.gold,
+                        fontSize: 11,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppTheme.gold.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: AppTheme.gold, width: 2),
+                      ),
+                    ),
+                  ),
+                ],
+                SizedBox(height: 24),
+                // Save
+                GestureDetector(
+                  onTap: () async {
+                    // Save personal info — always
+                    userService.updateUser(
+                      nameCtrl.text.trim(),
+                      phoneCtrl.text.trim(),
+                    );
+
+                    // If barber, also update barber phone in Firestore
+                    if (isBarber && barberPhoneCtrl.text.trim().isNotEmpty) {
+                      try {
+                        final snap = await FirebaseFirestore.instance
+                            .collection('barbers')
+                            .where('uid', isEqualTo: userService.currentUid)
+                            .limit(1)
+                            .get();
+                        if (snap.docs.isNotEmpty) {
+                          await snap.docs.first.reference.update({
+                            'phone': barberPhoneCtrl.text.trim(),
+                          });
+                        }
+                      } catch (_) {}
+                    }
+
+                    Get.back();
+                    Get.snackbar(
+                      "Saqlandi ✅",
+                      "Ma'lumotlaringiz yangilandi",
+                      backgroundColor: AppTheme.primary,
+                      colorText: Colors.white,
+                      snackPosition: SnackPosition.BOTTOM,
+                      margin: EdgeInsets.all(16),
+                      borderRadius: 14,
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AppTheme.primary, AppTheme.accent],
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Saqlash",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 17,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 12),
+                // Logout
+                GestureDetector(
+                  onTap: () {
+                    Get.dialog(
+                      AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: Text("Chiqish"),
+                        content: Text("Rostdan ham tizimdan chiqmoqchimisiz?"),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Get.back(),
+                            child: Text("Yo'q"),
+                          ),
+                          TextButton(
+                            onPressed: () {
+                              userService.logout();
+                              Get.back(); // close dialog
+                              Get.back(); // close bottom sheet
+                              Get.offAllNamed('/onboarding');
+                            },
+                            child: Text(
+                              "Ha, chiqish",
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFEE2E2),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Center(
+                      child: Text(
+                        "Tizimdan chiqish",
+                        style: TextStyle(
+                          color: Color(0xFFDC2626),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ],
-              SizedBox(height: 24),
-              // Save
-              GestureDetector(
-                onTap: () async {
-                  // Save personal info — always
-                  userService.updateUser(
-                    nameCtrl.text.trim(),
-                    phoneCtrl.text.trim(),
-                  );
-
-                  // If barber, also update barber phone in Firestore
-                  if (isBarber && barberPhoneCtrl.text.trim().isNotEmpty) {
-                    try {
-                      final snap = await FirebaseFirestore.instance
-                          .collection('barbers')
-                          .where('uid', isEqualTo: userService.currentUid)
-                          .limit(1)
-                          .get();
-                      if (snap.docs.isNotEmpty) {
-                        await snap.docs.first.reference.update({
-                          'phone': barberPhoneCtrl.text.trim(),
-                        });
-                      }
-                    } catch (_) {}
-                  }
-
-                  Get.back();
-                  Get.snackbar(
-                    "Saqlandi ✅",
-                    "Ma'lumotlaringiz yangilandi",
-                    backgroundColor: AppTheme.primary,
-                    colorText: Colors.white,
-                    snackPosition: SnackPosition.BOTTOM,
-                    margin: EdgeInsets.all(16),
-                    borderRadius: 14,
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [AppTheme.primary, AppTheme.accent],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Saqlash",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: 12),
-              // Logout
-              GestureDetector(
-                onTap: () {
-                  Get.dialog(
-                    AlertDialog(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      title: Text("Chiqish"),
-                      content: Text("Rostdan ham tizimdan chiqmoqchimisiz?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Get.back(),
-                          child: Text("Yo'q"),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            userService.logout();
-                            Get.back(); // close dialog
-                            Get.back(); // close bottom sheet
-                            Get.offAllNamed('/onboarding');
-                          },
-                          child: Text(
-                            "Ha, chiqish",
-                            style: TextStyle(color: Colors.red),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Tizimdan chiqish",
-                      style: TextStyle(
-                        color: Color(0xFFDC2626),
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -940,84 +947,86 @@ class ProfileView extends StatelessWidget {
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppTheme.textLight.withValues(alpha: 0.3),
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 20),
-            Row(
-              children: [
-                Icon(
-                  Icons.help_outline_rounded,
-                  color: AppTheme.primary,
-                  size: 24,
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textLight.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
                 ),
-                SizedBox(width: 12),
-                Text(
-                  "Yordam",
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppTheme.textDark,
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 24),
-            _helpItem(
-              Icons.smart_toy_rounded,
-              "AI Yordam (Murojaat)",
-              "Suni'y intellekt orqali muammoni hal qilish",
-              () {
-                Get.back(); // close bottom sheet
-                Get.toNamed('/support-chat');
-              },
-            ),
-            _helpItem(
-              Icons.info_outline_rounded,
-              "Ilova versiyasi",
-              "${Get.find<UpdateService>().currentVersion} (Tekshirish)",
-              () {
-                Get.back();
-                Get.find<UpdateService>().checkUpdate();
-              },
-            ),
-            SizedBox(height: 12),
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: AppTheme.primary.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(14),
               ),
-              child: Row(
+              SizedBox(height: 20),
+              Row(
                 children: [
                   Icon(
-                    Icons.favorite_rounded,
+                    Icons.help_outline_rounded,
                     color: AppTheme.primary,
-                    size: 20,
+                    size: 24,
                   ),
                   SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      "Sartarosh ilovasini tanlaganingiz uchun rahmat!",
-                      style: TextStyle(
-                        color: AppTheme.textMedium,
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                      ),
+                  Text(
+                    "Yordam",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
                     ),
                   ),
                 ],
               ),
-            ),
-          ],
+              SizedBox(height: 24),
+              _helpItem(
+                Icons.smart_toy_rounded,
+                "AI Yordam (Murojaat)",
+                "Suni'y intellekt orqali muammoni hal qilish",
+                () {
+                  Get.back(); // close bottom sheet
+                  Get.toNamed('/support-chat');
+                },
+              ),
+              _helpItem(
+                Icons.info_outline_rounded,
+                "Ilova versiyasi",
+                "${Get.find<UpdateService>().currentVersion} (Tekshirish)",
+                () {
+                  Get.back();
+                  Get.find<UpdateService>().checkUpdate();
+                },
+              ),
+              SizedBox(height: 12),
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.favorite_rounded,
+                      color: AppTheme.primary,
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        "Sartarosh ilovasini tanlaganingiz uchun rahmat!",
+                        style: TextStyle(
+                          color: AppTheme.textMedium,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       isScrollControlled: true,
