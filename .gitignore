@@ -33,6 +33,16 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# Sensitive scripts (Firebase credentials)
+seed.mjs
+clean.mjs
+inspect.mjs
+
+# Firebase service account keys
+**/google-services.json
+**/GoogleService-Info.plist
+serviceAccountKey*.json
+
 # vercel
 .vercel
 

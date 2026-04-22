@@ -2,64 +2,110 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Foydalanuvchi tizimga kirganligini tekshirish
+    // ═══════════════════════════════════════════════════════
+    // UMUMIY FUNKSIYALAR
+    // ═══════════════════════════════════════════════════════
+    
+    // Foydalanuvchi tizimga kirganmi?
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // --------------------------------------------------------
-    // 1. Foydalanuvchilar (Users) To'plami
-    // --------------------------------------------------------
-    match /users/{userId} {
-      // Faqat o'zi ko'ra oladi va yozadi
-      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    // Yangi hujjat tarkibini tekshirish
+    function incomingData() {
+      return request.resource.data;
     }
     
-    // --------------------------------------------------------
-    // 2. Sartaroshlar (Barbers) To'plami
-    // --------------------------------------------------------
+    // Mavjud hujjat ma'lumotlari
+    function existingData() {
+      return resource.data;
+    }
+    
+    // Foydalanuvchi o'zimi?
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 1. FOYDALANUVCHILAR (Users)
+    // ═══════════════════════════════════════════════════════
+    match /users/{userId} {
+      // Faqat o'zi o'qiy oladi
+      allow read: if isSignedIn() && isOwner(userId);
+      
+      // Faqat o'zi yoza oladi, lekin role maydonini bir marta belgilagandan keyin o'zgartira olmaydi
+      allow create: if isSignedIn() && isOwner(userId)
+                    && incomingData().keys().hasAll(['name', 'role'])
+                    && incomingData().role in ['client', 'barber'];
+      
+      // Update: `role` ni o'zgartirish taqiqlangan (injection himoya)
+      allow update: if isSignedIn() && isOwner(userId)
+                    && incomingData().role == existingData().role;
+      
+      // O'chirish mumkin emas (admin orqali)
+      allow delete: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 2. SARTAROSHLAR (Barbers)
+    // ═══════════════════════════════════════════════════════
     match /barbers/{barberDocId} {
       // Hammaga o'qish ruxsat (ro'yxat uchun)
       allow read: if true;
       
-      // Yangi sartarosh kiritilganda uning "uid" si token uid (auth.uid) ga aynan teng bo'lishi MAJBURIY
+      // Yangi sartarosh: uid majburiy, name va services kerak
       allow create: if isSignedIn() 
-                    && request.resource.data.uid == request.auth.uid;
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().keys().hasAll(['uid', 'name', 'services']);
       
-      // Yangilashda eskirib qolgan uid bilan auth uid bir xil bo'lishi va uid ni umuman o'zgartira olmasligi kerak (injection guard)
+      // Yangilash: uid ni o'zgartirish mumkin emas
       allow update: if isSignedIn() 
-                    && resource.data.uid == request.auth.uid 
-                    && request.resource.data.uid == resource.data.uid; // qat'iy himoya
+                    && existingData().uid == request.auth.uid 
+                    && incomingData().uid == existingData().uid;
                     
-      // O'chirish faqat hujjat egasiga ruxsat
-      allow delete: if isSignedIn() && resource.data.uid == request.auth.uid;
+      // O'chirish: faqat hujjat egasi
+      allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
     }
 
-    // --------------------------------------------------------
-    // 3. Xizmatlar (Services) To'plami (Faqat Admin)
-    // --------------------------------------------------------
+    // ═══════════════════════════════════════════════════════
+    // 3. XIZMATLAR (Services) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
     match /services/{serviceId} {
       allow read: if true;
-      allow write: if false; // Tizim tarafidan kiritiladi, mijoz yo usta tegolmaydi
+      allow write: if false;
     }
 
-    // --------------------------------------------------------
-    // 4. Bronlar (Bookings) To'plami
-    // --------------------------------------------------------
+    // ═══════════════════════════════════════════════════════
+    // 4. BRONLAR (Bookings)
+    // ═══════════════════════════════════════════════════════
     match /bookings/{bookingId} {
-      // Ro'yxatdan o'tganlar (ustalar) o'qiy oladi
+      // Faqat tizimga kirganlar o'qiy oladi
       allow read: if isSignedIn();
       
-      // "clientUid" mijozning o'zi (auth.uid) ga tegishli bo'lsa yaratiladi, faqat mijoz o'zi nomidan yozadi
+      // Yaratish: clientUid = auth.uid, barberUid kerak, status = "pending"
       allow create: if isSignedIn() 
-                    && request.resource.data.clientUid == request.auth.uid;
+                    && incomingData().clientUid == request.auth.uid
+                    && incomingData().keys().hasAll(['clientUid', 'barberUid', 'service', 'status'])
+                    && incomingData().status == 'pending';
       
-      // Bron o'zgarayotganda (masalan sartarosh qabul qilganda) hujjatning original clientUid si o'zgartirilmasligi kerak (hakker klient idsini o'zgartira olmaydi)
+      // Yangilash: faqat shu bronning mijozi YOKI usta (barberUid)
+      // clientUid va barberUid ni o'zgartirish mumkin emas
       allow update: if isSignedIn() 
-                    && request.resource.data.clientUid == resource.data.clientUid;
+                    && (existingData().clientUid == request.auth.uid 
+                        || existingData().barberUid == request.auth.uid)
+                    && incomingData().clientUid == existingData().clientUid
+                    && incomingData().barberUid == existingData().barberUid
+                    && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed'];
                     
-      // Faqat bronning mijozi uni o'chirib yuborishi mumkin
-      allow delete: if isSignedIn() && resource.data.clientUid == request.auth.uid;
+      // O'chirish: faqat mijoz
+      allow delete: if isSignedIn() && existingData().clientUid == request.auth.uid;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 5. BOSHQA HAMMA NARSA — TAQIQLANGAN
+    // ═══════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

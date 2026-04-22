@@ -1,14 +1,23 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, collection, getDocs, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 
+// ⚠️ Firebase config .env.local dan olinadi (xavfsizlik uchun)
+// Bu faylni GitHub ga push QILMANG!
 const firebaseConfig = {
-    apiKey: "AIzaSyAzt8n0nHnj_JdoC3ZN5xjEXFX2yO4yWvY",
-    authDomain: "sartarosh-eaf90.firebaseapp.com",
-    projectId: "sartarosh-eaf90",
-    storageBucket: "sartarosh-eaf90.firebasestorage.app",
-    messagingSenderId: "328525443303",
-    appId: "1:328525443303:web:cf3bb05758bed9cc25f242"
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
+
+// Config tekshiruvi
+if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
+    console.error("❌ Firebase config topilmadi! .env.local faylini tekshiring.");
+    console.error("   Maslahat: dotenv paketini o'rnating yoki env o'zgaruvchilarini qo'lda export qiling.");
+    process.exit(1);
+}
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
@@ -34,6 +43,7 @@ const barbersData = [
             { name: "Premium styling", price: 60000, duration: 50 },
         ],
         tags: ["Premium", "Top Rated"],
+        isActive: true,
         createdAt: serverTimestamp(),
     },
     {
@@ -52,6 +62,7 @@ const barbersData = [
             { name: "Soch + Soqol", price: 35000, duration: 45 },
         ],
         tags: ["Kreativ", "Zamonaviy"],
+        isActive: true,
         createdAt: serverTimestamp(),
     },
     {
@@ -71,14 +82,9 @@ const barbersData = [
             { name: "VIP xizmat", price: 100000, duration: 90 },
         ],
         tags: ["VIP", "Tajribali", "Top Rated"],
+        isActive: true,
         createdAt: serverTimestamp(),
     },
-];
-
-const bookingsData = [
-    { client: "Aziz Mahmudov", barberName: "Sardor Karimov", service: "Soch olish", price: 30000, time: "14:00", date: new Date().toISOString().split("T")[0], status: "confirmed", createdAt: serverTimestamp() },
-    { client: "Doston Aliyev", barberName: "Bekzod Aliyev", service: "Soqol olish", price: 15000, time: "15:30", date: new Date().toISOString().split("T")[0], status: "pending", createdAt: serverTimestamp() },
-    { client: "Jamshid V.", barberName: "Azizbek Rustamov", service: "Soch + Soqol", price: 50000, time: "17:00", date: new Date().toISOString().split("T")[0], status: "confirmed", createdAt: serverTimestamp() },
 ];
 
 async function seed() {
@@ -94,16 +100,12 @@ async function seed() {
     try {
         for (const b of barbersData) {
             await addDoc(barbersRef, b);
-            console.log("Added barber:", b.name);
-        }
-        for (const b of bookingsData) {
-            await addDoc(bookingsRef, b);
-            console.log("Added booking for:", b.client);
+            console.log("✅ Added barber:", b.name);
         }
         console.log("Base data seeded successfully!");
         process.exit(0);
     } catch (e) {
-        console.error("Error seeding:", e);
+        console.error("❌ Error seeding:", e);
         process.exit(1);
     }
 }
