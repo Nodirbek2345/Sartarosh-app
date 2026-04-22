@@ -23,29 +23,52 @@ class UpdateService extends GetxService {
   void checkUpdate() async {
     try {
       final dio = Dio();
+      // YALANG'OCH pubspec o'rniga, to'g'ridan-to'g'ri so'nggi RELIZNI tekshiramiz.
+      // Shunda Github Actions to'liq qurib, ob'ektni qo'shmaguncha yangilanish chiqmaydi!
       final response = await dio.get(
-        'https://raw.githubusercontent.com/Nodirbek2345/Sartarosh-app/master/sartarosh_app/pubspec.yaml',
+        'https://api.github.com/repos/Nodirbek2345/Sartarosh-app/releases/latest',
       );
-      final yaml = response.data.toString();
 
-      // Extract version using regex
+      final latestTag = response.data['tag_name'] as String?;
+      final releaseName = response.data['name'] as String?;
+      final assets = response.data['assets'] as List?;
+
+      if (latestTag == null || assets == null || assets.isEmpty) return;
+
+      // Extract version from tag_name or release_name using regex e.g. "v1.0.14" -> "1.0.14"
+      // If the tag is something else, we can fallback to extracting from release body or name
+      final bodyText = response.data['body']?.toString() ?? "";
+      final searchString = "$latestTag $releaseName $bodyText";
       final versionMatch = RegExp(
-        r'version:\s*([0-9]+\.[0-9]+\.[0-9]+)',
-      ).firstMatch(yaml);
+        r'([0-9]+\.[0-9]+\.[0-9]+)',
+      ).firstMatch(searchString);
+
       if (versionMatch == null) return;
 
       final latestVersion = versionMatch.group(1);
 
-      final updateUrl =
-          "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest";
-      final releaseNotes =
-          'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish hoziroq yuklab oling.';
+      // We must make sure there is an apk asset inside this release
+      String? apkDownloadUrl;
+      for (var asset in assets) {
+        final dlUrl = asset['browser_download_url'] as String?;
+        if (dlUrl != null && dlUrl.endsWith('.apk')) {
+          apkDownloadUrl = dlUrl;
+          break;
+        }
+      }
+
+      if (apkDownloadUrl == null) return; // No APK built yet for this release
+
+      final updateUrl = apkDownloadUrl; // Directly use the APK url
+      final releaseNotes = response.data['body']?.toString().isNotEmpty == true
+          ? response.data['body'].toString()
+          : 'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish hoziroq yuklab oling.';
 
       if (latestVersion != null &&
           _isUpdateAvailable(currentVersion, latestVersion)) {
         _showUpdateDialog(
           latestVersion: latestVersion,
-          isRequired: false,
+          isRequired: false, // We will force it anyway in the UI
           updateUrl: updateUrl,
           releaseNotes: releaseNotes,
         );
