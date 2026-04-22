@@ -2,9 +2,11 @@
 import { useState } from "react";
 import { useAuth } from "../../lib/auth";
 import { FaCut, FaLock, FaEnvelope, FaEye, FaEyeSlash, FaShieldAlt } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
     const { login } = useAuth();
+    const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState("");
@@ -17,6 +19,7 @@ export default function LoginPage() {
         setLoading(true);
         try {
             await login(email.trim().toLowerCase(), password);
+            router.push("/dashboard"); // Muvaffaqiyatli kirilsa dashboard'ga o'tish
         } catch (err) {
             if (err.message.includes("admin sifatida")) {
                 setError(err.message);
