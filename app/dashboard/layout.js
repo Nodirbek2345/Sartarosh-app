@@ -1,8 +1,9 @@
 "use client";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { FaHome, FaCut, FaCalendarCheck, FaWallet, FaCog, FaBars, FaTimes, FaSignOutAlt, FaServer, FaBuilding, FaUserShield, FaComments, FaUsers } from "react-icons/fa";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useAuth } from "../../lib/auth";
+import { FaHome, FaCut, FaCalendarCheck, FaWallet, FaCog, FaBars, FaTimes, FaSignOutAlt, FaServer, FaBuilding, FaUserShield, FaComments, FaUsers, FaShieldAlt } from "react-icons/fa";
 
 const menuItems = [
     { name: "Bosh sahifa", href: "/dashboard", icon: FaHome },
@@ -18,7 +19,51 @@ const menuItems = [
 
 export default function DashboardLayout({ children }) {
     const pathname = usePathname();
+    const router = useRouter();
+    const { user, loading, isAdmin, logout } = useAuth();
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // 🛡️ AUTH GUARD: Login qilmagan yoki admin bo'lmagan foydalanuvchini login sahifasiga yo'naltirish
+    useEffect(() => {
+        if (!loading && (!user || !isAdmin)) {
+            router.replace("/login");
+        }
+    }, [user, isAdmin, loading, router]);
+
+    // Yuklanish holati
+    if (loading) {
+        return (
+            <div style={{
+                minHeight: "100vh",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#0F172A",
+                color: "#94A3B8",
+                fontFamily: "'Inter', sans-serif",
+                flexDirection: "column",
+                gap: "1rem",
+            }}>
+                <div style={{
+                    width: "48px", height: "48px",
+                    border: "3px solid rgba(34,197,94,0.2)",
+                    borderTopColor: "#22C55E",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                }} />
+                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+                <p>Tekshirilmoqda...</p>
+            </div>
+        );
+    }
+
+    // Agar user null bo'lsa, redirect yuzaga kelmoqda
+    if (!user || !isAdmin) return null;
+
+    const handleLogout = async () => {
+        await logout();
+        router.replace("/login");
+    };
 
     return (
         <div className="dashboard-layout">
@@ -57,13 +102,32 @@ export default function DashboardLayout({ children }) {
                     })}
                 </nav>
 
-                {/* Profile card */}
+                {/* Profile card with logout */}
                 <div className="sidebar-profile-card">
-                    <div className="profile-avatar">A</div>
+                    <div className="profile-avatar">
+                        <FaShieldAlt size={14} />
+                    </div>
                     <div className="profile-info">
-                        <h4>Admin</h4>
+                        <h4>{user?.email?.split("@")[0] || "Admin"}</h4>
                         <p>Boshqaruvchi</p>
                     </div>
+                    <button
+                        onClick={handleLogout}
+                        title="Chiqish"
+                        style={{
+                            background: "rgba(239,68,68,0.1)",
+                            border: "1px solid rgba(239,68,68,0.2)",
+                            borderRadius: "8px",
+                            padding: "8px",
+                            cursor: "pointer",
+                            color: "#EF4444",
+                            marginLeft: "auto",
+                            display: "flex",
+                            alignItems: "center",
+                        }}
+                    >
+                        <FaSignOutAlt size={14} />
+                    </button>
                 </div>
             </aside>
 

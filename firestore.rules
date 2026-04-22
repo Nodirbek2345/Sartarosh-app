@@ -6,43 +6,44 @@ service cloud.firestore {
     // UMUMIY FUNKSIYALAR
     // ═══════════════════════════════════════════════════════
     
-    // Foydalanuvchi tizimga kirganmi?
     function isSignedIn() {
       return request.auth != null;
     }
     
-    // Yangi hujjat tarkibini tekshirish
     function incomingData() {
       return request.resource.data;
     }
     
-    // Mavjud hujjat ma'lumotlari
     function existingData() {
       return resource.data;
     }
     
-    // Foydalanuvchi o'zimi?
     function isOwner(uid) {
       return request.auth.uid == uid;
+    }
+    
+    // Admin tekshiruvi (Firebase Auth custom claims orqali)
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
     }
 
     // ═══════════════════════════════════════════════════════
     // 1. FOYDALANUVCHILAR (Users)
     // ═══════════════════════════════════════════════════════
     match /users/{userId} {
-      // Faqat o'zi o'qiy oladi
       allow read: if isSignedIn() && isOwner(userId);
       
-      // Faqat o'zi yoza oladi, lekin role maydonini bir marta belgilagandan keyin o'zgartira olmaydi
       allow create: if isSignedIn() && isOwner(userId)
                     && incomingData().keys().hasAll(['name', 'role'])
-                    && incomingData().role in ['client', 'barber'];
+                    && incomingData().role in ['client', 'barber']
+                    && incomingData().name is string
+                    && incomingData().name.size() > 0
+                    && incomingData().name.size() <= 100;
       
-      // Update: `role` ni o'zgartirish taqiqlangan (injection himoya)
+      // Role ni o'zgartirish taqiqlangan
       allow update: if isSignedIn() && isOwner(userId)
                     && incomingData().role == existingData().role;
       
-      // O'chirish mumkin emas (admin orqali)
       allow delete: if false;
     }
     
@@ -50,20 +51,20 @@ service cloud.firestore {
     // 2. SARTAROSHLAR (Barbers)
     // ═══════════════════════════════════════════════════════
     match /barbers/{barberDocId} {
-      // Hammaga o'qish ruxsat (ro'yxat uchun)
       allow read: if true;
       
-      // Yangi sartarosh: uid majburiy, name va services kerak
       allow create: if isSignedIn() 
                     && incomingData().uid == request.auth.uid
-                    && incomingData().keys().hasAll(['uid', 'name', 'services']);
+                    && incomingData().keys().hasAll(['uid', 'name', 'services'])
+                    && incomingData().name is string
+                    && incomingData().name.size() > 0
+                    && incomingData().name.size() <= 100;
       
-      // Yangilash: uid ni o'zgartirish mumkin emas
+      // uid ni o'zgartirish mumkin emas
       allow update: if isSignedIn() 
                     && existingData().uid == request.auth.uid 
                     && incomingData().uid == existingData().uid;
                     
-      // O'chirish: faqat hujjat egasi
       allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
     }
 
@@ -79,17 +80,16 @@ service cloud.firestore {
     // 4. BRONLAR (Bookings)
     // ═══════════════════════════════════════════════════════
     match /bookings/{bookingId} {
-      // Faqat tizimga kirganlar o'qiy oladi
       allow read: if isSignedIn();
       
-      // Yaratish: clientUid = auth.uid, barberUid kerak, status = "pending"
       allow create: if isSignedIn() 
                     && incomingData().clientUid == request.auth.uid
                     && incomingData().keys().hasAll(['clientUid', 'barberUid', 'service', 'status'])
-                    && incomingData().status == 'pending';
+                    && incomingData().status == 'pending'
+                    && incomingData().service is string
+                    && incomingData().service.size() > 0;
       
-      // Yangilash: faqat shu bronning mijozi YOKI usta (barberUid)
-      // clientUid va barberUid ni o'zgartirish mumkin emas
+      // Faqat mijoz yoki usta yangilashi mumkin
       allow update: if isSignedIn() 
                     && (existingData().clientUid == request.auth.uid 
                         || existingData().barberUid == request.auth.uid)
@@ -97,12 +97,60 @@ service cloud.firestore {
                     && incomingData().barberUid == existingData().barberUid
                     && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed'];
                     
-      // O'chirish: faqat mijoz
       allow delete: if isSignedIn() && existingData().clientUid == request.auth.uid;
     }
     
     // ═══════════════════════════════════════════════════════
-    // 5. BOSHQA HAMMA NARSA — TAQIQLANGAN
+    // 5. FILIALLAR (Branches) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if false; // Admin SDK orqali boshqariladi
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 6. SHARHLAR (Reviews) — O'qish hammaga, yozish faqat mijozga
+    // ═══════════════════════════════════════════════════════
+    match /reviews/{reviewId} {
+      allow read: if true;
+      
+      allow create: if isSignedIn()
+                    && incomingData().clientUid == request.auth.uid
+                    && incomingData().keys().hasAll(['clientUid', 'barberId', 'rating'])
+                    && incomingData().rating is number
+                    && incomingData().rating >= 1
+                    && incomingData().rating <= 5;
+      
+      allow update, delete: if false; // Sharhni o'zgartirish/o'chirish mumkin emas
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 7. SOZLAMALAR (Settings) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if false; // Admin SDK orqali boshqariladi
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 8. QOLLAB-QUVVATLASH (Support) — Foydalanuvchi yuboradi
+    // ═══════════════════════════════════════════════════════
+    match /support/{ticketId} {
+      allow read: if isSignedIn() 
+                  && existingData().uid == request.auth.uid;
+      
+      allow create: if isSignedIn()
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().keys().hasAll(['uid', 'message'])
+                    && incomingData().message is string
+                    && incomingData().message.size() > 0
+                    && incomingData().message.size() <= 2000;
+      
+      allow update, delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 9. BOSHQA HAMMA NARSA — CATCH-ALL DENY
     // ═══════════════════════════════════════════════════════
     match /{document=**} {
       allow read, write: if false;
