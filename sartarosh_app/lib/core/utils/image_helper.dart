@@ -11,14 +11,12 @@ class ImageHelper {
         try {
           return MemoryImage(base64Decode(imageStr));
         } catch (_) {
-          return CachedNetworkImageProvider(
-            'https://i.pravatar.cc/500?u=$fallbackId',
-          );
+          // Noto'g'ri base64 bo'lsa — default icon ko'rsatamiz
+          return const AssetImage('assets/images/default_barber.png');
         }
       }
     }
-    return CachedNetworkImageProvider(
-      'https://i.pravatar.cc/500?u=$fallbackId',
-    );
+    // Rasm yo'q — placeholder ichki asset yoki umumiy ikon
+    return const AssetImage('assets/images/default_barber.png');
   }
 }

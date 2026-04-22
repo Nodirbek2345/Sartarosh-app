@@ -371,24 +371,33 @@ class HomeView extends GetView<HomeController> {
                     borderRadius: const BorderRadius.horizontal(
                       right: Radius.circular(22),
                     ),
-                    child: CachedNetworkImage(
-                      imageUrl:
-                          featured['image'] ??
-                          'https://i.pravatar.cc/400?u=${featured['id']}',
-                      fit: BoxFit.cover,
-                      height: double.infinity,
-                      placeholder: (context, url) => Container(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        child: Icon(
-                          Icons.person,
-                          size: 48,
-                          color: AppTheme.primary,
-                        ),
-                      ),
-                    ),
+                    child:
+                        (featured['image'] != null &&
+                            featured['image'].toString().startsWith('http'))
+                        ? CachedNetworkImage(
+                            imageUrl: featured['image'],
+                            fit: BoxFit.cover,
+                            height: double.infinity,
+                            placeholder: (context, url) => Container(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: AppTheme.primary.withValues(alpha: 0.1),
+                              child: Icon(
+                                Icons.person,
+                                size: 48,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            color: AppTheme.primary.withValues(alpha: 0.1),
+                            child: Icon(
+                              Icons.person_rounded,
+                              size: 48,
+                              color: AppTheme.primary,
+                            ),
+                          ),
                   ),
                 ),
               ],

@@ -3,9 +3,9 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/booking_controller.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/utils/image_helper.dart';
 
 class BookingView extends GetView<BookingController> {
   const BookingView({super.key});
@@ -58,9 +58,12 @@ class BookingView extends GetView<BookingController> {
           SizedBox(width: 16),
           CircleAvatar(
             radius: 16,
-            backgroundImage: CachedNetworkImageProvider(
-              'https://i.pravatar.cc/100?u=user',
-            ), // You can change this if needed
+            backgroundColor: AppTheme.primary.withValues(alpha: 0.2),
+            child: Icon(
+              Icons.person_rounded,
+              size: 18,
+              color: AppTheme.primary,
+            ),
           ),
           SizedBox(width: 20),
         ],
@@ -135,9 +138,9 @@ class BookingView extends GetView<BookingController> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(14),
                                 image: DecorationImage(
-                                  image: CachedNetworkImageProvider(
-                                    b['image'] ??
-                                        'https://i.pravatar.cc/200?u=${b['id']}',
+                                  image: ImageHelper.getBarberImage(
+                                    b['image']?.toString(),
+                                    b['id']?.toString() ?? 'unknown',
                                   ),
                                   fit: BoxFit.cover,
                                 ),

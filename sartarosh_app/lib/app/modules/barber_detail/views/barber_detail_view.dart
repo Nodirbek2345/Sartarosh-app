@@ -15,6 +15,11 @@ class BarberDetailView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final barber = Get.arguments as Map<String, dynamic>? ?? {};
+    final userService = Get.find<UserService>();
+    // Xavfsizlik: sartarosh o'zini-o'zi bron qila olmasligi kerak
+    final bool isSelf =
+        barber['uid'] == userService.currentUid ||
+        barber['name'] == userService.name.value;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
@@ -448,6 +453,21 @@ class BarberDetailView extends StatelessWidget {
                 ),
                 child: GestureDetector(
                   onTap: () {
+                    if (isSelf) {
+                      Get.snackbar(
+                        "⚠️ Bron qilib bo'lmaydi",
+                        "Siz o'zingizning profilingizni ko'ryapsiz. Faqat mijozlar bron qilishi mumkin.",
+                        snackPosition: SnackPosition.TOP,
+                        backgroundColor: AppTheme.primary.withValues(
+                          alpha: 0.9,
+                        ),
+                        colorText: Colors.white,
+                        duration: Duration(seconds: 3),
+                        margin: EdgeInsets.all(16),
+                        borderRadius: 16,
+                      );
+                      return;
+                    }
                     if (ctaActive) {
                       Get.toNamed(
                         '/booking',
@@ -494,7 +514,7 @@ class BarberDetailView extends StatelessWidget {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          if (!ctaActive) ...[
+                          if (!ctaActive && !isSelf) ...[
                             Icon(
                               Icons.schedule_rounded,
                               color: AppTheme.textMedium,
@@ -502,14 +522,26 @@ class BarberDetailView extends StatelessWidget {
                             ),
                             SizedBox(width: 8),
                           ],
+                          if (isSelf) ...[
+                            Icon(
+                              Icons.person_rounded,
+                              color: AppTheme.textMedium,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                          ],
                           Text(
-                            ctaActive
-                                ? "✂️  Hozir bron qilish"
-                                : "Usta hozir ishda emas",
+                            isSelf
+                                ? "Bu sizning profilingiz"
+                                : (ctaActive
+                                      ? "✂️  Hozir bron qilish"
+                                      : "Usta hozir ishda emas"),
                             style: GoogleFonts.poppins(
-                              color: ctaActive
-                                  ? Colors.white
-                                  : AppTheme.textMedium,
+                              color: isSelf
+                                  ? AppTheme.textMedium
+                                  : (ctaActive
+                                        ? Colors.white
+                                        : AppTheme.textMedium),
                               fontSize: 17,
                               fontWeight: FontWeight.w700,
                             ),

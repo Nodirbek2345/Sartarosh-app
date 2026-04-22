@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../controllers/favorites_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/utils/image_helper.dart';
 
 class FavoritesView extends GetView<FavoritesController> {
   const FavoritesView({super.key});
@@ -94,9 +94,9 @@ class FavoritesView extends GetView<FavoritesController> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     image: DecorationImage(
-                      image: CachedNetworkImageProvider(
-                        barber['image'] ??
-                            'https://i.pravatar.cc/400?u=${barber['id']}',
+                      image: ImageHelper.getBarberImage(
+                        barber['image']?.toString(),
+                        barber['id']?.toString() ?? 'unknown',
                       ),
                       fit: BoxFit.cover,
                     ),

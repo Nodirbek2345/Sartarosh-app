@@ -284,8 +284,7 @@ class AddBarberController extends GetxController {
         'location': location.value,
         'lat': lat.value,
         'lng': lng.value,
-        'image':
-            'https://i.pravatar.cc/500?u=${DateTime.now().millisecondsSinceEpoch}',
+        'image': '', // Bo'sh — sartarosh o'zi rasm yuklaydi
         'rating': 5.0,
         'reviewCount': 0,
         'experience': int.tryParse(expCtrl.text.trim()) ?? 1,
