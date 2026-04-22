@@ -44,6 +44,13 @@ jobs:
           name: Sartarosh-Release-APK
           path: sartarosh_app/build/app/outputs/flutter-apk/app-release.apk
 
+      - name: Extract Version
+        id: extract_version
+        working-directory: ./sartarosh_app
+        run: |
+          VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -52,6 +59,7 @@ jobs:
         with:
           tag_name: latest-release-${{ github.run_number }}
           release_name: Sartarosh App Release ${{ github.run_number }}
+          body: "Versiya: ${{ env.APP_VERSION }}"
           draft: false
           prerelease: false
 
