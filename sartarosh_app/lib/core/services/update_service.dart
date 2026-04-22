@@ -149,150 +149,157 @@ class UpdateService extends GetxService {
     downloadProgress.value = 0.0;
 
     Get.dialog(
-      Dialog(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        child: Obx(() {
-          if (isDownloading.value) {
-            // === NEW DARK UI: LOADING BAR (IMAGE 2) ===
-            return Container(
-              padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.9), // Dark background
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    "Loading",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w600,
+      PopScope(
+        canPop: false,
+        child: Dialog(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          child: Obx(() {
+            if (isDownloading.value) {
+              // === NEW PREMIUM LIGHT UI: LOADING BAR ===
+              return Container(
+                padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.cloud_download_rounded,
+                      color: Color(0xFFD4AF37), // Premium Gold
+                      size: 64,
                     ),
-                  ),
-                  SizedBox(height: 16),
-                  Stack(
-                    children: [
-                      Container(
-                        height: 24,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          color: Colors
-                              .transparent, // Background of the bar string
-                          border: Border.all(color: Colors.white, width: 3),
-                          borderRadius: BorderRadius.circular(30),
-                        ),
+                    SizedBox(height: 24),
+                    Text(
+                      "Yangilanish yuklanmoqda...",
+                      style: GoogleFonts.poppins(
+                        color: Colors.black87,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
                       ),
-                      FractionallySizedBox(
-                        widthFactor: downloadProgress.value,
-                        child: Container(
-                          height: 24,
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Iltimos, dasturdan chiqmang va internetni o'chirmang.",
+                      style: GoogleFonts.poppins(
+                        color: Colors.black54,
+                        fontSize: 13,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(height: 32),
+                    Stack(
+                      children: [
+                        Container(
+                          height: 12,
+                          width: double.infinity,
                           decoration: BoxDecoration(
-                            color: Colors.deepOrange,
-                            borderRadius: BorderRadius.circular(30),
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(10),
                           ),
                         ),
-                      ),
-                      Positioned.fill(
-                        child: Center(
-                          child: Text(
-                            "${(downloadProgress.value * 100).toStringAsFixed(0)}%",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                        FractionallySizedBox(
+                          widthFactor: downloadProgress.value,
+                          child: Container(
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: Color(0xFFD4AF37),
+                              borderRadius: BorderRadius.circular(10),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(
+                                    0xFFD4AF37,
+                                  ).withValues(alpha: 0.3),
+                                  blurRadius: 8,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // === STANDARD UPDATE DIALOG (IMAGE 1) ===
-          return Container(
-            padding: EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Icon(
-                        Icons.download_rounded,
-                        color: Colors.blue,
-                        size: 24,
-                      ),
+                      ],
                     ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "Yangilanish mavjud!",
-                        style: GoogleFonts.poppins(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black87,
-                        ),
+                    SizedBox(height: 16),
+                    Text(
+                      "${(downloadProgress.value * 100).toStringAsFixed(0)}%",
+                      style: GoogleFonts.poppins(
+                        color: Color(0xFFD4AF37),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
-                Text(
-                  releaseNotes,
-                  style: GoogleFonts.poppins(
-                    fontSize: 14,
-                    color: Colors.black87.withValues(alpha: 0.8),
-                    height: 1.5,
+              );
+            }
+
+            // === STANDARD UPDATE DIALOG (IMAGE 1) - PREMIUM REDESIGN ===
+            return Container(
+              padding: EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 20,
+                    offset: Offset(0, 10),
                   ),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  "Sizdagi versiya: $currentVersion",
-                  style: GoogleFonts.poppins(
-                    fontSize: 13,
-                    color: Colors.black54,
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Color(0xFFD4AF37).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.system_update_rounded,
+                      color: Color(0xFFD4AF37),
+                      size: 48,
+                    ),
                   ),
-                ),
-                SizedBox(height: 24),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    if (!isRequired)
-                      TextButton(
-                        onPressed: () => Get.back(),
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        child: Text(
-                          "KEYINROQ",
-                          style: GoogleFonts.poppins(
-                            color: Colors.black45,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
-                    if (!isRequired) SizedBox(width: 8),
-                    ElevatedButton(
+                  SizedBox(height: 24),
+                  Text(
+                    "Yangi versiya mavjud!",
+                    style: GoogleFonts.poppins(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    releaseNotes,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      color: Colors.black87.withValues(alpha: 0.8),
+                      height: 1.5,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  SizedBox(height: 8),
+                  Text(
+                    "Sizdagi versiya: $currentVersion",
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: Colors.black45,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 32),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 54,
+                    child: ElevatedButton(
                       onPressed: () async {
                         // Agar URL .apk bilan tugasa YOKI Github Releases bo'lsa
                         if (updateUrl.toLowerCase().endsWith('.apk') ||
@@ -310,33 +317,31 @@ class UpdateService extends GetxService {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
+                        backgroundColor: Color(0xFFD4AF37),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                       ),
                       child: Text(
-                        "YUKLAB OLISH",
+                        "Hozir yangilash",
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
-                          fontSize: 13,
+                          fontSize: 16,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
-            ),
-          );
-        }),
-      ),
-      barrierDismissible: !isRequired,
+                    // Removed the trailing ] because we simplified Row to SizedBox.
+                  ),
+                ],
+              ),
+            );
+          }),
+        ), // Dialog ends
+      ), // PopScope ends
+      barrierDismissible: false,
     );
   }
 }
