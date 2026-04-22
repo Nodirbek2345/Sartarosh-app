@@ -7,7 +7,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class ReviewBottomSheet extends StatefulWidget {
   final Map<String, dynamic> booking;
 
-  const ReviewBottomSheet({Key? key, required this.booking}) : super(key: key);
+  const ReviewBottomSheet({super.key, required this.booking});
 
   @override
   State<ReviewBottomSheet> createState() => _ReviewBottomSheetState();
@@ -129,7 +129,7 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
+                color: Colors.blue.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
