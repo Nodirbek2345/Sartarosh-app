@@ -763,7 +763,7 @@ class HomeView extends GetView<HomeController> {
           ),
           SizedBox(height: 16),
           Text(
-            "Hozircha mavjud emas",
+            "Hali usta ro'yxatga olinmagan",
             style: GoogleFonts.playfairDisplay(
               color: AppTheme.textDark,
               fontSize: 18,
@@ -772,7 +772,7 @@ class HomeView extends GetView<HomeController> {
           ),
           SizedBox(height: 6),
           Text(
-            "Boshqa vaqtni tanlang",
+            "Sahifani qayta yuklang yoki keyinroq qaytib keling",
             style: GoogleFonts.poppins(
               color: AppTheme.textMedium,
               fontSize: 14,
@@ -806,10 +806,6 @@ class HomeView extends GetView<HomeController> {
   Widget _buildBarberListItem(Map<String, dynamic> barber, int index) {
     // True business logic for Faol/Faol emas and Bo'sh/Band
     final bool isActive = barber['isActive'] ?? true;
-    final bool isBusy = isActive
-        ? (index % 3 == 1)
-        : false; // Remove simulated busy if not active
-    final int waitMinutes = isBusy ? (index * 5 + 10) : 0;
 
     return GestureDetector(
           onTap: () => Get.toNamed('/barber-detail', arguments: barber),
@@ -819,6 +815,9 @@ class HomeView extends GetView<HomeController> {
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
+              border: isActive
+                  ? null
+                  : Border.all(color: Colors.red.withValues(alpha: 0.1)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.03),
@@ -911,13 +910,9 @@ class HomeView extends GetView<HomeController> {
                                   vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: !isActive
-                                      ? AppTheme.textMedium.withValues(
-                                          alpha: 0.1,
-                                        )
-                                      : isBusy
-                                      ? Color(0xFFFEF3C7)
-                                      : AppTheme.success.withValues(alpha: 0.1),
+                                  color: isActive
+                                      ? AppTheme.success.withValues(alpha: 0.1)
+                                      : Colors.red.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -928,26 +923,18 @@ class HomeView extends GetView<HomeController> {
                                       height: 6,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        color: !isActive
-                                            ? AppTheme.textMedium
-                                            : isBusy
-                                            ? Color(0xFFD97706)
-                                            : AppTheme.success,
+                                        color: isActive
+                                            ? AppTheme.success
+                                            : Colors.red,
                                       ),
                                     ),
                                     SizedBox(width: 4),
                                     Text(
-                                      !isActive
-                                          ? "Ishlamayapti"
-                                          : isBusy
-                                          ? "Band"
-                                          : "Bo'sh",
+                                      isActive ? "Ishda" : "Ishda emas",
                                       style: GoogleFonts.poppins(
-                                        color: !isActive
-                                            ? AppTheme.textMedium
-                                            : isBusy
-                                            ? Color(0xFFD97706)
-                                            : AppTheme.success,
+                                        color: isActive
+                                            ? AppTheme.success
+                                            : Colors.red,
                                         fontSize: 9,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -955,17 +942,6 @@ class HomeView extends GetView<HomeController> {
                                   ],
                                 ),
                               ),
-                              if (isActive && isBusy) ...[
-                                SizedBox(width: 6),
-                                Text(
-                                  "~$waitMinutes daqiqa",
-                                  style: GoogleFonts.poppins(
-                                    color: Color(0xFFD97706),
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
                               SizedBox(width: 8),
                               Icon(
                                 Icons.star_rounded,
@@ -1001,18 +977,6 @@ class HomeView extends GetView<HomeController> {
                               ),
                             ],
                           ),
-                          if (isActive && isBusy)
-                            Padding(
-                              padding: EdgeInsets.only(top: 4),
-                              child: Text(
-                                "Hozir xizmat ko'rsatilmoqda",
-                                style: GoogleFonts.poppins(
-                                  color: AppTheme.textMedium,
-                                  fontSize: 11,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                            ),
                           if (!isActive)
                             Padding(
                               padding: EdgeInsets.only(top: 4),
@@ -1031,114 +995,7 @@ class HomeView extends GetView<HomeController> {
                   ],
                 ),
                 SizedBox(height: 10),
-                // Action Buttons
-                Row(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          if (isActive) {
-                            Get.toNamed(
-                              '/booking',
-                              arguments: {
-                                'barber': barber,
-                                'service': 'Soch olish',
-                                'price':
-                                    barber['services']?[0]?['price'] ?? 30000,
-                              },
-                            );
-                          } else {
-                            Get.snackbar(
-                              "Eslatma",
-                              "Usta hozirda xizmat ko'rsatmayotgani sababli band qilish imkonsiz",
-                              duration: Duration(seconds: 2),
-                            );
-                          }
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            gradient: !isActive
-                                ? null
-                                : (isBusy ? null : AppTheme.goldGradient),
-                            color: !isActive
-                                ? AppTheme.background
-                                : (isBusy ? Color(0xFFFEF3C7) : null),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Center(
-                            child: Text(
-                              !isActive
-                                  ? "Mavjud emas"
-                                  : (isBusy
-                                        ? "Navbatga turish"
-                                        : "Hozir borish"),
-                              style: GoogleFonts.poppins(
-                                color: !isActive
-                                    ? AppTheme.textMedium
-                                    : (isBusy
-                                          ? Color(0xFFD97706)
-                                          : Colors.white),
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          if (isActive) {
-                            Get.toNamed(
-                              '/booking',
-                              arguments: {
-                                'barber': barber,
-                                'service': 'Soch olish',
-                                'price':
-                                    barber['services']?[0]?['price'] ?? 30000,
-                              },
-                            );
-                          } else {
-                            Get.snackbar("Eslatma", "Usta hozirda faol emas");
-                          }
-                        },
-                        child: Container(
-                          padding: EdgeInsets.symmetric(vertical: 10),
-                          decoration: BoxDecoration(
-                            color: !isActive
-                                ? AppTheme.background
-                                : Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: !isActive
-                                  ? AppTheme.textMedium.withValues(alpha: 0.2)
-                                  : AppTheme.primary.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          child: Center(
-                            child: Text(
-                              !isActive
-                                  ? "-"
-                                  : (isBusy
-                                        ? "Keyingi vaqtni olish"
-                                        : "Bron qilish"),
-                              style: GoogleFonts.poppins(
-                                color: !isActive
-                                    ? AppTheme.textMedium
-                                    : AppTheme.primary,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // Action buttons removed based on user request
               ],
             ),
           ),

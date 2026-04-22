@@ -118,24 +118,50 @@ class BarberDetailView extends StatelessWidget {
                           final bool isActive = barber['isActive'] ?? true;
                           return Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 10,
+                              horizontal: 12,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
                               color: isActive
                                   ? AppTheme.success.withValues(alpha: 0.1)
-                                  : AppTheme.textMedium.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                                  : Colors.red.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            child: Text(
-                              isActive ? "Ochiq" : "Faol emas",
-                              style: GoogleFonts.poppins(
-                                color: isActive
-                                    ? AppTheme.success
-                                    : AppTheme.textMedium,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 13,
-                              ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: isActive
+                                        ? AppTheme.success
+                                        : Colors.red,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color:
+                                            (isActive
+                                                    ? AppTheme.success
+                                                    : Colors.red)
+                                                .withValues(alpha: 0.4),
+                                        blurRadius: 6,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  isActive ? "Ishda ✓" : "Ishda emas",
+                                  style: GoogleFonts.poppins(
+                                    color: isActive
+                                        ? AppTheme.success
+                                        : Colors.red,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
                             ),
                           );
                         },
@@ -264,23 +290,33 @@ class BarberDetailView extends StatelessWidget {
                       ),
                     ),
                     SizedBox(height: 12),
-                    ...(barber['services'] as List).map<Widget>(
-                      (s) => GestureDetector(
+                    ...(barber['services'] as List).map<Widget>((s) {
+                      final bool barberIsActive = barber['isActive'] ?? true;
+                      final int price = s['price'] ?? 0;
+                      final int duration = s['duration'] ?? 30;
+                      return GestureDetector(
                         onTap: () {
-                          if (barber['isActive'] != false) {
+                          if (barberIsActive) {
                             Get.toNamed(
                               '/booking',
                               arguments: {
                                 'barber': barber,
                                 'service': s['name'] ?? 'Soch olish',
-                                'price': s['price'] ?? 30000,
+                                'price': price,
                               },
                             );
                           } else {
                             Get.snackbar(
-                              "Eslatma",
-                              "Usta hozirda faol emas, bron qilib bo'lmaydi",
-                              duration: Duration(seconds: 2),
+                              "⚠️ Usta hozir ishda emas",
+                              "Usta ish o'rniga qaytganda qayta urinib ko'ring",
+                              snackPosition: SnackPosition.TOP,
+                              backgroundColor: Colors.red.withValues(
+                                alpha: 0.9,
+                              ),
+                              colorText: Colors.white,
+                              duration: Duration(seconds: 3),
+                              margin: EdgeInsets.all(16),
+                              borderRadius: 16,
                             );
                           }
                         },
@@ -288,7 +324,9 @@ class BarberDetailView extends StatelessWidget {
                           margin: EdgeInsets.only(bottom: 10),
                           padding: EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: barberIsActive
+                                ? Colors.white
+                                : Colors.grey.withValues(alpha: 0.05),
                             borderRadius: BorderRadius.circular(14),
                             boxShadow: [
                               BoxShadow(
@@ -298,40 +336,86 @@ class BarberDetailView extends StatelessWidget {
                             ],
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                s['name'] ?? '',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w500,
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      s['name'] ?? '',
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: barberIsActive
+                                            ? AppTheme.textDark
+                                            : AppTheme.textMedium,
+                                      ),
+                                    ),
+                                    SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_rounded,
+                                          size: 13,
+                                          color: AppTheme.textLight,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "$duration daqiqa",
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                            color: AppTheme.textLight,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                               Row(
                                 children: [
                                   Text(
-                                    "${(s['price'] / 1000).toStringAsFixed(0)} ming",
+                                    price > 0
+                                        ? "${(price / 1000).toStringAsFixed(0)} ming"
+                                        : "Kelishiladi",
                                     style: GoogleFonts.poppins(
-                                      color: AppTheme.primary,
+                                      color: barberIsActive
+                                          ? AppTheme.primary
+                                          : AppTheme.textLight,
                                       fontWeight: FontWeight.w700,
                                       fontSize: 15,
                                     ),
                                   ),
                                   SizedBox(width: 8),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    color: AppTheme.textMedium.withValues(
-                                      alpha: 0.5,
+                                  Container(
+                                    padding: EdgeInsets.all(4),
+                                    decoration: BoxDecoration(
+                                      color: barberIsActive
+                                          ? AppTheme.primary.withValues(
+                                              alpha: 0.1,
+                                            )
+                                          : AppTheme.textLight.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      borderRadius: BorderRadius.circular(8),
                                     ),
-                                    size: 20,
+                                    child: Icon(
+                                      barberIsActive
+                                          ? Icons.arrow_forward_rounded
+                                          : Icons.block_rounded,
+                                      color: barberIsActive
+                                          ? AppTheme.primary
+                                          : AppTheme.textLight,
+                                      size: 16,
+                                    ),
                                   ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                      ),
-                    ),
+                      );
+                    }),
                     SizedBox(height: 10),
                   ],
 
@@ -342,58 +426,101 @@ class BarberDetailView extends StatelessWidget {
           ),
 
           // CTA
-          Container(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              12,
-              16,
-              MediaQuery.paddingOf(Get.context!).bottom + 20,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: Offset(0, -4),
+          Builder(
+            builder: (_) {
+              final bool ctaActive = barber['isActive'] ?? true;
+              return Container(
+                padding: EdgeInsets.fromLTRB(
+                  16,
+                  12,
+                  16,
+                  MediaQuery.paddingOf(Get.context!).bottom + 20,
                 ),
-              ],
-            ),
-            child: GestureDetector(
-              onTap: () => Get.toNamed(
-                '/booking',
-                arguments: {
-                  'barber': barber,
-                  'service': 'Soch olish',
-                  'price': barber['services']?[0]?['price'] ?? 30000,
-                },
-              ),
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
-                  gradient: AppTheme.goldGradient,
-                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: AppTheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 16,
-                      offset: Offset(0, 6),
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                      offset: Offset(0, -4),
                     ),
                   ],
                 ),
-                child: Center(
-                  child: Text(
-                    "Bron qilish",
-                    style: GoogleFonts.poppins(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.w700,
+                child: GestureDetector(
+                  onTap: () {
+                    if (ctaActive) {
+                      Get.toNamed(
+                        '/booking',
+                        arguments: {
+                          'barber': barber,
+                          'service':
+                              barber['services']?[0]?['name'] ?? 'Soch olish',
+                          'price': barber['services']?[0]?['price'] ?? 30000,
+                        },
+                      );
+                    } else {
+                      Get.snackbar(
+                        "⚠️ Usta hozir ishda emas",
+                        "Usta ish o'rniga qaytganda siz bron qila olasiz",
+                        snackPosition: SnackPosition.TOP,
+                        backgroundColor: Colors.red.withValues(alpha: 0.9),
+                        colorText: Colors.white,
+                        duration: Duration(seconds: 3),
+                        margin: EdgeInsets.all(16),
+                        borderRadius: 16,
+                      );
+                    }
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.symmetric(vertical: 18),
+                    decoration: BoxDecoration(
+                      gradient: ctaActive ? AppTheme.goldGradient : null,
+                      color: ctaActive
+                          ? null
+                          : AppTheme.textLight.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: ctaActive
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 16,
+                                offset: Offset(0, 6),
+                              ),
+                            ]
+                          : [],
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (!ctaActive) ...[
+                            Icon(
+                              Icons.schedule_rounded,
+                              color: AppTheme.textMedium,
+                              size: 20,
+                            ),
+                            SizedBox(width: 8),
+                          ],
+                          Text(
+                            ctaActive
+                                ? "✂️  Hozir bron qilish"
+                                : "Usta hozir ishda emas",
+                            style: GoogleFonts.poppins(
+                              color: ctaActive
+                                  ? Colors.white
+                                  : AppTheme.textMedium,
+                              fontSize: 17,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
+              );
+            },
           ).animate().slideY(begin: 1, delay: 400.ms, curve: Curves.easeOut),
         ],
       ),

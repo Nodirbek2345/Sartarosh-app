@@ -417,8 +417,8 @@ class _DashboardTab extends StatelessWidget {
                           children: [
                             Text(
                               active
-                                  ? "Siz hozir faolsiz"
-                                  : "Siz hozir faol emassiz",
+                                  ? "Siz hozir ish o'rnidasiz"
+                                  : "Siz hozir ishda emassiz",
                               style: GoogleFonts.poppins(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 13,
@@ -427,8 +427,8 @@ class _DashboardTab extends StatelessWidget {
                             ),
                             Text(
                               active
-                                  ? "Mijozlar sizni ko'radi"
-                                  : "Mijozlar sizdan bexabar",
+                                  ? "Mijozlar qabulga yoza oladi"
+                                  : "Sizga yangi navbatlar kelmaydi",
                               style: GoogleFonts.poppins(
                                 fontSize: 11,
                                 color: AppTheme.textMedium,
@@ -455,7 +455,7 @@ class _DashboardTab extends StatelessWidget {
                           ],
                         ),
                         child: Text(
-                          active ? "O'chirish" : "Yoqish",
+                          active ? "Ishni yopish" : "Ishni boshlash",
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontWeight: FontWeight.w600,
