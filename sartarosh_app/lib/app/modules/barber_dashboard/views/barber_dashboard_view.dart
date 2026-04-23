@@ -792,17 +792,44 @@ class _BarberBookingsTab extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  "📅 Bronlar",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "📅 Bronlar",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Obx(() {
+                      final pending = controller.pendingCount.value;
+                      if (pending == 0) return const SizedBox.shrink();
+                      return Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orangeAccent,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          "$pending ta yangi",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      );
+                    }),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Barcha mijoz bronlari",
+                  "Barcha mijoz bronlari (barcha kunlar)",
                   style: GoogleFonts.poppins(
                     color: Colors.white70,
                     fontSize: 14,
@@ -853,7 +880,7 @@ class _BarberBookingsTab extends StatelessWidget {
         ),
         Expanded(
           child: Obx(() {
-            var bookings = controller.todayBookings.toList();
+            var bookings = controller.allBookings.toList();
             if (selectedFilter.value != 'all') {
               bookings = bookings
                   .where((b) => b['status'] == selectedFilter.value)
@@ -885,13 +912,273 @@ class _BarberBookingsTab extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               physics: const BouncingScrollPhysics(),
               itemCount: bookings.length,
-              itemBuilder: (_, i) => _DashboardTab(
-                controller: controller,
-              )._buildBookingCard(bookings[i]),
+              itemBuilder: (_, i) => _buildAllBookingCard(bookings[i]),
             );
           }),
         ),
       ],
+    );
+  }
+
+  Widget _buildAllBookingCard(Map<String, dynamic> booking) {
+    final status = booking['status'] ?? 'pending';
+    Color statusColor;
+    String statusText;
+    IconData statusIcon;
+    switch (status) {
+      case 'confirmed':
+        statusColor = AppTheme.primary;
+        statusText = "Tasdiqlangan";
+        statusIcon = Icons.check_circle_outline_rounded;
+        break;
+      case 'in-progress':
+        statusColor = Colors.orange;
+        statusText = "Jarayonda";
+        statusIcon = Icons.hourglass_top_rounded;
+        break;
+      case 'completed':
+        statusColor = AppTheme.success;
+        statusText = "Tugatilgan";
+        statusIcon = Icons.task_alt_rounded;
+        break;
+      case 'cancelled':
+        statusColor = Colors.red;
+        statusText = "Bekor qilingan";
+        statusIcon = Icons.cancel_outlined;
+        break;
+      default:
+        statusColor = Colors.orangeAccent;
+        statusText = "Kutilmoqda";
+        statusIcon = Icons.access_time_rounded;
+    }
+
+    final date = booking['date'] ?? '';
+    final time = booking['time'] ?? '';
+    final price = booking['price'] ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: status == 'pending'
+            ? Border.all(
+                color: Colors.orangeAccent.withValues(alpha: 0.4),
+                width: 1.5,
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Sarlavha: Mijoz nomi va status
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(statusIcon, color: statusColor, size: 22),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            booking['client'] ?? 'Mijoz',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: AppTheme.textDark,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Text(
+                            booking['service'] ?? 'Xizmat',
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textMedium,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  statusText,
+                  style: GoogleFonts.poppins(
+                    color: statusColor,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Sana, vaqt, narx
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: AppTheme.textMedium,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      date,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: AppTheme.textMedium,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      time,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                Text(
+                  "$price so'm",
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // Amal tugmalari
+          if (status == 'pending') ...[
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                Expanded(
+                  child: _btn(
+                    "✓ Qabul qilish",
+                    AppTheme.success,
+                    () => controller.acceptBooking(booking['docId']),
+                    isSolid: true,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _btn(
+                    "✗ Rad etish",
+                    Colors.redAccent,
+                    () => controller.rejectBooking(booking['docId']),
+                  ),
+                ),
+              ],
+            ),
+          ],
+          if (status == 'confirmed') ...[
+            const SizedBox(height: 14),
+            _btn(
+              "🔥 Boshlash",
+              null,
+              () => controller.startClient(booking['docId']),
+              isGold: true,
+            ),
+          ],
+          if (status == 'in-progress') ...[
+            const SizedBox(height: 14),
+            _btn(
+              "✓ Tugatish",
+              AppTheme.success,
+              () => controller.completeClient(booking['docId']),
+              isSolid: true,
+            ),
+          ],
+        ],
+      ),
+    ).animate().fadeIn(delay: 50.ms).slideX(begin: 0.02);
+  }
+
+  Widget _btn(
+    String text,
+    Color? color,
+    VoidCallback onTap, {
+    bool isGold = false,
+    bool isSolid = false,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          gradient: isGold ? AppTheme.goldGradient : null,
+          color: isGold
+              ? null
+              : (isSolid ? color : color?.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            text,
+            style: GoogleFonts.poppins(
+              color: (isGold || isSolid) ? Colors.white : color,
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

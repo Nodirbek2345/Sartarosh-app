@@ -1,4 +1,4 @@
- import 'dart:async';
+import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -14,6 +14,7 @@ class BarberDashboardController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final todayBookings = <Map<String, dynamic>>[].obs;
+  final allBookings = <Map<String, dynamic>>[].obs; // Barcha kunlar uchun
   final isActive = true.obs;
   final isLoading = true.obs;
   final queueLimit = 1.obs;
@@ -23,9 +24,11 @@ class BarberDashboardController extends GetxController {
   final todayEarnings = 0.obs;
   final todayClientsCount = 0.obs;
   final completedCount = 0.obs;
+  final pendingCount = 0.obs; // Kutilmoqda bronlar soni
 
   // Stream subscriptions for proper cleanup
   StreamSubscription? _bookingsSub;
+  StreamSubscription? _allBookingsSub;
   StreamSubscription? _statusSub;
 
   // Cached barber document reference
@@ -39,6 +42,7 @@ class BarberDashboardController extends GetxController {
     super.onInit();
     _initBarberRef();
     _listenTodayBookings();
+    _listenAllBookings();
     _listenBarberStatus();
   }
 
@@ -85,6 +89,28 @@ class BarberDashboardController extends GetxController {
 
           isLoading.value = false;
           _checkAutoTurnOff();
+        });
+  }
+
+  /// Barcha kunlar uchun bronlarni tinglash (Bronlar tab uchun)
+  void _listenAllBookings() {
+    _allBookingsSub = _firestore
+        .collection('bookings')
+        .where('barberName', isEqualTo: barberName)
+        .orderBy('createdAt', descending: true)
+        .limit(100)
+        .snapshots()
+        .listen((snapshot) {
+          final list = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['docId'] = doc.id;
+            return data;
+          }).toList();
+
+          allBookings.value = list;
+          pendingCount.value = list
+              .where((b) => b['status'] == 'pending')
+              .length;
         });
   }
 
@@ -379,6 +405,7 @@ class BarberDashboardController extends GetxController {
   @override
   void onClose() {
     _bookingsSub?.cancel();
+    _allBookingsSub?.cancel();
     _statusSub?.cancel();
     super.onClose();
   }
