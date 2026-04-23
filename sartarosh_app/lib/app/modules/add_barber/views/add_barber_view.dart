@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -76,18 +77,34 @@ class AddBarberView extends GetView<AddBarberController> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Header icon
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Icon(
-              Icons.person_add_rounded,
-              color: AppTheme.primary,
-              size: 32,
-            ),
-          ).animate().scale(duration: 400.ms),
+          GestureDetector(
+            onTap: () => controller.pickImage(),
+            child: Obx(
+              () => Container(
+                width: 80,
+                height: 80,
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(25),
+                  image: controller.selectedImagePath.value.isNotEmpty
+                      ? DecorationImage(
+                          image: FileImage(
+                            File(controller.selectedImagePath.value),
+                          ),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: controller.selectedImagePath.value.isEmpty
+                    ? Icon(
+                        Icons.add_a_photo_rounded,
+                        color: AppTheme.primary,
+                        size: 32,
+                      )
+                    : null,
+              ),
+            ).animate().scale(duration: 400.ms),
+          ),
           SizedBox(height: 20),
           Text(
             "Usta sifatida\nro'yxatdan o'ting",
@@ -337,24 +354,41 @@ class AddBarberView extends GetView<AddBarberController> {
             child: Column(
               children: [
                 // Avatar placeholder
-                Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.goldGradient,
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Center(
-                    child: Text(
-                      controller.nameCtrl.text.isNotEmpty
-                          ? controller.nameCtrl.text[0].toUpperCase()
-                          : "U",
-                      style: GoogleFonts.playfairDisplay(
-                        color: Colors.white,
-                        fontSize: 36,
-                        fontWeight: FontWeight.w700,
-                      ),
+                Obx(
+                  () => Container(
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      gradient: controller.selectedImagePath.value.isEmpty
+                          ? AppTheme.goldGradient
+                          : null,
+                      color: controller.selectedImagePath.value.isNotEmpty
+                          ? Colors.grey[200]
+                          : null,
+                      borderRadius: BorderRadius.circular(20),
+                      image: controller.selectedImagePath.value.isNotEmpty
+                          ? DecorationImage(
+                              image: FileImage(
+                                File(controller.selectedImagePath.value),
+                              ),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
                     ),
+                    child: controller.selectedImagePath.value.isEmpty
+                        ? Center(
+                            child: Text(
+                              controller.nameCtrl.text.isNotEmpty
+                                  ? controller.nameCtrl.text[0].toUpperCase()
+                                  : "U",
+                              style: GoogleFonts.playfairDisplay(
+                                color: Colors.white,
+                                fontSize: 36,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          )
+                        : null,
                   ),
                 ),
                 SizedBox(height: 14),

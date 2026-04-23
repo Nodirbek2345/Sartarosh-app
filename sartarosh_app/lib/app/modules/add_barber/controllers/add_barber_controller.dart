@@ -1,8 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:dio/dio.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/input_sanitizer.dart';
@@ -21,6 +24,7 @@ class AddBarberController extends GetxController {
   final closeTime = "21:00".obs;
   final gender = "male".obs; // 'male' or 'female'
   final location = "".obs; // barber's region
+  final selectedImagePath = "".obs;
 
   // Location Pro Feature
   final isLocating = false.obs;
@@ -112,6 +116,21 @@ class AddBarberController extends GetxController {
       });
     }
     return list;
+  }
+
+  Future<void> pickImage() async {
+    try {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70, // Optimize image
+      );
+      if (pickedFile != null) {
+        selectedImagePath.value = pickedFile.path;
+      }
+    } catch (e) {
+      _error("Rasm tanlashda xatolik yuz berdi");
+    }
   }
 
   Future<void> fetchLocation() async {
@@ -275,6 +294,21 @@ class AddBarberController extends GetxController {
       final safeAbout = InputSanitizer.sanitizeText(aboutCtrl.text);
       final uid = Get.find<UserService>().currentUid;
 
+      String imageUrl = '';
+      if (selectedImagePath.value.isNotEmpty) {
+        try {
+          final file = File(selectedImagePath.value);
+          final ext = selectedImagePath.value.split('.').last;
+          final ref = FirebaseStorage.instance.ref().child(
+            'barber_images/${uid}_${DateTime.now().millisecondsSinceEpoch}.$ext',
+          );
+          await ref.putFile(file);
+          imageUrl = await ref.getDownloadURL();
+        } catch (e) {
+          print('Image upload error: $e');
+        }
+      }
+
       await _firestore.collection('barbers').add({
         'uid': uid, // Link barber to user's UID for security
         'name': safeName,
@@ -284,7 +318,7 @@ class AddBarberController extends GetxController {
         'location': location.value,
         'lat': lat.value,
         'lng': lng.value,
-        'image': '', // Bo'sh — sartarosh o'zi rasm yuklaydi
+        'image': imageUrl,
         'rating': 5.0,
         'reviewCount': 0,
         'experience': int.tryParse(expCtrl.text.trim()) ?? 1,
