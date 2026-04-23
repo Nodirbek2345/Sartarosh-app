@@ -3,8 +3,6 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:convert';
 import '../controllers/barber_dashboard_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
@@ -1531,349 +1529,328 @@ class _ServicesTab extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: FutureBuilder<QuerySnapshot>(
-            future: FirebaseFirestore.instance.collection('services').get(),
-            builder: (context, servicesSnapshot) {
-              if (servicesSnapshot.connectionState == ConnectionState.waiting) {
+          child: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('barbers')
+                .where('uid', isEqualTo: userService.currentUid)
+                .snapshots(),
+            builder: (context, barberSnapshot) {
+              if (barberSnapshot.connectionState == ConnectionState.waiting) {
                 return Center(
                   child: CircularProgressIndicator(color: AppTheme.primary),
                 );
               }
-              final globalServices = servicesSnapshot.data?.docs ?? [];
-              return StreamBuilder<QuerySnapshot>(
-                stream: FirebaseFirestore.instance
-                    .collection('barbers')
-                    .where('uid', isEqualTo: userService.currentUid)
-                    .snapshots(),
-                builder: (context, barberSnapshot) {
-                  if (barberSnapshot.connectionState ==
-                      ConnectionState.waiting) {
-                    return const SizedBox.shrink();
-                  }
-                  final barberDocs = barberSnapshot.data?.docs ?? [];
-                  if (barberDocs.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.storefront_rounded,
-                            size: 64,
-                            color: AppTheme.textLight.withValues(alpha: 0.3),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            "Sartarosh profili topilmadi",
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textMedium,
-                              fontSize: 16,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            "Avval sartarosh sifatida qo'shiling",
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textLight,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }
-                  final barberDoc = barberDocs.first;
-                  final barberData = barberDoc.data() as Map<String, dynamic>;
-                  final currentServices =
-                      (barberData['services'] as List?)
-                          ?.cast<Map<String, dynamic>>() ??
-                      [];
-
-                  return Column(
+              final barberDocs = barberSnapshot.data?.docs ?? [];
+              if (barberDocs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Photo button
-                      GestureDetector(
-                        onTap: () async {
-                          final picker = ImagePicker();
-                          final XFile? image = await picker.pickImage(
-                            source: ImageSource.gallery,
-                            maxWidth: 800,
-                            maxHeight: 800,
-                            imageQuality: 85,
-                          );
-                          if (image != null) {
-                            final bytes = await image.readAsBytes();
-                            await barberDoc.reference.update({
-                              'image': base64Encode(bytes),
-                            });
-                            Get.snackbar(
-                              '✅',
-                              'Muqova rasmi yangilandi',
-                              backgroundColor: AppTheme.success,
-                              colorText: Colors.white,
-                              snackPosition: SnackPosition.BOTTOM,
-                            );
-                          }
-                        },
-                        child: Container(
-                          margin: const EdgeInsets.all(16),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
+                      Icon(
+                        Icons.storefront_rounded,
+                        size: 64,
+                        color: AppTheme.textLight.withValues(alpha: 0.3),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Sartarosh profili topilmadi",
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.textMedium,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final barberDoc = barberDocs.first;
+              final barberData = barberDoc.data() as Map<String, dynamic>;
+              final isFemale = barberData['targetGender'] == 'female';
+
+              // O'zgaruvchan standart xizmatlar ro'yxati (Global ro'yxat vazifasini bajaradi)
+              final List<Map<String, dynamic>> standardServices = isFemale
+                  ? [
+                      {'name': 'Soch turmaklash', 'category': 'Asosiy'},
+                      {'name': "Bo'yash / Ukladka", 'category': 'Qo\'shimcha'},
+                      {'name': 'Soch + Makiyaj', 'category': 'Kompleks'},
+                      {'name': 'Kechki turmak', 'category': 'Maxsus'},
+                    ]
+                  : [
+                      {'name': 'Soch olish', 'category': 'Asosiy'},
+                      {'name': 'Soqol olish', 'category': 'Asosiy'},
+                      {'name': 'Soch + Soqol', 'category': 'Kompleks'},
+                      {'name': 'Bolalar ukladkasi', 'category': 'Qo\'shimcha'},
+                    ];
+
+              final currentServices =
+                  (barberData['services'] as List?)
+                      ?.cast<Map<String, dynamic>>() ??
+                  [];
+
+              return Column(
+                children: [
+                  // Xizmatlar ro'yxati
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: standardServices.length,
+                      itemBuilder: (context, index) {
+                        final gSvc = standardServices[index];
+                        final gName = gSvc['name'] as String;
+                        final gCat = gSvc['category'] as String;
+
+                        final existingIndex = currentServices.indexWhere(
+                          (s) => s['name'] == gName,
+                        );
+                        final bool isEnabled = existingIndex != -1;
+                        final existing = isEnabled
+                            ? currentServices[existingIndex]
+                            : <String, dynamic>{};
+
+                        final priceCtrl = TextEditingController(
+                          text: isEnabled ? existing['price']?.toString() : '',
+                        );
+                        final durationCtrl = TextEditingController(
+                          text: isEnabled
+                              ? existing['duration']?.toString()
+                              : '',
+                        );
+
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: AppTheme.primary.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
+                            color: isEnabled
+                                ? AppTheme.primary.withValues(alpha: 0.05)
+                                : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
                             border: Border.all(
-                              color: AppTheme.primary.withValues(alpha: 0.3),
+                              color: isEnabled
+                                  ? AppTheme.primary.withValues(alpha: 0.3)
+                                  : AppTheme.textLight.withValues(alpha: 0.2),
                             ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.photo_camera_back_rounded,
-                                color: AppTheme.primary,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                "Muqova rasmini almashtirish",
-                                style: TextStyle(
-                                  color: AppTheme.primary,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
                               ),
                             ],
                           ),
-                        ),
-                      ),
-                      Expanded(
-                        child: ListView.builder(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: globalServices.length,
-                          itemBuilder: (context, index) {
-                            final gSvc =
-                                globalServices[index].data()
-                                    as Map<String, dynamic>;
-                            final gName = gSvc['name'] ?? '';
-                            final gCat = gSvc['category'] ?? '';
-                            final existing = currentServices.firstWhere(
-                              (s) => s['name'] == gName,
-                              orElse: () => <String, dynamic>{},
-                            );
-                            final bool isEnabled = existing.isNotEmpty;
-                            final priceCtrl = TextEditingController(
-                              text: isEnabled
-                                  ? existing['price']?.toString()
-                                  : '',
-                            );
-                            final durationCtrl = TextEditingController(
-                              text: isEnabled
-                                  ? existing['duration']?.toString()
-                                  : '',
-                            );
-
-                            return Container(
-                              margin: const EdgeInsets.only(bottom: 14),
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: isEnabled
-                                    ? AppTheme.primary.withValues(alpha: 0.05)
-                                    : AppTheme.background,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: isEnabled
-                                      ? AppTheme.primary.withValues(alpha: 0.3)
-                                      : AppTheme.textLight.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                ),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text(
-                                            gName,
-                                            style: const TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w700,
-                                              color: AppTheme.textDark,
-                                            ),
-                                          ),
-                                          Text(
-                                            gCat,
-                                            style: const TextStyle(
-                                              fontSize: 12,
-                                              color: AppTheme.textMedium,
-                                            ),
-                                          ),
-                                        ],
+                                      Text(
+                                        gName,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.textDark,
+                                        ),
                                       ),
-                                      Switch(
-                                        value: isEnabled,
-                                        activeThumbColor: AppTheme.primary,
-                                        onChanged: (val) async {
-                                          final newServices =
-                                              List<Map<String, dynamic>>.from(
-                                                currentServices,
-                                              );
-                                          if (val) {
-                                            newServices.add({
-                                              'name': gName,
-                                              'price': 0,
-                                              'duration': 30,
-                                              'category': gCat,
-                                            });
-                                          } else {
-                                            newServices.removeWhere(
-                                              (s) => s['name'] == gName,
-                                            );
-                                          }
-                                          await barberDoc.reference.update({
-                                            'services': newServices,
-                                          });
-                                        },
+                                      Text(
+                                        gCat,
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          color: AppTheme.textMedium,
+                                        ),
                                       ),
                                     ],
                                   ),
-                                  if (isEnabled) ...[
-                                    const SizedBox(height: 14),
-                                    Row(
-                                      children: [
-                                        Expanded(
-                                          child: TextField(
-                                            controller: priceCtrl,
-                                            keyboardType: TextInputType.number,
-                                            decoration: InputDecoration(
-                                              labelText: "Narxi (so'm)",
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                            ),
-                                            onSubmitted: (val) async {
-                                              final price =
-                                                  int.tryParse(val) ?? 0;
-                                              final newServices =
-                                                  List<
-                                                    Map<String, dynamic>
-                                                  >.from(currentServices);
-                                              final idx = newServices
-                                                  .indexWhere(
-                                                    (s) => s['name'] == gName,
-                                                  );
-                                              if (idx != -1) {
-                                                newServices[idx]['price'] =
-                                                    price;
-                                                await barberDoc.reference
-                                                    .update({
-                                                      'services': newServices,
-                                                    });
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: TextField(
-                                            controller: durationCtrl,
-                                            keyboardType: TextInputType.number,
-                                            decoration: InputDecoration(
-                                              labelText: "Vaqt (daqiqa)",
-                                              filled: true,
-                                              fillColor: Colors.white,
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                            ),
-                                            onSubmitted: (val) async {
-                                              final duration =
-                                                  int.tryParse(val) ?? 30;
-                                              final newServices =
-                                                  List<
-                                                    Map<String, dynamic>
-                                                  >.from(currentServices);
-                                              final idx = newServices
-                                                  .indexWhere(
-                                                    (s) => s['name'] == gName,
-                                                  );
-                                              if (idx != -1) {
-                                                newServices[idx]['duration'] =
-                                                    duration;
-                                                await barberDoc.reference
-                                                    .update({
-                                                      'services': newServices,
-                                                    });
-                                              }
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton.icon(
-                                        onPressed: () async {
-                                          final price =
-                                              int.tryParse(priceCtrl.text) ?? 0;
-                                          final duration =
-                                              int.tryParse(durationCtrl.text) ??
-                                              30;
-                                          final newServices =
-                                              List<Map<String, dynamic>>.from(
-                                                currentServices,
-                                              );
-                                          final idx = newServices.indexWhere(
-                                            (s) => s['name'] == gName,
+                                  Switch(
+                                    value: isEnabled,
+                                    activeThumbColor: AppTheme.primary,
+                                    activeTrackColor: AppTheme.primary
+                                        .withValues(alpha: 0.5),
+                                    onChanged: (val) async {
+                                      final newServices =
+                                          List<Map<String, dynamic>>.from(
+                                            currentServices,
                                           );
-                                          if (idx != -1) {
-                                            newServices[idx]['price'] = price;
-                                            newServices[idx]['duration'] =
-                                                duration;
-                                            await barberDoc.reference.update({
-                                              'services': newServices,
-                                            });
-                                            Get.snackbar(
-                                              "Saqlandi",
-                                              "$gName narxi yangilandi",
-                                              snackPosition:
-                                                  SnackPosition.BOTTOM,
-                                              backgroundColor: AppTheme.success,
-                                              colorText: Colors.white,
-                                            );
-                                          }
-                                        },
-                                        icon: const Icon(
-                                          Icons.check_circle_rounded,
-                                          size: 18,
+                                      if (val) {
+                                        newServices.add({
+                                          'name': gName,
+                                          'price': 0,
+                                          'duration': 30,
+                                          'category': gCat,
+                                        });
+                                      } else {
+                                        newServices.removeWhere(
+                                          (s) => s['name'] == gName,
+                                        );
+                                      }
+                                      await barberDoc.reference.update({
+                                        'services': newServices,
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ),
+                              if (isEnabled) ...[
+                                const SizedBox(height: 14),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextField(
+                                        controller: priceCtrl,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: "Narxi (so'm)",
+                                          labelStyle: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                                vertical: 10,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                        label: const Text("Saqlash"),
-                                        style: TextButton.styleFrom(
-                                          foregroundColor: AppTheme.primary,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: TextField(
+                                        controller: durationCtrl,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          labelText: "Vaqti (daq)",
+                                          labelStyle: GoogleFonts.poppins(
+                                            fontSize: 12,
+                                          ),
+                                          filled: true,
+                                          fillColor: Colors.white,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                horizontal: 14,
+                                                vertical: 10,
+                                              ),
+                                          border: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                            ),
+                                          ),
+                                          enabledBorder: OutlineInputBorder(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            borderSide: BorderSide(
+                                              color: Colors.grey.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ),
                                   ],
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ],
-                  );
-                },
+                                ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton.icon(
+                                    onPressed: () async {
+                                      final price =
+                                          int.tryParse(
+                                            priceCtrl.text.replaceAll('.', ''),
+                                          ) ??
+                                          0;
+                                      final duration =
+                                          int.tryParse(durationCtrl.text) ?? 30;
+
+                                      final newServices =
+                                          List<Map<String, dynamic>>.from(
+                                            currentServices,
+                                          );
+                                      final idx = newServices.indexWhere(
+                                        (s) => s['name'] == gName,
+                                      );
+                                      if (idx != -1) {
+                                        newServices[idx]['price'] = price;
+                                        newServices[idx]['duration'] = duration;
+                                        await barberDoc.reference.update({
+                                          'services': newServices,
+                                        });
+                                        Get.snackbar(
+                                          "Saqlandi",
+                                          "$gName narxi yangilandi ✅",
+                                          snackPosition: SnackPosition.BOTTOM,
+                                          backgroundColor: AppTheme.success,
+                                          colorText: Colors.white,
+                                          margin: const EdgeInsets.all(16),
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      "Saqlash",
+                                      style: GoogleFonts.poppins(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: Colors.white,
+                                      backgroundColor: AppTheme.primary,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 20,
+                                        vertical: 10,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               );
             },
           ),
