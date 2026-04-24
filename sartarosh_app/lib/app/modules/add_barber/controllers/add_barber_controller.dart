@@ -305,7 +305,7 @@ class AddBarberController extends GetxController {
           await ref.putFile(file);
           imageUrl = await ref.getDownloadURL();
         } catch (e) {
-          print('Image upload error: $e');
+          debugPrint('Image upload error: $e');
         }
       }
 

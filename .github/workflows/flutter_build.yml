@@ -49,7 +49,7 @@ jobs:
         working-directory: ./sartarosh_app
         run: |
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
-          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release
         id: create_release
@@ -59,7 +59,7 @@ jobs:
         with:
           tag_name: latest-release-${{ github.run_number }}
           release_name: Sartarosh App Release ${{ github.run_number }}
-          body: "Versiya: ${{ env.APP_VERSION }}"
+          body: "Versiya: ${{ steps.extract_version.outputs.VERSION }}"
           draft: false
           prerelease: false
 
