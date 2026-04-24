@@ -161,27 +161,32 @@ class HomeController extends GetxController {
   void _fetchBarbers() {
     final userService = Get.find<UserService>();
     final targetGender = userService.targetGender.value;
+    final targetRegion = userService.selectedRegion.value;
 
-    // Server-side filtering by gender for efficiency
-    final sub = _firestore
+    // Server-side filtering by gender and region for efficiency
+    var query = _firestore
         .collection('barbers')
-        .where('gender', isEqualTo: targetGender)
-        .snapshots()
-        .listen(
-          (snapshot) {
-            final list = snapshot.docs.map((doc) {
-              final data = doc.data();
-              data['id'] = doc.id;
-              return data;
-            }).toList();
-            rxBarbers.value = list;
-            isLoading.value = false;
-          },
-          onError: (e) {
-            isLoading.value = false;
-            Get.snackbar("Xatolik", "Baza bilan ulanishda xatolik");
-          },
-        );
+        .where('gender', isEqualTo: targetGender);
+
+    if (targetRegion.isNotEmpty) {
+      query = query.where('location', isEqualTo: targetRegion);
+    }
+
+    final sub = query.snapshots().listen(
+      (snapshot) {
+        final list = snapshot.docs.map((doc) {
+          final data = doc.data();
+          data['id'] = doc.id;
+          return data;
+        }).toList();
+        rxBarbers.value = list;
+        isLoading.value = false;
+      },
+      onError: (e) {
+        isLoading.value = false;
+        Get.snackbar("Xatolik", "Baza bilan ulanishda xatolik");
+      },
+    );
     _subscriptions.add(sub);
   }
 

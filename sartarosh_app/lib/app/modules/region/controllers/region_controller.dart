@@ -95,7 +95,15 @@ class RegionController extends GetxController {
         final place = placemarks.first;
         final regionKey = _matchRegion(place);
 
-        // Ularni oynada tanlab qo'yamiz (lekin o'zgartirmaymiz/ketmaymiz)
+        if (regionKey.isEmpty) {
+          _showError(
+            "Kechirasiz, sizning hududingiz (${place.administrativeArea ?? 'boshqa'}) bazada topilmadi.",
+          );
+          isDetecting.value = false;
+          return;
+        }
+
+        // Ularni oynada tanlab qo'yamiz
         selectRegion(regionKey);
 
         // Aniq nima topilganini ko'rsatamiz
