@@ -332,6 +332,12 @@ class AddBarberController extends GetxController {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      final userService = Get.find<UserService>();
+      userService.setUserRole('barber');
+      if (!userService.isBarberMode.value) {
+        userService.toggleBarberMode();
+      }
+
       Get.snackbar(
         "Muvaffaqiyatli! 🎉",
         "Siz usta sifatida ro'yxatdan o'tdingiz",

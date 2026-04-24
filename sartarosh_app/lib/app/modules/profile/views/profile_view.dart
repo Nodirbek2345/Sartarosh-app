@@ -215,14 +215,7 @@ class ProfileView extends StatelessWidget {
                             idx++,
                             () => Get.toNamed('/my-bookings'),
                           ),
-                          // Faqat "barber" rolidagi foydalanuvchilarga ko'rsatiladi
                           if (isBarberRole) ...[
-                            _menuItem(
-                              Icons.storefront_rounded,
-                              "Sartarosh sifatida qo'shilish",
-                              idx++,
-                              () => Get.toNamed('/add-barber'),
-                            ),
                             _menuItem(
                               Icons.swap_horiz_rounded,
                               "Usta rejimiga o'tish",
@@ -231,6 +224,13 @@ class ProfileView extends StatelessWidget {
                                 userService.toggleBarberMode();
                                 Get.offAllNamed('/home');
                               },
+                            ),
+                          ] else ...[
+                            _menuItem(
+                              Icons.storefront_rounded,
+                              "Sartarosh sifatida qo'shilish",
+                              idx++,
+                              () => Get.toNamed('/add-barber'),
                             ),
                           ],
                           _menuItem(
