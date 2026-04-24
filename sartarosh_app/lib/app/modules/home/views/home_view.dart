@@ -285,7 +285,7 @@ class HomeView extends GetView<HomeController> {
                 Expanded(
                   flex: 3,
                   child: Padding(
-                    padding: EdgeInsets.all(20),
+                    padding: EdgeInsets.fromLTRB(16, 14, 12, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -308,16 +308,16 @@ class HomeView extends GetView<HomeController> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 10),
+                        SizedBox(height: 8),
                         Text(
                           featured['name'] ?? 'Usta',
                           style: GoogleFonts.playfairDisplay(
                             color: AppTheme.textDark,
-                            fontSize: 22,
+                            fontSize: 20,
                             fontWeight: FontWeight.w800,
                           ),
                         ),
-                        SizedBox(height: 6),
+                        SizedBox(height: 2),
                         Row(
                           children: [
                             ...List.generate(
@@ -330,18 +330,18 @@ class HomeView extends GetView<HomeController> {
                                     : AppTheme.textLight.withValues(alpha: 0.3),
                               ),
                             ),
-                            SizedBox(width: 6),
+                            SizedBox(width: 4),
                             Text(
                               "${featured['rating'] ?? 5.0}",
                               style: GoogleFonts.poppins(
                                 color: AppTheme.textDark,
-                                fontSize: 12,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 12),
+                        SizedBox(height: 10),
                         Container(
                           padding: EdgeInsets.symmetric(
                             horizontal: 14,
@@ -460,7 +460,8 @@ class HomeView extends GetView<HomeController> {
                   return Padding(
                     padding: EdgeInsets.only(right: 12),
                     child: GestureDetector(
-                      onTap: () => Get.toNamed('/services'),
+                      onTap: () =>
+                          Get.toNamed('/services', arguments: cat['name']),
                       child: Container(
                         padding: EdgeInsets.symmetric(
                           horizontal: 16,
@@ -542,7 +543,7 @@ class HomeView extends GetView<HomeController> {
             ),
           ),
           GestureDetector(
-            onTap: () => Get.toNamed('/services'),
+            onTap: () => Get.toNamed('/services', arguments: 'Barchasi'),
             child: Text(
               "$action »",
               style: GoogleFonts.poppins(

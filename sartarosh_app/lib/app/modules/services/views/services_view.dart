@@ -18,12 +18,16 @@ class ServicesView extends GetView<ServicesController> {
           icon: Icon(Icons.arrow_back_rounded, color: AppTheme.textDark),
           onPressed: () => Get.back(),
         ),
-        title: Text(
-          "Xizmatlar",
-          style: TextStyle(
-            color: AppTheme.textDark,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+        title: Obx(
+          () => Text(
+            controller.currentCategory.value == 'Barchasi'
+                ? "Xizmatlar"
+                : controller.currentCategory.value,
+            style: TextStyle(
+              color: AppTheme.textDark,
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ),
         centerTitle: true,

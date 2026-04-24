@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'dart:ui';
 import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
 
@@ -11,6 +12,19 @@ import 'core/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Barcha Flutter Xatolarini ushlash (Release uchun)
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint("Flutter Error Caught: ${details.exception}");
+  };
+
+  // Barcha Dart Asinxron xatolarini ushlash (App qulashini oldini oladi)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint("Dart Async Error Caught: $error");
+    return true;
+  };
+
   try {
     await Firebase.initializeApp(
       options: FirebaseOptions(

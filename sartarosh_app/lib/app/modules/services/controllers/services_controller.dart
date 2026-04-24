@@ -5,6 +5,9 @@ class ServicesController extends GetxController {
   final selectedService = Rxn<Map<String, dynamic>>();
   final services = <Map<String, dynamic>>[].obs;
 
+  // Track the current category to filter by
+  final currentCategory = 'Barchasi'.obs;
+
   // Icon mapping for known service categories/names
   static const Map<String, int> _iconMap = {
     'soch olish': 0xe14f, // content_cut
@@ -24,6 +27,9 @@ class ServicesController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    if (Get.arguments != null && Get.arguments is String) {
+      currentCategory.value = Get.arguments;
+    }
     _loadServicesFromBarbers();
   }
 
@@ -48,6 +54,16 @@ class ServicesController extends GetxController {
               final price = (sMap['price'] ?? 0) as int;
               final duration = (sMap['duration'] ?? 30) as int;
               final category = (sMap['category'] ?? '') as String;
+
+              // Apply Logic Filtering
+              if (currentCategory.value != 'Barchasi') {
+                final target = currentCategory.value.toLowerCase();
+                final matchCat = category.toLowerCase().contains(target);
+                final matchName = name.toLowerCase().contains(target);
+
+                // Keep if either category maps to it, or name contains it
+                if (!matchCat && !matchName) continue;
+              }
 
               if (aggregated.containsKey(name)) {
                 // Track min/max prices and barber count

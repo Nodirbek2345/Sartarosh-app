@@ -212,29 +212,89 @@ class BarberDashboardController extends GetxController {
   }
 
   Future<void> acceptBooking(String docId) async {
-    await _firestore.collection('bookings').doc(docId).update({
-      'status': 'confirmed',
-    });
+    try {
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'confirmed',
+      });
+      Get.snackbar(
+        "Muvaffaqiyatli",
+        "Bron qabul qilindi",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Xatolik yuz berdi",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<void> rejectBooking(String docId) async {
-    await _firestore.collection('bookings').doc(docId).update({
-      'status': 'cancelled',
-    });
+    try {
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'cancelled',
+      });
+      Get.snackbar(
+        "Bekor qilindi",
+        "Bron rad etildi",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Xatolik yuz berdi",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<void> startClient(String docId) async {
-    await _firestore.collection('bookings').doc(docId).update({
-      'status': 'in-progress',
-      'startedAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'in-progress',
+        'startedAt': FieldValue.serverTimestamp(),
+      });
+      Get.snackbar(
+        "Boshlandi",
+        "Xizmat boshlandi",
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Xizmatni boshlashda xatolik yuz berdi",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   Future<void> completeClient(String docId) async {
-    await _firestore.collection('bookings').doc(docId).update({
-      'status': 'completed',
-      'completedAt': FieldValue.serverTimestamp(),
-    });
+    try {
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'completed',
+        'completedAt': FieldValue.serverTimestamp(),
+      });
+      Get.snackbar(
+        "Tugallandi",
+        "Xizmat muvaffaqiyatli yakunlandi",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Xizmatni tugatishda xatolik yuz berdi",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
   }
 
   // ============== PHOTO COMPRESSION & UPLOAD ==============
