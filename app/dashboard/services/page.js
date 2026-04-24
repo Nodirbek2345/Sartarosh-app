@@ -152,12 +152,18 @@ export default function ServicesPage() {
                         </div>
                         <div className="dash-form-group">
                             <label>Kategoriya</label>
-                            <select value={form.category} onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))}>
-                                <option value="Soch olish">Soch olish</option>
-                                <option value="Soqol olish">Soqol olish</option>
-                                <option value="Kompleks">Kompleks</option>
-                                <option value="Maxsus">Maxsus</option>
-                            </select>
+                            <input
+                                list="categories-list"
+                                value={form.category}
+                                onChange={(e) => setForm(p => ({ ...p, category: e.target.value }))}
+                                placeholder="O'zingiz kiriting yoki tanlang"
+                            />
+                            <datalist id="categories-list">
+                                <option value="Soch olish" />
+                                <option value="Soqol olish" />
+                                <option value="Kompleks" />
+                                <option value="Maxsus" />
+                            </datalist>
                         </div>
 
                         <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 16 }}>
