@@ -33,35 +33,46 @@ class BarberDashboardController extends GetxController {
 
   // Cached barber document reference
   DocumentReference? _barberDocRef;
+  String _barberId = ''; // barber document ID
 
+  String get currentUid => Get.find<UserService>().currentUid;
   String get barberName => Get.find<UserService>().name.value;
   String get todayDate => DateFormat('yyyy-MM-dd').format(DateTime.now());
 
   @override
   void onInit() {
     super.onInit();
-    _initBarberRef();
+    _initAndListen();
+  }
+
+  Future<void> _initAndListen() async {
+    await _initBarberRef();
     _listenTodayBookings();
     _listenAllBookings();
     _listenBarberStatus();
   }
 
-  /// Cache the barber document reference to avoid repeated queries
+  /// Cache the barber document reference using UID
   Future<void> _initBarberRef() async {
     final snapshot = await _firestore
         .collection('barbers')
-        .where('name', isEqualTo: barberName)
+        .where('uid', isEqualTo: currentUid)
         .limit(1)
         .get();
     if (snapshot.docs.isNotEmpty) {
       _barberDocRef = snapshot.docs.first.reference;
+      _barberId = snapshot.docs.first.id;
     }
   }
 
   void _listenTodayBookings() {
+    if (_barberId.isEmpty) {
+      isLoading.value = false;
+      return;
+    }
     _bookingsSub = _firestore
         .collection('bookings')
-        .where('barberName', isEqualTo: barberName)
+        .where('barberId', isEqualTo: _barberId)
         .where('date', isEqualTo: todayDate)
         .snapshots()
         .listen((snapshot) {
@@ -94,9 +105,10 @@ class BarberDashboardController extends GetxController {
 
   /// Barcha kunlar uchun bronlarni tinglash (Bronlar tab uchun)
   void _listenAllBookings() {
+    if (_barberId.isEmpty) return;
     _allBookingsSub = _firestore
         .collection('bookings')
-        .where('barberName', isEqualTo: barberName)
+        .where('barberId', isEqualTo: _barberId)
         .orderBy('createdAt', descending: true)
         .limit(100)
         .snapshots()
@@ -117,7 +129,7 @@ class BarberDashboardController extends GetxController {
   void _listenBarberStatus() {
     _statusSub = _firestore
         .collection('barbers')
-        .where('name', isEqualTo: barberName)
+        .where('uid', isEqualTo: currentUid)
         .snapshots()
         .listen((snapshot) {
           if (snapshot.docs.isNotEmpty) {
@@ -133,6 +145,9 @@ class BarberDashboardController extends GetxController {
             }
             // Cache reference if not already cached
             _barberDocRef ??= snapshot.docs.first.reference;
+            if (_barberId.isEmpty) {
+              _barberId = snapshot.docs.first.id;
+            }
             _checkAutoTurnOff();
           }
         });
@@ -156,7 +171,7 @@ class BarberDashboardController extends GetxController {
       // Fallback: find and update
       final snapshot = await _firestore
           .collection('barbers')
-          .where('name', isEqualTo: barberName)
+          .where('uid', isEqualTo: currentUid)
           .get();
       if (snapshot.docs.isNotEmpty) {
         _barberDocRef = snapshot.docs.first.reference;
@@ -187,7 +202,7 @@ class BarberDashboardController extends GetxController {
     } else {
       final snapshot = await _firestore
           .collection('barbers')
-          .where('name', isEqualTo: barberName)
+          .where('uid', isEqualTo: currentUid)
           .get();
       if (snapshot.docs.isNotEmpty) {
         _barberDocRef = snapshot.docs.first.reference;
@@ -274,7 +289,7 @@ class BarberDashboardController extends GetxController {
       } else {
         final snapshot = await _firestore
             .collection('barbers')
-            .where('name', isEqualTo: barberName)
+            .where('uid', isEqualTo: currentUid)
             .get();
         if (snapshot.docs.isNotEmpty) {
           _barberDocRef = snapshot.docs.first.reference;
