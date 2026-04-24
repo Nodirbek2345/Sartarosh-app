@@ -215,6 +215,24 @@ class ProfileView extends StatelessWidget {
                             idx++,
                             () => Get.toNamed('/my-bookings'),
                           ),
+                          _menuItem(
+                            Icons.storefront_rounded,
+                            "Sartarosh sifatida qo'shilish",
+                            idx++,
+                            () {
+                              if (isBarberRole) {
+                                Get.snackbar(
+                                  "Diqqat!",
+                                  "Siz allaqachon usta sifatida ro'yxatdan o'tgansiz.",
+                                  backgroundColor: Colors.orange,
+                                  colorText: Colors.white,
+                                  snackPosition: SnackPosition.TOP,
+                                );
+                              } else {
+                                Get.toNamed('/add-barber');
+                              }
+                            },
+                          ),
                           if (isBarberRole) ...[
                             _menuItem(
                               Icons.swap_horiz_rounded,
@@ -224,13 +242,6 @@ class ProfileView extends StatelessWidget {
                                 userService.toggleBarberMode();
                                 Get.offAllNamed('/home');
                               },
-                            ),
-                          ] else ...[
-                            _menuItem(
-                              Icons.storefront_rounded,
-                              "Sartarosh sifatida qo'shilish",
-                              idx++,
-                              () => Get.toNamed('/add-barber'),
                             ),
                           ],
                           _menuItem(
