@@ -255,27 +255,49 @@ class _DashboardTab extends StatelessWidget {
   Widget _buildStats() {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-      child: Row(
+      child: Column(
         children: [
-          _statCard(
-            Icons.people_rounded,
-            "Mijozlar",
-            "${controller.todayClientsCount.value}",
-            AppTheme.primary,
+          Row(
+            children: [
+              _statCard(
+                Icons.people_rounded,
+                "Mijozlar",
+                "${controller.todayClientsCount.value}",
+                AppTheme.primary,
+              ),
+              const SizedBox(width: 12),
+              _statCard(
+                Icons.check_circle_rounded,
+                "Bajarildi",
+                "${controller.completedCount.value}",
+                AppTheme.success,
+              ),
+              const SizedBox(width: 12),
+              _statCard(
+                Icons.monetization_on_rounded,
+                "Bugun",
+                "${controller.todayEarnings.value}",
+                AppTheme.gold,
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          _statCard(
-            Icons.check_circle_rounded,
-            "Bajarildi",
-            "${controller.completedCount.value}",
-            AppTheme.success,
-          ),
-          const SizedBox(width: 12),
-          _statCard(
-            Icons.monetization_on_rounded,
-            "Daromad",
-            "${controller.todayEarnings.value}",
-            AppTheme.gold,
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _statCard(
+                Icons.account_balance_wallet_rounded,
+                "Bu hafta",
+                "${controller.weeklyEarnings.value}",
+                const Color(0xFF5E60CE), // Deep Purple
+              ),
+              const SizedBox(width: 12),
+              _statCard(
+                Icons.savings_rounded,
+                "Bu oy",
+                "${controller.monthlyEarnings.value}",
+                const Color(0xFF6930C3), // Vibrant Violet
+              ),
+            ],
           ),
         ],
       ),

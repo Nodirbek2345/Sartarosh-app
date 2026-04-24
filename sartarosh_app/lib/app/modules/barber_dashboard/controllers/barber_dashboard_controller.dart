@@ -22,6 +22,8 @@ class BarberDashboardController extends GetxController {
 
   // Stats
   final todayEarnings = 0.obs;
+  final weeklyEarnings = 0.obs;
+  final monthlyEarnings = 0.obs;
   final todayClientsCount = 0.obs;
   final completedCount = 0.obs;
   final pendingCount = 0.obs; // Kutilmoqda bronlar soni
@@ -123,6 +125,38 @@ class BarberDashboardController extends GetxController {
           pendingCount.value = list
               .where((b) => b['status'] == 'pending')
               .length;
+
+          // Calculate Financials (Weekly/Monthly)
+          int wEarnings = 0;
+          int mEarnings = 0;
+          final now = DateTime.now();
+          final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+          final startOfMonth = DateTime(now.year, now.month, 1);
+          final startOfWeekNorm = DateTime(
+            startOfWeek.year,
+            startOfWeek.month,
+            startOfWeek.day,
+          );
+
+          for (var b in list) {
+            if (b['status'] == 'completed') {
+              try {
+                DateTime bDate = DateFormat(
+                  'yyyy-MM-dd',
+                ).parse(b['date'] ?? '');
+                int price = (b['price'] as num?)?.toInt() ?? 0;
+
+                if (!bDate.isBefore(startOfMonth)) {
+                  mEarnings += price;
+                }
+                if (!bDate.isBefore(startOfWeekNorm)) {
+                  wEarnings += price;
+                }
+              } catch (_) {}
+            }
+          }
+          weeklyEarnings.value = wEarnings;
+          monthlyEarnings.value = mEarnings;
         });
   }
 
@@ -213,6 +247,28 @@ class BarberDashboardController extends GetxController {
 
   Future<void> acceptBooking(String docId) async {
     try {
+      // Smart Accept: Auto-reject overlapping bookings
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (snapshot.exists) {
+        final data = snapshot.data()!;
+        final date = data['date'];
+        final time = data['time'];
+
+        final overlaps = await _firestore
+            .collection('bookings')
+            .where('barberId', isEqualTo: _barberId)
+            .where('date', isEqualTo: date)
+            .where('time', isEqualTo: time)
+            .where('status', isEqualTo: 'pending')
+            .get();
+
+        for (var doc in overlaps.docs) {
+          if (doc.id != docId) {
+            await doc.reference.update({'status': 'cancelled'});
+          }
+        }
+      }
+
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'confirmed',
       });
@@ -255,6 +311,24 @@ class BarberDashboardController extends GetxController {
 
   Future<void> startClient(String docId) async {
     try {
+      // State Guard: Prevent multiple 'in-progress'
+      final inProgressSnap = await _firestore
+          .collection('bookings')
+          .where('barberId', isEqualTo: _barberId)
+          .where('date', isEqualTo: todayDate)
+          .where('status', isEqualTo: 'in-progress')
+          .get();
+
+      if (inProgressSnap.docs.isNotEmpty) {
+        Get.snackbar(
+          "Xatolik",
+          "Avval boshlangan mijozni yakunlang!",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'in-progress',
         'startedAt': FieldValue.serverTimestamp(),
