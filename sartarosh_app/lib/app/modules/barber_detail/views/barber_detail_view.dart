@@ -301,6 +301,21 @@ class BarberDetailView extends StatelessWidget {
                       final int duration = s['duration'] ?? 30;
                       return GestureDetector(
                         onTap: () {
+                          if (isSelf) {
+                            Get.snackbar(
+                              "⚠️ Bu sizning profilingiz",
+                              "O'zingizga o'zingiz bron qila olmaysiz.",
+                              snackPosition: SnackPosition.TOP,
+                              backgroundColor: AppTheme.primary.withValues(
+                                alpha: 0.9,
+                              ),
+                              colorText: Colors.white,
+                              duration: Duration(seconds: 3),
+                              margin: EdgeInsets.all(16),
+                              borderRadius: 16,
+                            );
+                            return;
+                          }
                           if (barberIsActive) {
                             Get.toNamed(
                               '/booking',
@@ -391,29 +406,31 @@ class BarberDetailView extends StatelessWidget {
                                       fontSize: 15,
                                     ),
                                   ),
-                                  SizedBox(width: 8),
-                                  Container(
-                                    padding: EdgeInsets.all(4),
-                                    decoration: BoxDecoration(
-                                      color: barberIsActive
-                                          ? AppTheme.primary.withValues(
-                                              alpha: 0.1,
-                                            )
-                                          : AppTheme.textLight.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                      borderRadius: BorderRadius.circular(8),
+                                  if (!isSelf) ...[
+                                    SizedBox(width: 8),
+                                    Container(
+                                      padding: EdgeInsets.all(4),
+                                      decoration: BoxDecoration(
+                                        color: barberIsActive
+                                            ? AppTheme.primary.withValues(
+                                                alpha: 0.1,
+                                              )
+                                            : AppTheme.textLight.withValues(
+                                                alpha: 0.1,
+                                              ),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Icon(
+                                        barberIsActive
+                                            ? Icons.arrow_forward_rounded
+                                            : Icons.block_rounded,
+                                        color: barberIsActive
+                                            ? AppTheme.primary
+                                            : AppTheme.textLight,
+                                        size: 16,
+                                      ),
                                     ),
-                                    child: Icon(
-                                      barberIsActive
-                                          ? Icons.arrow_forward_rounded
-                                          : Icons.block_rounded,
-                                      color: barberIsActive
-                                          ? AppTheme.primary
-                                          : AppTheme.textLight,
-                                      size: 16,
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
                             ],
