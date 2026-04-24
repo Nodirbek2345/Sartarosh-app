@@ -294,6 +294,17 @@ class AddBarberController extends GetxController {
       final safeAbout = InputSanitizer.sanitizeText(aboutCtrl.text);
       final uid = Get.find<UserService>().currentUid;
 
+      // Anti-Spam: Check if user already registered as barber
+      final existing = await _firestore
+          .collection('barbers')
+          .where('uid', isEqualTo: uid)
+          .get();
+      if (existing.docs.isNotEmpty) {
+        _error("Siz allaqachon usta sifatida bazada ro'yxatdan o'tgansiz.");
+        isSubmitting.value = false;
+        return;
+      }
+
       String imageUrl = '';
       if (selectedImagePath.value.isNotEmpty) {
         try {

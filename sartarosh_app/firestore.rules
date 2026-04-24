@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Auth helpers
+    function isAuth() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return isAuth() && request.auth.uid == uid;
+    }
+
+    match /users/{userId} {
+      allow read: if isAuth();
+      allow create: if isOwner(userId);
+      allow update: if isOwner(userId);
+      allow delete: if false;
+    }
+
+    match /barbers/{barberId} {
+      allow read: if true; // Publicly accessible to read
+      allow create: if isAuth() && isOwner(request.resource.data.uid);
+      allow update: if isAuth() && isOwner(resource.data.uid);
+      allow delete: if false; // Soft delete via isActive flag
+    }
+
+    match /bookings/{bookingId} {
+      // Either the client who booked or the barber receiving it
+      allow read: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
+      allow create: if isAuth() && request.resource.data.clientUid == request.auth.uid;
+      allow update: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
+      allow delete: if false; 
+    }
+
+    match /services/{docId} {
+      allow read: if true;
+      allow write: if false; // Admin only from Firebase Console
+    }
+
+    match /reviews/{reviewId} {
+      allow read: if true;
+      allow create: if isAuth();
+      allow update, delete: if false; // Reviews are immutable or handled by admin
+    }
+  }
+}

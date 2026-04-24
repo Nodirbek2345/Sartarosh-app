@@ -32,6 +32,7 @@ import '../modules/barber_dashboard/views/barber_dashboard_view.dart';
 import '../modules/region/bindings/region_binding.dart';
 import '../modules/region/views/region_view.dart';
 import '../../core/middleware/auth_middleware.dart';
+import '../../core/middleware/barber_middleware.dart';
 
 class AppPages {
   static const String initial = Routes.splash;
@@ -137,7 +138,7 @@ class AppPages {
       page: () => BarberDashboardView(),
       binding: BarberDashboardBinding(),
       transition: Transition.fadeIn,
-      middlewares: [AuthMiddleware()],
+      middlewares: [BarberMiddleware()],
     ),
     GetPage(
       name: Routes.region,
