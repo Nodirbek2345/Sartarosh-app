@@ -192,8 +192,6 @@ class BarberDetailView extends StatelessWidget {
                             color: AppTheme.textMedium,
                             fontSize: 13,
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       SizedBox(width: 16),
