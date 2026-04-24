@@ -80,17 +80,48 @@ class AuthController extends GetxController {
           userService.updatePhotoUrl(userPhoto);
         }
 
+        // FETCH USER DOC FIRST!
+        final userDoc = await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        String currentRole = 'client';
+
+        if (userDoc.exists) {
+          final data = userDoc.data();
+          if (data != null && data.containsKey('role')) {
+            currentRole = data['role'] ?? 'client';
+          }
+        }
+
         // Save to Firestore backend with UID as document key
-        await _firestore.collection('users').doc(user.uid).set({
+        final updateData = {
           'uid': user.uid,
           'name': userName,
           'phone': userPhone,
           'email': user.email ?? '',
           'photoUrl': userPhoto,
-          'role': 'client', // default, updated in welcome screen
-          'createdAt': FieldValue.serverTimestamp(),
           'lastLogin': FieldValue.serverTimestamp(),
-        }, SetOptions(merge: true));
+        };
+
+        // Only set default values if user is completely new
+        if (!userDoc.exists) {
+          updateData['role'] = 'client';
+          updateData['createdAt'] = FieldValue.serverTimestamp();
+        }
+
+        await _firestore
+            .collection('users')
+            .doc(user.uid)
+            .set(updateData, SetOptions(merge: true));
+
+        // SYNC user service locally so it overrides any stale FlutterSecureStorage value!
+        userService.setUserRole(currentRole);
+
+        // Ensure Barber mode is off when initially logging in to prevent ghost states
+        if (userService.isBarberMode.value) {
+          userService.toggleBarberMode();
+        }
 
         // Upload FCM token for new user
         if (Get.isRegistered<NotificationService>()) {
