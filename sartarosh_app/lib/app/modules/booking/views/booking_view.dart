@@ -220,8 +220,7 @@ class BookingView extends GetView<BookingController> {
         children: [
           // SANA TANLANG
           Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
+            crossAxisAlignment: CrossAxisAlignment.center,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
@@ -234,15 +233,41 @@ class BookingView extends GetView<BookingController> {
                 ),
               ),
               Obx(() {
-                final dt = controller.selectedDate.value;
-                return Text(
-                  "${_getMonthName(dt.month)} ${dt.year}",
-                  style: GoogleFonts.poppins(
-                    color: Colors.white54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: 1.2,
-                  ),
+                final vm = controller.viewingMonth.value;
+                final now = DateTime.now();
+                final isCurrentMonth =
+                    vm.year == now.year && vm.month == now.month;
+                return Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(
+                        Icons.chevron_left_rounded,
+                        color: isCurrentMonth ? Colors.white24 : goldColor,
+                      ),
+                      onPressed: isCurrentMonth
+                          ? null
+                          : () => controller.prevMonth(),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      "${_getMonthName(vm.month)} ${vm.year}",
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.0,
+                      ),
+                    ),
+                    SizedBox(width: 8),
+                    IconButton(
+                      icon: Icon(Icons.chevron_right_rounded, color: goldColor),
+                      onPressed: () => controller.nextMonth(),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
+                  ],
                 );
               }),
             ],
@@ -366,17 +391,11 @@ class BookingView extends GetView<BookingController> {
           SizedBox(height: 16),
           Obx(() {
             DateTime currentDate = controller.selectedDate.value;
-            DateTime firstDayOfMonth = DateTime(
-              currentDate.year,
-              currentDate.month,
-              1,
-            );
+            DateTime vm = controller.viewingMonth.value;
+            DateTime firstDayOfMonth = DateTime(vm.year, vm.month, 1);
             int offset = firstDayOfMonth.weekday - 1;
-            int daysInMonth = DateTime(
-              currentDate.year,
-              currentDate.month + 1,
-              0,
-            ).day;
+            int daysInMonth = DateTime(vm.year, vm.month + 1, 0).day;
+            DateTime now = DateTime.now();
 
             return GridView.builder(
               shrinkWrap: true,
@@ -390,11 +409,24 @@ class BookingView extends GetView<BookingController> {
               itemBuilder: (context, index) {
                 if (index < offset) return SizedBox();
                 int day = index - offset + 1;
-                bool isSelected = currentDate.day == day;
+
+                DateTime cellDate = DateTime(vm.year, vm.month, day);
+
+                // Prevent booking in the past
+                bool isPast =
+                    cellDate.year < now.year ||
+                    (cellDate.year == now.year && cellDate.month < now.month) ||
+                    (cellDate.year == now.year &&
+                        cellDate.month == now.month &&
+                        day < now.day);
+
+                bool isSelected =
+                    currentDate.year == cellDate.year &&
+                    currentDate.month == cellDate.month &&
+                    currentDate.day == cellDate.day;
+
                 return GestureDetector(
-                  onTap: () => controller.selectDate(
-                    DateTime(currentDate.year, currentDate.month, day),
-                  ),
+                  onTap: isPast ? null : () => controller.selectDate(cellDate),
                   child: Container(
                     decoration: BoxDecoration(
                       color: isSelected ? goldColor : Colors.transparent,
@@ -404,13 +436,18 @@ class BookingView extends GetView<BookingController> {
                       child: Text(
                         day.toString(),
                         style: GoogleFonts.poppins(
-                          color: isSelected
-                              ? Color(0xFF141522)
-                              : Colors.white70,
+                          color: isPast
+                              ? Colors.white24
+                              : (isSelected
+                                    ? Color(0xFF141522)
+                                    : Colors.white70),
                           fontSize: 15,
                           fontWeight: isSelected
                               ? FontWeight.w700
                               : FontWeight.w500,
+                          decoration: isPast
+                              ? TextDecoration.lineThrough
+                              : null,
                         ),
                       ),
                     ),

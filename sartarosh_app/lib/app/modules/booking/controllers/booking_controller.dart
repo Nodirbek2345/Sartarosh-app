@@ -18,6 +18,7 @@ class BookingController extends GetxController {
 
   // Step 2: Date & Time
   final selectedDate = DateTime.now().obs;
+  final viewingMonth = DateTime.now().obs; // For calendar UI navigation
   final selectedTime = ''.obs;
   final allTimes = <String>[].obs;
   final availableTimes = <String>[].obs;
@@ -142,9 +143,31 @@ class BookingController extends GetxController {
             } catch (_) {}
           }
 
+          final now = DateTime.now();
+          final isToday =
+              selectedDate.value.year == now.year &&
+              selectedDate.value.month == now.month &&
+              selectedDate.value.day == now.day;
+
           availableTimes.value = allTimes.where((t) {
-            // Also check if selecting this time would overlap with existing bookings dynamically
-            // Since duration blocks forwards, if I pick 10:00 and this service takes 1h, 10:30 MUST be free.
+            // 1) Filter past times on current day
+            if (isToday) {
+              final parts = t.split(':');
+              if (parts.length == 2) {
+                final hr = int.parse(parts[0]);
+                final min = int.parse(parts[1]);
+                final slotTime = DateTime(
+                  now.year,
+                  now.month,
+                  now.day,
+                  hr,
+                  min,
+                );
+                if (slotTime.isBefore(now)) return false;
+              }
+            }
+
+            // 2) Check overlaps client-side dynamically
             int requiredSlots = (serviceDurationMinutes / 30).ceil();
             if (requiredSlots < 1) requiredSlots = 1;
 
@@ -180,6 +203,29 @@ class BookingController extends GetxController {
   void prevStep() {
     if (currentStep.value > 0) {
       currentStep.value--;
+    }
+  }
+
+  void nextMonth() {
+    viewingMonth.value = DateTime(
+      viewingMonth.value.year,
+      viewingMonth.value.month + 1,
+      1,
+    );
+  }
+
+  void prevMonth() {
+    final now = DateTime.now();
+    final newMonth = DateTime(
+      viewingMonth.value.year,
+      viewingMonth.value.month - 1,
+      1,
+    );
+
+    // Do not allow viewing months entirely in the past (before current month)
+    if (newMonth.year > now.year ||
+        (newMonth.year == now.year && newMonth.month >= now.month)) {
+      viewingMonth.value = newMonth;
     }
   }
 
