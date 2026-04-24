@@ -39,12 +39,66 @@ class ServicesView extends GetView<ServicesController> {
             ).animate().fadeIn(),
             SizedBox(height: 20),
             Expanded(
-              child: Obx(
-                () => ListView.builder(
+              child: Obx(() {
+                if (controller.services.isEmpty) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.content_cut_rounded,
+                            size: 48,
+                            color: AppTheme.primary.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          "Hozircha xizmatlar mavjud emas",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textDark,
+                          ),
+                        ),
+                        SizedBox(height: 6),
+                        Text(
+                          "Ustalar xizmatlarini qo'shgandan so'ng bu yerda ko'rinadi",
+                          style: TextStyle(
+                            color: AppTheme.textMedium,
+                            fontSize: 13,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                return ListView.builder(
                   physics: BouncingScrollPhysics(),
                   itemCount: controller.services.length,
                   itemBuilder: (context, index) {
                     final s = controller.services[index];
+                    final minPrice = s['minPrice'] ?? 0;
+                    final maxPrice = s['maxPrice'] ?? 0;
+                    final barberCount = s['barberCount'] ?? 0;
+
+                    String priceText;
+                    if (minPrice == 0 && maxPrice == 0) {
+                      priceText = "—";
+                    } else if (minPrice == maxPrice) {
+                      priceText = "${minPrice ~/ 1000} ming";
+                    } else {
+                      priceText =
+                          "${minPrice ~/ 1000}—${maxPrice ~/ 1000} ming";
+                    }
+
                     return Padding(
                       padding: EdgeInsets.only(bottom: 12),
                       child: GestureDetector(
@@ -94,25 +148,45 @@ class ServicesView extends GetView<ServicesController> {
                                       ),
                                     ),
                                     SizedBox(height: 4),
-                                    Text(
-                                      s['duration'] != null
-                                          ? "${s['duration']} daqiqa"
-                                          : "—",
-                                      style: TextStyle(
-                                        color: AppTheme.textMedium,
-                                        fontSize: 13,
-                                      ),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time_rounded,
+                                          size: 13,
+                                          color: AppTheme.textMedium,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "${s['duration'] ?? 30} daqiqa",
+                                          style: TextStyle(
+                                            color: AppTheme.textMedium,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        SizedBox(width: 12),
+                                        Icon(
+                                          Icons.person_rounded,
+                                          size: 13,
+                                          color: AppTheme.textMedium,
+                                        ),
+                                        SizedBox(width: 4),
+                                        Text(
+                                          "$barberCount usta",
+                                          style: TextStyle(
+                                            color: AppTheme.textMedium,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
                               Text(
-                                s['price'] != null && s['price'] > 0
-                                    ? "${(s['price'] as int) ~/ 1000} ming"
-                                    : "—",
+                                priceText,
                                 style: TextStyle(
                                   color: AppTheme.primary,
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
@@ -124,8 +198,8 @@ class ServicesView extends GetView<ServicesController> {
                       delay: Duration(milliseconds: 100 + (index * 80)),
                     );
                   },
-                ),
-              ),
+                );
+              }),
             ),
           ],
         ),
@@ -134,6 +208,19 @@ class ServicesView extends GetView<ServicesController> {
   }
 
   void _showDetail(Map<String, dynamic> s) {
+    final minPrice = s['minPrice'] ?? 0;
+    final maxPrice = s['maxPrice'] ?? 0;
+    final barberCount = s['barberCount'] ?? 0;
+
+    String priceText;
+    if (minPrice == 0 && maxPrice == 0) {
+      priceText = "Narx belgilanmagan";
+    } else if (minPrice == maxPrice) {
+      priceText = "${minPrice ~/ 1000} ming so'm";
+    } else {
+      priceText = "${minPrice ~/ 1000}—${maxPrice ~/ 1000} ming so'm";
+    }
+
     Get.bottomSheet(
       Container(
         padding: EdgeInsets.all(28),
@@ -168,36 +255,38 @@ class ServicesView extends GetView<ServicesController> {
                   color: AppTheme.textDark,
                 ),
               ),
-              SizedBox(height: 8),
-              Text(
-                s['description'] ?? '',
-                style: TextStyle(color: AppTheme.textMedium, fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
+              if ((s['category'] ?? '').toString().isNotEmpty) ...[
+                SizedBox(height: 4),
+                Text(
+                  s['category'],
+                  style: TextStyle(color: AppTheme.textMedium, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ],
               SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   _chip(
                     Icons.access_time_rounded,
-                    s['duration'] != null ? "${s['duration']} daqiqa" : "—",
+                    "${s['duration'] ?? 30} daqiqa",
                   ),
                   SizedBox(width: 12),
-                  _chip(
-                    Icons.payments_rounded,
-                    s['price'] != null && s['price'] > 0
-                        ? "${(s['price'] as int) ~/ 1000} ming so'm"
-                        : "Narx belgilanmagan",
-                  ),
+                  _chip(Icons.payments_rounded, priceText),
                 ],
               ),
+              SizedBox(height: 8),
+              _chip(Icons.people_rounded, "$barberCount ta usta mavjud"),
               SizedBox(height: 28),
               GestureDetector(
                 onTap: () {
                   Get.back();
                   Get.toNamed(
                     '/booking',
-                    arguments: {'service': s['name'], 'price': s['price']},
+                    arguments: {
+                      'service': s['name'],
+                      'price': s['minPrice'] ?? 0,
+                    },
                   );
                 },
                 child: Container(
@@ -237,6 +326,7 @@ class ServicesView extends GetView<ServicesController> {
         borderRadius: BorderRadius.circular(10),
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, color: AppTheme.primary, size: 16),
           SizedBox(width: 6),
