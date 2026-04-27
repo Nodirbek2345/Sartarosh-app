@@ -28,6 +28,10 @@ class BarberDashboardController extends GetxController {
   final completedCount = 0.obs;
   final pendingCount = 0.obs; // Kutilmoqda bronlar soni
 
+  // Queue system
+  final currentClient = Rxn<Map<String, dynamic>>();
+  final nextClient = Rxn<Map<String, dynamic>>();
+
   // Stream subscriptions for proper cleanup
   StreamSubscription? _bookingsSub;
   StreamSubscription? _allBookingsSub;
@@ -99,6 +103,17 @@ class BarberDashboardController extends GetxController {
                 0,
                 (total, b) => total + ((b['price'] as num?)?.toInt() ?? 0),
               );
+
+          // Queue system: current + next
+          final inProgress = list.where((b) => b['status'] == 'in-progress');
+          currentClient.value = inProgress.isNotEmpty ? inProgress.first : null;
+
+          final confirmedToday = list
+              .where((b) => b['status'] == 'confirmed')
+              .toList();
+          nextClient.value = confirmedToday.isNotEmpty
+              ? confirmedToday.first
+              : null;
 
           isLoading.value = false;
           _checkAutoTurnOff();
@@ -245,27 +260,48 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  // ============== STATE MACHINE HELPERS ==============
+  static const _allowedTransitions = {
+    'pending': ['confirmed', 'cancelled'],
+    'confirmed': ['in-progress', 'cancelled', 'no-show'],
+    'in-progress': ['completed'],
+  };
+
+  bool _canTransition(String from, String to) {
+    return _allowedTransitions[from]?.contains(to) ?? false;
+  }
+
   Future<void> acceptBooking(String docId) async {
     try {
-      // Smart Accept: Auto-reject overlapping bookings
+      // State guard: only pending → confirmed
       final snapshot = await _firestore.collection('bookings').doc(docId).get();
-      if (snapshot.exists) {
-        final data = snapshot.data()!;
-        final date = data['date'];
-        final time = data['time'];
+      if (!snapshot.exists) return;
+      final data = snapshot.data()!;
+      if (!_canTransition(data['status'] ?? '', 'confirmed')) {
+        Get.snackbar(
+          "Xatolik",
+          "Bu bron holatini o'zgartirish mumkin emas",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
 
-        final overlaps = await _firestore
-            .collection('bookings')
-            .where('barberId', isEqualTo: _barberId)
-            .where('date', isEqualTo: date)
-            .where('time', isEqualTo: time)
-            .where('status', isEqualTo: 'pending')
-            .get();
+      final date = data['date'];
+      final time = data['time'];
 
-        for (var doc in overlaps.docs) {
-          if (doc.id != docId) {
-            await doc.reference.update({'status': 'cancelled'});
-          }
+      // Smart Accept: Auto-reject overlapping bookings
+      final overlaps = await _firestore
+          .collection('bookings')
+          .where('barberId', isEqualTo: _barberId)
+          .where('date', isEqualTo: date)
+          .where('time', isEqualTo: time)
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (var doc in overlaps.docs) {
+        if (doc.id != docId) {
+          await doc.reference.update({'status': 'cancelled'});
         }
       }
 
@@ -290,6 +326,18 @@ class BarberDashboardController extends GetxController {
 
   Future<void> rejectBooking(String docId) async {
     try {
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      final currentStatus = snapshot.data()!['status'] ?? '';
+      if (!_canTransition(currentStatus, 'cancelled')) {
+        Get.snackbar(
+          "Xatolik",
+          "Bu bronni bekor qilish mumkin emas",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'cancelled',
       });
@@ -309,9 +357,56 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  /// Checks if Start button should be enabled for a booking
+  bool canStartBooking(Map<String, dynamic> booking) {
+    if (booking['status'] != 'confirmed') return false;
+    if (booking['date'] != todayDate) return false;
+    try {
+      final parts = (booking['time'] as String).split(':');
+      final now = DateTime.now();
+      final bookingTime = DateTime(
+        now.year,
+        now.month,
+        now.day,
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+      );
+      final diffMin = bookingTime.difference(now).inMinutes;
+      // Allow start from 15 mins before up to 30 mins after
+      return diffMin <= 15 && diffMin >= -30;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> startClient(String docId) async {
     try {
-      // State Guard: Prevent multiple 'in-progress'
+      // State guard: only confirmed → in-progress
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      final data = snapshot.data()!;
+      if (!_canTransition(data['status'] ?? '', 'in-progress')) {
+        Get.snackbar(
+          "Xatolik",
+          "Faqat tasdiqlangan bronni boshlash mumkin",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Time gate: booking must be today and within 15 min window
+      if (!canStartBooking(data)) {
+        Get.snackbar(
+          "Vaqt emas",
+          "Xizmatni boshlash vaqti hali kelmadi yoki o'tib ketdi",
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      // Prevent multiple in-progress
       final inProgressSnap = await _firestore
           .collection('bookings')
           .where('barberId', isEqualTo: _barberId)
@@ -351,8 +446,21 @@ class BarberDashboardController extends GetxController {
 
   Future<void> completeClient(String docId) async {
     try {
+      // State guard: only in-progress → completed
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'completed')) {
+        Get.snackbar(
+          "Xatolik",
+          "Faqat jarayondagi xizmatni tugatish mumkin",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'completed',
+        'paymentStatus': 'paid',
         'completedAt': FieldValue.serverTimestamp(),
       });
       Get.snackbar(
@@ -365,6 +473,40 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Xizmatni tugatishda xatolik yuz berdi",
+        backgroundColor: Colors.red,
+        colorText: Colors.white,
+      );
+    }
+  }
+
+  Future<void> markNoShow(String docId) async {
+    try {
+      // State guard: only confirmed → no-show
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'no-show')) {
+        Get.snackbar(
+          "Xatolik",
+          "Faqat tasdiqlangan bronni 'Kelmadi' deb belgilash mumkin",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'no-show',
+        'noShowAt': FieldValue.serverTimestamp(),
+      });
+      Get.snackbar(
+        "Mijoz kelmadi",
+        "Mijoz qatnashmaganligi tasdiqlandi",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Xatolik yuz berdi",
         backgroundColor: Colors.red,
         colorText: Colors.white,
       );

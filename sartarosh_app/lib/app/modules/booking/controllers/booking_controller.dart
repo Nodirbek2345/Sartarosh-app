@@ -314,18 +314,36 @@ class BookingController extends GetxController {
         return;
       }
 
-      // Check daily limit for this user (max 3 bookings per day)
-      final userDailyBookings = await _firestore
+      // Anti-abuse: Check no-shows limit (Max 2)
+      final pastNoShows = await _firestore
           .collection('bookings')
           .where('clientUid', isEqualTo: uid)
-          .where('date', isEqualTo: dateStr)
+          .where('status', isEqualTo: 'no-show')
+          .get();
+
+      if (pastNoShows.docs.length >= 2) {
+        Get.snackbar(
+          "Bloklangan!",
+          "Sizda 2 marta yoki undan ko'p 'Kelmadi' holati mavjud. Bron qilish vaqtincha ta'qiqlanadi.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          duration: Duration(seconds: 4),
+        );
+        isSubmitting.value = false;
+        return;
+      }
+
+      // Check globally active bookings limit (max 2 active bookings per user)
+      final userActiveBookings = await _firestore
+          .collection('bookings')
+          .where('clientUid', isEqualTo: uid)
           .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
           .get();
 
-      if (userDailyBookings.docs.length >= 3) {
+      if (userActiveBookings.docs.length >= 2) {
         Get.snackbar(
           "Limit!",
-          "Kuniga eng ko'pi bilan 3 ta bron qilish mumkin",
+          "Sizda bir vaqtning o'zida maksimal 2 ta faol bron bo'lishi mumkin.",
           backgroundColor: Colors.orange,
           colorText: Colors.white,
         );
@@ -333,19 +351,41 @@ class BookingController extends GetxController {
         return;
       }
 
-      await _firestore.collection('bookings').add({
-        'clientUid': uid, // Secure: UID-based identification
-        'client': InputSanitizer.sanitizeText(userService.name.value),
-        'clientPhone': InputSanitizer.sanitizePhone(userService.phone.value),
-        'barberName': barberName,
-        'barberId': selectedBarber.value?['id'] ?? '',
-        'service': InputSanitizer.sanitizeText(serviceName),
-        'price': servicePrice,
-        'durationMinutes': serviceDurationMinutes,
-        'date': dateStr,
-        'time': selectedTime.value,
-        'status': 'pending', // Colored integration mapping relies on raw string
-        'createdAt': FieldValue.serverTimestamp(),
+      // === SERVER-SIDE DOUBLE BOOKING GUARD (Transaction) ===
+      final barberId = selectedBarber.value?['id'] ?? '';
+      final timeVal = selectedTime.value;
+
+      await _firestore.runTransaction((transaction) async {
+        // Re-check for overlapping bookings inside the transaction
+        final conflictQuery = await _firestore
+            .collection('bookings')
+            .where('barberId', isEqualTo: barberId)
+            .where('date', isEqualTo: dateStr)
+            .where('time', isEqualTo: timeVal)
+            .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
+            .get();
+
+        if (conflictQuery.docs.isNotEmpty) {
+          throw Exception('TIME_SLOT_TAKEN');
+        }
+
+        final newDocRef = _firestore.collection('bookings').doc();
+        transaction.set(newDocRef, {
+          'clientUid': uid,
+          'client': InputSanitizer.sanitizeText(userService.name.value),
+          'clientPhone': InputSanitizer.sanitizePhone(userService.phone.value),
+          'barberName': barberName,
+          'barberId': barberId,
+          'service': InputSanitizer.sanitizeText(serviceName),
+          'price': servicePrice,
+          'durationMinutes': serviceDurationMinutes,
+          'date': dateStr,
+          'time': timeVal,
+          'paymentType': 'cash',
+          'paymentStatus': 'unpaid',
+          'status': 'confirmed',
+          'createdAt': FieldValue.serverTimestamp(),
+        });
       });
 
       Get.snackbar(

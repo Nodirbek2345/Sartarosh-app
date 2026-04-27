@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter/material.dart';
 import '../../../../core/services/user_service.dart';
 
 class MyBookingsController extends GetxController {
@@ -49,20 +51,44 @@ class MyBookingsController extends GetxController {
 
       pastBookings.value = docs.where((b) {
         final s = b['status'];
-        return s == 'completed' || s == 'cancelled' || s == 'no-show';
+        return s == 'completed' ||
+            s == 'cancelled' ||
+            s == 'no-show' ||
+            s == 'penalty';
       }).toList();
 
       isLoading.value = false;
     });
   }
 
-  Future<void> cancelBooking(String id) async {
+  Future<void> cancelBooking(String id, String dateStr, String timeStr) async {
     try {
+      String newStatus = 'cancelled';
+      try {
+        final bookingTime = DateFormat(
+          'yyyy-MM-dd HH:mm',
+        ).parse('$dateStr $timeStr');
+        final now = DateTime.now();
+        // If cancellation is less than 30 mins before, it's late cancellation -> penalty
+        if (bookingTime.difference(now).inMinutes < 30) {
+          newStatus = 'penalty';
+        }
+      } catch (_) {}
+
       await _firestore.collection('bookings').doc(id).update({
-        'status': 'cancelled',
+        'status': newStatus,
         'cancelledAt': FieldValue.serverTimestamp(),
       });
-      Get.snackbar("Muvaffaqiyatli", "Bron bekor qilindi!");
+      if (newStatus == 'penalty') {
+        Get.snackbar(
+          "Ogohlantirish",
+          "Bron kech bekor qilingani sababli tizimda qayd etildi.",
+          backgroundColor: Colors.orange,
+          colorText: Colors.white,
+        );
+      } else {
+        Get.snackbar("Muvaffaqiyatli", "Bron bekor qilindi!");
+      }
     } catch (e) {
       Get.snackbar("Xatolik", "Bekor qilishda xatolik yuz berdi");
     }

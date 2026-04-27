@@ -201,6 +201,60 @@ class MyBookingsView extends GetView<MyBookingsController> {
                       ),
                     ],
                   ),
+                  if (isActive && status == 'confirmed')
+                    Container(
+                      margin: EdgeInsets.only(top: 14),
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.info_outline,
+                                size: 16,
+                                color: AppTheme.primary,
+                              ),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  "Hizmat tasdiqlandi. Iltimos o'z vaqtida keling.",
+                                  style: TextStyle(
+                                    color: AppTheme.primary,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          SizedBox(height: 6),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.payments_outlined,
+                                size: 16,
+                                color: AppTheme.textDark,
+                              ),
+                              SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
+                                  "Naqd to'lov: Xizmatdan so'ng joyida to'laysiz.",
+                                  style: TextStyle(
+                                    color: AppTheme.textDark,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
                   SizedBox(height: 14),
                   if (isActive &&
                       (status == 'pending' || status == 'confirmed'))
@@ -223,7 +277,11 @@ class MyBookingsView extends GetView<MyBookingsController> {
                               TextButton(
                                 onPressed: () {
                                   Get.back();
-                                  controller.cancelBooking(b['id']);
+                                  controller.cancelBooking(
+                                    b['id'],
+                                    b['date'] ?? '',
+                                    b['time'] ?? '',
+                                  );
                                 },
                                 child: Text(
                                   "Ha, bekor qilish",
@@ -305,6 +363,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
       case 'cancelled':
         return Color(0xFFDC2626);
       case 'no-show':
+      case 'penalty':
         return Color(0xFF475569);
       default:
         return Color(0xFFD97706);
@@ -320,6 +379,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
       case 'completed':
         return Icons.task_alt_rounded;
       case 'cancelled':
+      case 'penalty':
         return Icons.cancel_outlined;
       case 'no-show':
         return Icons.person_off_rounded;
@@ -340,6 +400,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
         return 'Tugallangan';
       case 'cancelled':
         return 'Bekor qilingan';
+      case 'penalty':
+        return 'Kech bekor qilingan';
       case 'no-show':
         return 'Kelmadi';
       default:

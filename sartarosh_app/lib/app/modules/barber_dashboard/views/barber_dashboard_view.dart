@@ -172,6 +172,7 @@ class _DashboardTab extends StatelessWidget {
           SliverToBoxAdapter(child: _buildHeader()),
           SliverToBoxAdapter(child: _buildStats()),
           SliverToBoxAdapter(child: _buildStatusToggle()),
+          SliverToBoxAdapter(child: _buildQueueSection()),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
@@ -597,6 +598,83 @@ class _DashboardTab extends StatelessWidget {
     ).animate().fadeIn(delay: 400.ms);
   }
 
+  Widget _buildQueueSection() {
+    return Obx(() {
+      final current = controller.currentClient.value;
+      final next = controller.nextClient.value;
+      if (current == null && next == null) return const SizedBox();
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: AppTheme.goldGradient,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "📋 Navbat",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(height: 12),
+              if (current != null) ...[
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.person_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Hozir: ${current['client'] ?? 'Mijoz'} — ${current['time'] ?? ''}",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+              ],
+              if (next != null) ...[
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.schedule_rounded,
+                      color: Colors.white70,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        "Navbatdagi: ${next['client'] ?? 'Mijoz'} — ${next['time'] ?? ''}",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white70,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ],
+          ),
+        ),
+      ).animate().fadeIn(delay: 320.ms);
+    });
+  }
+
   Widget _buildBookingCard(Map<String, dynamic> booking) {
     final status = booking['status'] ?? 'pending';
     Color statusColor;
@@ -699,6 +777,28 @@ class _DashboardTab extends StatelessWidget {
               ),
             ],
           ),
+          // Payment info row
+          if (booking['paymentType'] == 'cash' &&
+              booking['paymentStatus'] == 'unpaid' &&
+              status != 'completed' &&
+              status != 'cancelled')
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(
+                children: [
+                  Icon(Icons.payments_outlined, size: 14, color: Colors.orange),
+                  const SizedBox(width: 6),
+                  Text(
+                    "Naqd to'lov — hali to'lanmagan",
+                    style: GoogleFonts.poppins(
+                      color: Colors.orange,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (status == 'pending') ...[
             const SizedBox(height: 14),
             Row(
@@ -723,11 +823,32 @@ class _DashboardTab extends StatelessWidget {
           ],
           if (status == 'confirmed') ...[
             const SizedBox(height: 14),
-            _actionBtn(
-              "🔥 Boshlash",
-              null,
-              () => controller.startClient(booking['docId']),
-              isGold: true,
+            Row(
+              children: [
+                Expanded(
+                  child: Obx(() {
+                    // Re-evaluate canStart reactively
+                    controller.todayBookings.length; // trigger rebuild
+                    final canStart = controller.canStartBooking(booking);
+                    return _actionBtn(
+                      "🔥 Boshlash",
+                      null,
+                      canStart
+                          ? () => controller.startClient(booking['docId'])
+                          : null,
+                      isGold: canStart,
+                    );
+                  }),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _actionBtn(
+                    "❌ Kelmadi",
+                    Colors.grey,
+                    () => controller.markNoShow(booking['docId']),
+                  ),
+                ),
+              ],
             ),
           ],
           if (status == 'in-progress') ...[
@@ -747,28 +868,32 @@ class _DashboardTab extends StatelessWidget {
   Widget _actionBtn(
     String text,
     Color? color,
-    VoidCallback onTap, {
+    VoidCallback? onTap, {
     bool isGold = false,
     bool isSolid = false,
   }) {
+    final isDisabled = onTap == null;
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          gradient: isGold ? AppTheme.goldGradient : null,
-          color: isGold
-              ? null
-              : (isSolid ? color : color?.withValues(alpha: 0.1)),
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Center(
-          child: Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: (isGold || isSolid) ? Colors.white : color,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
+      child: Opacity(
+        opacity: isDisabled ? 0.4 : 1.0,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            gradient: isGold ? AppTheme.goldGradient : null,
+            color: isGold
+                ? null
+                : (isSolid ? color : color?.withValues(alpha: 0.1)),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Center(
+            child: Text(
+              text,
+              style: GoogleFonts.poppins(
+                color: (isGold || isSolid) ? Colors.white : color,
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+              ),
             ),
           ),
         ),

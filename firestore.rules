@@ -77,25 +77,34 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 4. BRONLAR (Bookings)
+    // 4. BRONLAR (Bookings) — STRICT STATE MACHINE
     // ═══════════════════════════════════════════════════════
     match /bookings/{bookingId} {
       allow read: if isSignedIn();
       
+      // Client creates booking (confirmed status for cash flow)
       allow create: if isSignedIn() 
                     && incomingData().clientUid == request.auth.uid
-                    && incomingData().keys().hasAll(['clientUid', 'barberUid', 'service', 'status'])
-                    && incomingData().status == 'pending'
+                    && incomingData().keys().hasAll(['clientUid', 'barberId', 'service', 'status'])
+                    && incomingData().status in ['pending', 'confirmed']
                     && incomingData().service is string
                     && incomingData().service.size() > 0;
       
-      // Faqat mijoz yoki usta yangilashi mumkin
+      // Strict state machine transitions
+      // Client can: pending→cancelled, confirmed→cancelled
+      // Barber can: pending→confirmed, confirmed→in-progress, confirmed→cancelled, confirmed→no-show, in-progress→completed
       allow update: if isSignedIn() 
-                    && (existingData().clientUid == request.auth.uid 
-                        || existingData().barberUid == request.auth.uid)
                     && incomingData().clientUid == existingData().clientUid
-                    && incomingData().barberUid == existingData().barberUid
-                    && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed'];
+                    && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed', 'in-progress', 'no-show', 'penalty']
+                    && (
+                      // Client cancellation (own booking only)
+                      (existingData().clientUid == request.auth.uid 
+                        && incomingData().status in ['cancelled', 'penalty']
+                        && existingData().status in ['pending', 'confirmed'])
+                      ||
+                      // Barber actions
+                      (existingData().barberId == request.auth.uid || existingData().barberUid == request.auth.uid)
+                    );
                     
       allow delete: if isSignedIn() && existingData().clientUid == request.auth.uid;
     }
