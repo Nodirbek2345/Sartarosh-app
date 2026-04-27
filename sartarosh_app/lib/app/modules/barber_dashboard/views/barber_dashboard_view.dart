@@ -1501,11 +1501,6 @@ class _BarberProfileTab extends StatelessWidget {
                 _buildPortfolioSection(controller),
                 const SizedBox(height: 16),
                 _profileMenuItem(
-                  Icons.person_rounded,
-                  "Ma'lumotlarim",
-                  () => Get.toNamed('/profile'),
-                ),
-                _profileMenuItem(
                   Icons.content_cut_rounded,
                   "Xizmatlarim va Narxlar",
                   () => Get.toNamed('/barber-services'),
@@ -1520,11 +1515,6 @@ class _BarberProfileTab extends StatelessWidget {
                       snackPosition: SnackPosition.BOTTOM,
                     );
                   },
-                ),
-                _profileMenuItem(
-                  Icons.settings_rounded,
-                  "Sozlamalar",
-                  () => Get.toNamed('/profile'),
                 ),
                 _profileMenuItem(Icons.help_outline_rounded, "Yordam", () {
                   Get.toNamed('/support-chat');
