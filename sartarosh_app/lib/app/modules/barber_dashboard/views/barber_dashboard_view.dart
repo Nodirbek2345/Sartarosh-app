@@ -151,6 +151,7 @@ class _DashboardTab extends StatelessWidget {
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
           SliverToBoxAdapter(child: _buildStats()),
+          SliverToBoxAdapter(child: _buildQueueLimitAndStatus()),
           SliverToBoxAdapter(child: _buildQueueSection()),
           SliverToBoxAdapter(
             child: Padding(
@@ -323,6 +324,185 @@ class _DashboardTab extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildQueueLimitAndStatus() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // Queue Limit Section
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Qabul limiti",
+                        style: GoogleFonts.playfairDisplay(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textDark,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        "Maksimal mijozlar",
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          color: AppTheme.textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey.shade200),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove,
+                            size: 18,
+                            color: AppTheme.textMedium,
+                          ),
+                          onPressed: () => controller.decrementLimit(),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                        Obx(
+                          () => Text(
+                            "${controller.queueLimit.value}",
+                            style: GoogleFonts.poppins(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.gold,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.add,
+                            size: 18,
+                            color: AppTheme.textMedium,
+                          ),
+                          onPressed: () => controller.incrementLimit(),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            // Divider
+            Container(color: const Color(0xFFFAF6F0), height: 1),
+
+            // Active Status Section
+            Obx(() {
+              final isActive = controller.isActive.value;
+              return Container(
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppTheme.success.withValues(alpha: 0.05)
+                      : Colors.redAccent.withValues(alpha: 0.05),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                  ),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 10,
+                      height: 10,
+                      decoration: BoxDecoration(
+                        color: isActive ? AppTheme.success : Colors.redAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isActive
+                                ? "Siz hozir ishdasiz"
+                                : "Siz hozir ishda emassiz",
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          Text(
+                            isActive
+                                ? "Yangi navbatlarni qabul qilasiz"
+                                : "Sizga yangi navbatlar kelmaydi",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppTheme.textMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: controller.toggleActiveStatus,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isActive ? Colors.redAccent : AppTheme.success,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          isActive ? "Ishni to'xtatish" : "Ishni boshlash",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 240.ms).slideY(begin: 0.03);
   }
 
   Widget _buildEmptyState() {
