@@ -178,18 +178,23 @@ class AddBarberController extends GetxController {
         final data = response.data;
         if (data['display_name'] != null) {
           addressCtrl.text = data['display_name'];
-          // Optional Region Parse from Address (e.g. data['address']['city'])
+          // PRO: Extract REGION (state) from OSM, not city/town
           if (data['address'] != null) {
-            String cityStr =
-                data['address']['city'] ??
-                data['address']['town'] ??
-                data['address']['county'] ??
-                "Toshkent";
-            location.value = cityStr;
+            final addr = data['address'];
+            // Priority: state > city > county
+            String regionRaw =
+                addr['state'] ?? addr['city'] ?? addr['county'] ?? "Toshkent";
+            // Strip suffixes to match app region names
+            location.value = regionRaw
+                .replaceAll(' viloyati', '')
+                .replaceAll(' shahri', '')
+                .replaceAll(' Region', '')
+                .replaceAll(' Province', '')
+                .trim();
           }
           Get.snackbar(
-            "Muvaffaqiyatli",
-            "Sizning joylashuvingiz aniqlandi",
+            "Muvaffaqiyatli ✅",
+            "Joylashuv: ${location.value}",
             backgroundColor: AppTheme.primary,
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
@@ -286,6 +291,12 @@ class AddBarberController extends GetxController {
       return;
     }
 
+    // PRO: Validate location before submit
+    if (location.value.trim().isEmpty) {
+      _error("Iltimos, avval 📍 tugmasini bosib joylashuvni aniqlang");
+      return;
+    }
+
     isSubmitting.value = true;
     try {
       final safeName = InputSanitizer.sanitizeText(nameCtrl.text);
@@ -300,7 +311,27 @@ class AddBarberController extends GetxController {
           .where('uid', isEqualTo: uid)
           .get();
       if (existing.docs.isNotEmpty) {
-        _error("Siz allaqachon usta sifatida bazada ro'yxatdan o'tgansiz.");
+        // PRO: Auto-fix role desync instead of just showing error
+        final userService = Get.find<UserService>();
+        userService.setUserRole('barber');
+        if (!userService.isBarberMode.value) {
+          userService.toggleBarberMode();
+        }
+        // Also sync to Firestore users collection
+        try {
+          await _firestore.collection('users').doc(uid).set({
+            'role': 'barber',
+          }, SetOptions(merge: true));
+        } catch (_) {}
+        Get.snackbar(
+          "Diqqat!",
+          "Siz allaqachon usta sifatida ro'yxatdan o'tgansiz. Usta rejimiga o'tildi.",
+          backgroundColor: AppTheme.primary,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        await Future.delayed(Duration(milliseconds: 800));
+        Get.offAllNamed('/home');
         isSubmitting.value = false;
         return;
       }
@@ -343,11 +374,20 @@ class AddBarberController extends GetxController {
         'createdAt': FieldValue.serverTimestamp(),
       });
 
+      // PRO: Sync role to BOTH local storage AND Firestore users collection
       final userService = Get.find<UserService>();
       userService.setUserRole('barber');
       if (!userService.isBarberMode.value) {
         userService.toggleBarberMode();
       }
+      // Persist role to Firestore so it survives re-login
+      try {
+        await _firestore.collection('users').doc(uid).set({
+          'role': 'barber',
+          'name': safeName,
+          'phone': safePhone,
+        }, SetOptions(merge: true));
+      } catch (_) {}
 
       Get.snackbar(
         "Muvaffaqiyatli! 🎉",

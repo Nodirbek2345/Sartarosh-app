@@ -68,6 +68,30 @@ class UserService extends GetxService {
       await _storage.write(key: 'user_uid', value: firebaseUser.uid);
     }
 
+    // PRO: Auto role-recovery — fix desync for users stuck as 'client'
+    if (currentUid.isNotEmpty && userRole.value == 'client') {
+      try {
+        final barberCheck = await FirebaseFirestore.instance
+            .collection('barbers')
+            .where('uid', isEqualTo: currentUid)
+            .limit(1)
+            .get();
+        if (barberCheck.docs.isNotEmpty) {
+          userRole.value = 'barber';
+          isBarberMode.value = true;
+          await _storage.write(key: 'user_role', value: 'barber');
+          await _storage.write(key: 'is_barber_mode', value: 'true');
+          // Also sync to Firestore users collection
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUid)
+                .set({'role': 'barber'}, SetOptions(merge: true));
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }
+
     return this;
   }
 
