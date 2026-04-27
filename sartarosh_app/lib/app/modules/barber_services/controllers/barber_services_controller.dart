@@ -62,8 +62,12 @@ class BarberServicesController extends GetxController {
           .get();
 
       List<dynamic> myServices = [];
+      String barberGender = 'male'; // Default if missing
+
       if (barberDocSnap.docs.isNotEmpty) {
-        myServices = barberDocSnap.docs.first.data()['services'] ?? [];
+        final data = barberDocSnap.docs.first.data();
+        myServices = data['services'] ?? [];
+        barberGender = data['gender'] ?? 'male';
       }
 
       final myServiceMap = <String, Map<String, dynamic>>{};
@@ -77,6 +81,11 @@ class BarberServicesController extends GetxController {
       // 3. Build reactive list
       final builtList = <RxMap<String, dynamic>>[];
       for (var g in globalServices) {
+        final serviceGender = g['gender'] ?? 'all';
+
+        // Filter out services that don't match exactly the barber's gender (or all)
+        if (serviceGender != barberGender && serviceGender != 'all') continue;
+
         final name = g['name'] ?? '';
         final category = g['category'] ?? '';
 

@@ -23,6 +23,9 @@ class BookingController extends GetxController {
   final allTimes = <String>[].obs;
   final availableTimes = <String>[].obs;
 
+  // Step 3: Payment
+  final selectedPaymentMethod = 'cash'.obs;
+
   StreamSubscription<QuerySnapshot>? _bookingsSub;
 
   // Step 3: Service info (passed from arguments)
@@ -456,8 +459,10 @@ class BookingController extends GetxController {
           'durationMinutes': serviceDurationMinutes,
           'date': dateStr,
           'time': timeVal,
-          'paymentType': 'cash',
-          'paymentStatus': 'unpaid',
+          'paymentType': selectedPaymentMethod.value,
+          'paymentStatus': selectedPaymentMethod.value == 'cash'
+              ? 'unpaid'
+              : 'pending_payment',
           'status': 'confirmed',
           'createdAt': FieldValue.serverTimestamp(),
         });
