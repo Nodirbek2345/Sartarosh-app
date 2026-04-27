@@ -227,6 +227,92 @@ class _DashboardTab extends StatelessWidget {
                 ],
               ),
             ),
+            Obx(() {
+              final pending = controller.pendingCount.value;
+              return GestureDetector(
+                onTap: () {
+                  if (pending > 0) {
+                    Get.snackbar(
+                      "Yangi bronlar!",
+                      "Sizda $pending ta tasdiqlanmagan bron mavjud. Bronlar bo'limidan tekshiring.",
+                      backgroundColor: AppTheme.accent,
+                      colorText: Colors.white,
+                    );
+                  } else {
+                    Get.snackbar(
+                      "Bildirishnomalar",
+                      "Sizda yangi bronlar mavjud emas.",
+                      backgroundColor: AppTheme.primary,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              width: 1,
+                            ),
+                          ),
+                          child: const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        )
+                        .animate(
+                          target: pending > 0 ? 1 : 0,
+                          onPlay: (controller) =>
+                              controller.repeat(reverse: true),
+                        )
+                        .shimmer(duration: 1500.ms)
+                        .shake(
+                          hz: 4,
+                          curve: Curves.easeInOutCubic,
+                          duration: 2000.ms,
+                        ),
+
+                    if (pending > 0)
+                      Positioned(
+                        top: -4,
+                        right: -4,
+                        child:
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEF4444),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: AppTheme.darkBg,
+                                  width: 2,
+                                ),
+                              ),
+                              child: Text(
+                                "$pending",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ).animate().scale(
+                              duration: 400.ms,
+                              curve: Curves.elasticOut,
+                            ),
+                      ),
+                  ],
+                ),
+              );
+            }),
           ],
         ),
       ),
@@ -1447,7 +1533,67 @@ class _BarberProfileTab extends StatelessWidget {
                   Icons.info_outline_rounded,
                   "Ilova versiyasi",
                   () {
-                    Get.find<UpdateService>().checkUpdate();
+                    final updateService = Get.find<UpdateService>();
+                    Get.dialog(
+                      AlertDialog(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: Row(
+                          children: [
+                            Icon(
+                              Icons.verified_rounded,
+                              color: AppTheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text("Ilova versiyasi"),
+                          ],
+                        ),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "Sartarosh Pro",
+                              style: GoogleFonts.poppins(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppTheme.textDark,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Versiya: ${updateService.currentVersion}",
+                              style: GoogleFonts.poppins(
+                                fontSize: 14,
+                                color: AppTheme.textMedium,
+                              ),
+                            ),
+                          ],
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Get.back(),
+                            child: const Text("Yopish"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () {
+                              Get.back();
+                              updateService.checkUpdate();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              "Yangilanishni tekshirish",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
                   },
                 ),
                 const SizedBox(height: 12),
