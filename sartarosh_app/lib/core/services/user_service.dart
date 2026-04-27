@@ -124,6 +124,19 @@ class UserService extends GetxService {
         if (userDoc.exists) {
           await userDoc.reference.update({'avatar': base64Image});
         }
+
+        // Sync to barber profile as well if they are a barber
+        if (userRole.value == 'barber') {
+          final barberSnapshot = await FirebaseFirestore.instance
+              .collection('barbers')
+              .where('uid', isEqualTo: currentUid)
+              .get();
+          if (barberSnapshot.docs.isNotEmpty) {
+            await barberSnapshot.docs.first.reference.update({
+              'image': base64Image,
+            });
+          }
+        }
       } catch (e) {
         // Exception intentionally ignored for minor avatar sync issues
       }
