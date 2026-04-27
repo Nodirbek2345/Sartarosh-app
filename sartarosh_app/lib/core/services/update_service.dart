@@ -6,6 +6,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:open_filex/open_filex.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class UpdateService extends GetxService {
   String currentVersion = "1.0.0";
@@ -259,17 +260,17 @@ class UpdateService extends GetxService {
               );
             }
 
-            // === STANDARD UPDATE DIALOG (IMAGE 1) - PREMIUM REDESIGN ===
+            // === STANDARD UPDATE DIALOG (COMPACT REDESIGN) ===
             return Container(
-              padding: EdgeInsets.all(28),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
                     color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: Offset(0, 10),
+                    blurRadius: 15,
+                    offset: const Offset(0, 8),
                   ),
                 ],
               ),
@@ -277,54 +278,62 @@ class UpdateService extends GetxService {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
+                  // Icon
                   Container(
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Color(0xFFD4AF37).withValues(alpha: 0.15),
+                      color: const Color(0xFFD4AF37).withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.system_update_rounded,
                       color: Color(0xFFD4AF37),
-                      size: 48,
+                      size: 32,
                     ),
                   ),
-                  SizedBox(height: 24),
+                  const SizedBox(height: 16),
+
+                  // Title
                   Text(
                     "Yangi versiya mavjud!",
                     style: GoogleFonts.poppins(
-                      fontSize: 22,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
-                      color: Colors.black87,
+                      color: AppTheme.textDark,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 6),
+
+                  // New Version Info
                   Text(
-                    releaseNotes,
+                    "Versiya: $latestVersion",
                     style: GoogleFonts.poppins(
                       fontSize: 14,
-                      color: Colors.black87.withValues(alpha: 0.8),
-                      height: 1.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
                     ),
+                    textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 16),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 12),
+
+                  // Current Version
                   Text(
                     "Sizdagi versiya: $currentVersion",
                     style: GoogleFonts.poppins(
-                      fontSize: 13,
-                      color: Colors.black45,
+                      fontSize: 12,
+                      color: AppTheme.textMedium,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(height: 32),
+                  const SizedBox(height: 24),
+
+                  // Button
                   SizedBox(
                     width: double.infinity,
-                    height: 54,
+                    height: 46,
                     child: ElevatedButton(
                       onPressed: () async {
-                        // Agar URL .apk bilan tugasa YOKI Github Releases bo'lsa
                         if (updateUrl.toLowerCase().endsWith('.apk') ||
                             updateUrl.contains('github.com')) {
                           _downloadAndInstallApp(updateUrl);
@@ -340,10 +349,10 @@ class UpdateService extends GetxService {
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFFD4AF37),
+                        backgroundColor: const Color(0xFFD4AF37),
                         elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                       ),
                       child: Text(
@@ -351,12 +360,10 @@ class UpdateService extends GetxService {
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
-                          letterSpacing: 0.5,
+                          fontSize: 14,
                         ),
                       ),
                     ),
-                    // Removed the trailing ] because we simplified Row to SizedBox.
                   ),
                 ],
               ),
