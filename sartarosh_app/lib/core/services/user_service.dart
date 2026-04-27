@@ -211,6 +211,13 @@ class UserService extends GetxService {
     isBarberMode.value = false;
     userRole.value = 'client';
     uid.value = '';
+    avatarBase64.value = '';
+    photoUrl.value = '';
+    targetGender.value = 'male';
+    selectedRegion.value = '';
+    filterMode.value = 'REGION';
+    userLat.value = 0.0;
+    userLng.value = 0.0;
     favoriteBarberIds.clear();
     await _storage.deleteAll();
   }

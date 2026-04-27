@@ -98,27 +98,28 @@ class MyBookingsController extends GetxController {
   }
 
   void rebook(Map<String, dynamic> b) {
-    _firestore
-        .collection('barbers')
-        .where('name', isEqualTo: b['barberName'])
-        .limit(1)
-        .get()
-        .then((snap) {
-          if (snap.docs.isNotEmpty) {
-            final barber = snap.docs.first.data();
-            barber['id'] = snap.docs.first.id;
-            Get.toNamed(
-              '/booking',
-              arguments: {
-                'barber': barber,
-                'service': b['service'] ?? 'Soch olish',
-                'price': b['price'] ?? 30000,
-              },
-            );
-          } else {
-            Get.snackbar("Xatolik", "Usta tizimdan topilmadi.");
-          }
-        });
+    final barberId = b['barberId'] as String?;
+    if (barberId == null || barberId.isEmpty) {
+      Get.snackbar("Xatolik", "Usta ma'lumotlari topilmadi.");
+      return;
+    }
+    _firestore.collection('barbers').doc(barberId).get().then((doc) {
+      if (doc.exists) {
+        final barber = doc.data()!;
+        barber['id'] = doc.id;
+        Get.toNamed(
+          '/booking',
+          arguments: {
+            'barber': barber,
+            'service': b['service'] ?? 'Soch olish',
+            'price': b['price'] ?? 30000,
+            'duration': b['durationMinutes'] ?? 30,
+          },
+        );
+      } else {
+        Get.snackbar("Xatolik", "Usta tizimdan topilmadi.");
+      }
+    });
   }
 
   Future<void> deleteHistoryItem(String id) async {

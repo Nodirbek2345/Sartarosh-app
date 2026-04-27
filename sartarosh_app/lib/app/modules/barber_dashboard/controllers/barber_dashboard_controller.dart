@@ -585,7 +585,7 @@ class BarberDashboardController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "Xatolik",
-        "Rasm yuklashda xatolik: $e",
+        "Rasm yuklashda xatolik yuz berdi",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
@@ -656,7 +656,7 @@ class BarberDashboardController extends GetxController {
     } catch (e) {
       Get.snackbar(
         "Xatolik",
-        "Portfolio rasm yuklashda xatolik: $e",
+        "Portfolio rasm yuklashda xatolik yuz berdi",
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
@@ -689,7 +689,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar("O'chirildi", "Rasm portfoliodan olib tashlandi");
     } catch (e) {
       Get.back();
-      Get.snackbar("Xatolik", "Rasmni o'chirishda xatolik: $e");
+      Get.snackbar("Xatolik", "Rasmni o'chirishda xatolik yuz berdi");
     }
   }
 

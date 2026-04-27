@@ -20,6 +20,7 @@ class HomeController extends GetxController {
 
   // Stream subscriptions for proper cleanup
   final List<StreamSubscription> _subscriptions = [];
+  StreamSubscription? _barberSub;
 
   @override
   void onInit() {
@@ -203,7 +204,8 @@ class HomeController extends GetxController {
       query = query.where('location', isEqualTo: targetRegion);
     }
 
-    final sub = query.snapshots().listen(
+    _barberSub?.cancel();
+    _barberSub = query.snapshots().listen(
       (snapshot) {
         var list = snapshot.docs.map((doc) {
           final data = doc.data();
@@ -239,7 +241,6 @@ class HomeController extends GetxController {
         Get.snackbar("Xatolik", "Baza bilan ulanishda xatolik");
       },
     );
-    _subscriptions.add(sub);
   }
 
   // ═══════════════════════════════════════════════════════
@@ -326,16 +327,10 @@ class HomeController extends GetxController {
     _fetchBarbers();
   }
 
-  /// Cancel only barber-related stream subscriptions before re-fetching
+  /// Cancel only barber-related stream subscription before re-fetching
   void _cancelBarberSubscriptions() {
-    for (final sub in _subscriptions) {
-      sub.cancel();
-    }
-    _subscriptions.clear();
-    // Re-subscribe to non-barber streams
-    _fetchServices();
-    _fetchUpcomingBookings();
-    _fetchPastBookings();
+    _barberSub?.cancel();
+    _barberSub = null;
   }
 
   void refreshBarbers() {
@@ -345,6 +340,7 @@ class HomeController extends GetxController {
 
   @override
   void onClose() {
+    _barberSub?.cancel();
     for (final sub in _subscriptions) {
       sub.cancel();
     }

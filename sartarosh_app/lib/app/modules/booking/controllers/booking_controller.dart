@@ -28,6 +28,7 @@ class BookingController extends GetxController {
   // Step 3: Service info (passed from arguments)
   String serviceName = 'Soch olish';
   int servicePrice = 30000;
+  int _serviceDuration = 30; // actual duration from barber data
 
   final isSubmitting = false.obs;
 
@@ -47,27 +48,37 @@ class BookingController extends GetxController {
       if (args['price'] != null) {
         servicePrice = args['price'];
       }
+      if (args['duration'] != null) {
+        _serviceDuration = args['duration'];
+      }
     }
 
     ever(selectedDate, (_) => _updateAvailableTimes());
-    ever(selectedBarber, (_) => _updateAvailableTimes());
+    ever(selectedBarber, (_) {
+      _generateTimeSlots(); // regenerate based on new barber's hours
+      _updateAvailableTimes();
+    });
     _generateTimeSlots();
     _updateAvailableTimes(); // initial load
   }
 
-  int get serviceDurationMinutes {
-    final lower = serviceName.toLowerCase();
-    if (lower.contains('soch')) return 30;
-    if (lower.contains('soqol')) return 20;
-    if (lower.contains('kompleks') || lower.contains('komplex')) return 60;
-    if (lower.contains('bo\'yash') || lower.contains('makiyaj')) return 60;
-    return 30; // default 30 mins
-  }
+  int get serviceDurationMinutes => _serviceDuration;
 
   void _generateTimeSlots() {
-    List<String> slots = [];
+    // Use barber's working hours if available, else default 09:00–21:00
     int startHour = 9;
-    int endHour = 20; // 09:00 to 20:00
+    int endHour = 21;
+    try {
+      final wh = selectedBarber.value?['workingHours'];
+      if (wh != null) {
+        final open = wh['open'] as String? ?? '09:00';
+        final close = wh['close'] as String? ?? '21:00';
+        startHour = int.parse(open.split(':')[0]);
+        endHour = int.parse(close.split(':')[0]);
+      }
+    } catch (_) {}
+
+    List<String> slots = [];
     for (int h = startHour; h < endHour; h++) {
       String hr = h.toString().padLeft(2, '0');
       slots.add('$hr:00');
@@ -233,6 +244,10 @@ class BookingController extends GetxController {
   }
 
   void selectDate(DateTime date) {
+    // Block past dates
+    final today = DateTime.now();
+    final todayNorm = DateTime(today.year, today.month, today.day);
+    if (date.isBefore(todayNorm)) return;
     selectedDate.value = date;
   }
 
@@ -401,9 +416,12 @@ class BookingController extends GetxController {
       await Future.delayed(Duration(seconds: 1));
       Get.offAllNamed('/home');
     } catch (e) {
+      final msg = e.toString().contains('TIME_SLOT_TAKEN')
+          ? "Bu vaqt allaqachon band. Boshqa vaqt tanlang."
+          : "Bron qilishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
       Get.snackbar(
         "Xatolik",
-        "Bron qilishda xatolik yuz berdi",
+        msg,
         backgroundColor: Colors.redAccent,
         colorText: Colors.white,
       );
