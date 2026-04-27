@@ -1106,6 +1106,33 @@ class HomeView extends GetView<HomeController> {
                                   ],
                                 ),
                               ),
+                              // Region badge
+                              if ((barber['location'] ?? '')
+                                  .toString()
+                                  .isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(left: 6),
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 3,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.primary.withValues(
+                                        alpha: 0.08,
+                                      ),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      barber['location'],
+                                      style: GoogleFonts.poppins(
+                                        color: AppTheme.primary,
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               SizedBox(width: 8),
                               Icon(
                                 Icons.star_rounded,
