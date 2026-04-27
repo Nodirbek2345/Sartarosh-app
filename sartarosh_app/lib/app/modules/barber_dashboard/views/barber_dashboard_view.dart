@@ -26,7 +26,7 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
         children: [
           _DashboardTab(controller: controller),
           _BarberBookingsTab(controller: controller),
-          _BarberProfileTab(),
+          _BarberProfileTab(controller: controller),
         ],
       ),
       bottomNavigationBar: Obx(
@@ -1278,12 +1278,17 @@ class _BarberBookingsTab extends StatelessWidget {
 // TAB 5: BARBER PROFIL
 // ═══════════════════════════════════════════
 class _BarberProfileTab extends StatelessWidget {
-  const _BarberProfileTab();
+  final BarberDashboardController controller;
+  const _BarberProfileTab({required this.controller});
 
   @override
   Widget build(BuildContext context) {
-    final userService = Get.find<UserService>();
-    final controller = Get.find<BarberDashboardController>();
+    UserService userService;
+    try {
+      userService = Get.find<UserService>();
+    } catch (_) {
+      userService = Get.put(UserService());
+    }
     return Column(
       children: [
         // Header with avatar
