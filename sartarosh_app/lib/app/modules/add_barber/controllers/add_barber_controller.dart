@@ -16,9 +16,21 @@ class AddBarberController extends GetxController {
   final addressCtrl = TextEditingController();
   final expCtrl = TextEditingController();
   final aboutCtrl = TextEditingController();
-  final haircutPriceCtrl = TextEditingController();
-  final beardPriceCtrl = TextEditingController();
-  final comboPriceCtrl = TextEditingController();
+  final servicesList = <RxMap<String, dynamic>>[].obs;
+  final isLoadingServices = true.obs;
+
+  static const Map<String, int> _iconMap = {
+    'soch olish': 0xe14f,
+    'soch turmak': 0xe14f,
+    'soqol olish': 0xf04bc,
+    'kompleks': 0xf0597,
+    'styling': 0xe048,
+    'bosh yuvish': 0xf0806,
+    'makiyaj': 0xf1a0,
+    "bo'yash": 0xe15a,
+    'manikyur': 0xe6e1,
+    'bolalar': 0xe091,
+  };
 
   final openTime = "09:00".obs;
   final closeTime = "21:00".obs;
@@ -42,6 +54,45 @@ class AddBarberController extends GetxController {
     final userService = Get.find<UserService>();
     location.value = userService.selectedRegion.value;
     gender.value = userService.targetGender.value;
+    _fetchGlobalServices();
+  }
+
+  int _getIcon(String name, String category) {
+    final lower = name.toLowerCase();
+    for (final entry in _iconMap.entries) {
+      if (lower.contains(entry.key)) return entry.value;
+    }
+    final catLower = category.toLowerCase();
+    for (final entry in _iconMap.entries) {
+      if (catLower.contains(entry.key)) return entry.value;
+    }
+    return 0xe14f;
+  }
+
+  Future<void> _fetchGlobalServices() async {
+    try {
+      isLoadingServices.value = true;
+      final snap = await _firestore.collection('services').get();
+      final list = <RxMap<String, dynamic>>[];
+      for (final doc in snap.docs) {
+        final data = doc.data();
+        final name = data['name'] ?? '';
+        final category = data['category'] ?? '';
+        list.add(
+          {
+            'name': name,
+            'category': category,
+            'icon': _getIcon(name, category),
+            'priceCtrl': TextEditingController(text: '0'),
+          }.obs,
+        );
+      }
+      servicesList.value = list;
+    } catch (e) {
+      debugPrint("Error fetching global services: $e");
+    } finally {
+      isLoadingServices.value = false;
+    }
   }
 
   void nextStep() {
@@ -61,8 +112,17 @@ class AddBarberController extends GetxController {
       }
     }
     if (currentStep.value == 1) {
-      if (!InputSanitizer.isValidPrice(haircutPriceCtrl.text)) {
-        _error("Iltimos, kamida bitta asosiy xizmat narxini to'g'ri kiriting");
+      bool hasActiveService = false;
+      for (var s in servicesList) {
+        final ctrl = s['priceCtrl'] as TextEditingController;
+        final price = int.tryParse(ctrl.text.replaceAll('.', '').trim()) ?? 0;
+        if (price > 0) {
+          hasActiveService = true;
+          break;
+        }
+      }
+      if (!hasActiveService) {
+        _error("Iltimos, kamida bitta xizmat narxini to'g'ri kiriting");
         return;
       }
     }
@@ -83,37 +143,19 @@ class AddBarberController extends GetxController {
     );
   }
 
-  int get haircutPrice =>
-      int.tryParse(haircutPriceCtrl.text.replaceAll('.', '').trim()) ?? 0;
-  int get beardPrice =>
-      int.tryParse(beardPriceCtrl.text.replaceAll('.', '').trim()) ?? 0;
-  int get comboPrice =>
-      int.tryParse(comboPriceCtrl.text.replaceAll('.', '').trim()) ?? 0;
-
-  bool get isFemale => Get.find<UserService>().targetGender.value == 'female';
-
-  List<Map<String, dynamic>> get servicesList {
+  List<Map<String, dynamic>> get activeServices {
     final list = <Map<String, dynamic>>[];
-    if (haircutPrice > 0) {
-      list.add({
-        'name': isFemale ? 'Soch turmaklash' : 'Soch olish',
-        'price': haircutPrice,
-        'duration': 30,
-      });
-    }
-    if (beardPrice > 0) {
-      list.add({
-        'name': isFemale ? "Bo'yash / Ukladka" : 'Soqol olish',
-        'price': beardPrice,
-        'duration': 40,
-      });
-    }
-    if (comboPrice > 0) {
-      list.add({
-        'name': isFemale ? 'Soch + Makiyaj' : 'Soch + Soqol',
-        'price': comboPrice,
-        'duration': 60,
-      });
+    for (var s in servicesList) {
+      final ctrl = s['priceCtrl'] as TextEditingController;
+      final price = int.tryParse(ctrl.text.replaceAll('.', '').trim()) ?? 0;
+      if (price > 0) {
+        list.add({
+          'name': s['name'],
+          'category': s['category'] ?? '',
+          'price': price,
+          'duration': 30, // Default duration, they can edit later in profile
+        });
+      }
     }
     return list;
   }
@@ -366,11 +408,11 @@ class AddBarberController extends GetxController {
         'experience': int.tryParse(expCtrl.text.trim()) ?? 1,
         'about': safeAbout.isNotEmpty ? safeAbout : 'Professional sartarosh',
         'workingHours': {'open': openTime.value, 'close': closeTime.value},
-        'services': servicesList,
+        'services': activeServices,
         'tags': ['Yangi'],
         'isActive': true,
         'queueLimit': 10, // default
-        'targetGender': isFemale ? 'female' : 'male',
+        'targetGender': Get.find<UserService>().targetGender.value,
         'createdAt': FieldValue.serverTimestamp(),
       });
 
@@ -416,9 +458,10 @@ class AddBarberController extends GetxController {
     addressCtrl.dispose();
     expCtrl.dispose();
     aboutCtrl.dispose();
-    haircutPriceCtrl.dispose();
-    beardPriceCtrl.dispose();
-    comboPriceCtrl.dispose();
+    for (var s in servicesList) {
+      final ctrl = s['priceCtrl'] as TextEditingController;
+      ctrl.dispose();
+    }
     super.onClose();
   }
 }

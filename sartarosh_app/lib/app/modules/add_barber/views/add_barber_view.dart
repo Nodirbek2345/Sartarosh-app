@@ -195,7 +195,6 @@ class AddBarberView extends GetView<AddBarberController> {
 
   // ─── STEP 2: SERVICES & SCHEDULE ───
   Widget _stepServices() {
-    final isFemale = Get.find<UserService>().targetGender.value == 'female';
     return SingleChildScrollView(
       padding: EdgeInsets.all(20),
       physics: BouncingScrollPhysics(),
@@ -244,28 +243,37 @@ class AddBarberView extends GetView<AddBarberController> {
             ),
           ),
           SizedBox(height: 14),
-          _priceRow(
-            isFemale ? "Soch turmaklash / Kesish *" : "Soch olish *",
-            Icons.content_cut_rounded,
-            controller.haircutPriceCtrl,
-            200,
-          ),
-          SizedBox(height: 10),
-          _priceRow(
-            isFemale ? "Bo'yash / Ukladka" : "Soqol olish",
-            isFemale
-                ? Icons.face_retouching_natural_rounded
-                : Icons.face_rounded,
-            controller.beardPriceCtrl,
-            280,
-          ),
-          SizedBox(height: 10),
-          _priceRow(
-            isFemale ? "Soch + Makiyaj" : "Soch + Soqol",
-            Icons.auto_awesome_rounded,
-            controller.comboPriceCtrl,
-            360,
-          ),
+          Obx(() {
+            if (controller.isLoadingServices.value) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: CircularProgressIndicator(color: AppTheme.primary),
+                ),
+              );
+            }
+            if (controller.servicesList.isEmpty) {
+              return Text(
+                "Xizmatlar topilmadi",
+                style: GoogleFonts.poppins(color: AppTheme.textMedium),
+              );
+            }
+            return Column(
+              children: List.generate(controller.servicesList.length, (index) {
+                final s = controller.servicesList[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 10),
+                  child: _priceRow(
+                    s['name'],
+                    IconData(s['icon'] as int, fontFamily: 'MaterialIcons'),
+                    s['priceCtrl'] as TextEditingController,
+                    200 +
+                        (index * 50 > 800 ? 800 : index * 50), // Cap the delay
+                  ),
+                );
+              }),
+            );
+          }),
 
           SizedBox(height: 28),
 
