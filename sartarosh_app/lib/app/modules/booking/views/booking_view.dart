@@ -1316,8 +1316,9 @@ class BookingView extends GetView<BookingController> {
                 children: [
                   Obx(() {
                     String methodText = "Naqd pul";
-                    if (controller.selectedPaymentMethod.value == 'payme')
+                    if (controller.selectedPaymentMethod.value == 'payme') {
                       methodText = "Payme";
+                    }
                     return Text(
                       methodText,
                       style: GoogleFonts.poppins(
