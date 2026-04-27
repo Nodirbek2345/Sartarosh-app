@@ -214,8 +214,7 @@ class RegionController extends GetxController {
 
   void _saveAndNavigate(String region) {
     final userService = Get.find<UserService>();
-    userService.selectedRegion.value = region;
-    userService.setRegion(region);
+    userService.setRegionMode(region);
 
     Get.snackbar(
       "📍 $region",

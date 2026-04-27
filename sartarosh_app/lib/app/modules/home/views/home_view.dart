@@ -62,6 +62,7 @@ class HomeView extends GetView<HomeController> {
                   ),
                   slivers: [
                     SliverToBoxAdapter(child: _buildSearchBar()),
+                    SliverToBoxAdapter(child: _buildModeToggle()),
                     SliverToBoxAdapter(child: _buildQuickAction()),
                     SliverToBoxAdapter(child: _buildBarberOfWeek()),
                     SliverToBoxAdapter(child: _buildCategories()),
@@ -130,21 +131,36 @@ class HomeView extends GetView<HomeController> {
               ),
             ),
             Spacer(),
-            // Location (dynamic + tappable)
             GestureDetector(
-              onTap: () => Get.toNamed('/region'),
+              onTap: () {
+                final userService = Get.find<UserService>();
+                if (userService.filterMode.value == 'GPS') {
+                  // Already GPS, do nothing or refresh
+                } else {
+                  Get.toNamed('/region');
+                }
+              },
               child: Obx(() {
-                final region = Get.find<UserService>().selectedRegion.value;
-                final displayRegion = region.isNotEmpty ? region : "Tanlang";
+                final userService = Get.find<UserService>();
+                final mode = userService.filterMode.value;
+                final region = userService.selectedRegion.value;
+                final isGps = mode == 'GPS';
+                final displayText = isGps
+                    ? "GPS · 5km"
+                    : (region.isNotEmpty ? region : "Viloyat tanlang");
                 return Row(
                   children: [
-                    Icon(Icons.location_on, color: AppTheme.primary, size: 18),
+                    Icon(
+                      isGps ? Icons.gps_fixed_rounded : Icons.location_on,
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
                     SizedBox(width: 4),
                     Text(
-                      displayRegion,
+                      displayText,
                       style: GoogleFonts.poppins(
                         color: AppTheme.textDark,
-                        fontSize: 15,
+                        fontSize: 14,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -241,6 +257,144 @@ class HomeView extends GetView<HomeController> {
         ),
       ),
     ).animate().fadeIn(delay: 200.ms);
+  }
+
+  // ─── MODE TOGGLE (GPS / REGION) ───
+  Widget _buildModeToggle() {
+    return Obx(() {
+      final userService = Get.find<UserService>();
+      final mode = userService.filterMode.value;
+      final isGps = mode == 'GPS';
+      final region = userService.selectedRegion.value;
+
+      return Padding(
+        padding: EdgeInsets.fromLTRB(16, 4, 16, 8),
+        child: Container(
+          padding: EdgeInsets.all(4),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 12,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              // GPS Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => controller.switchToGps(),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: isGps ? AppTheme.goldGradient : null,
+                      color: isGps ? null : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: isGps
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Obx(() {
+                      final locating = controller.isLocating.value;
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (locating)
+                            SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: isGps
+                                    ? Colors.white
+                                    : AppTheme.textMedium,
+                              ),
+                            )
+                          else
+                            Icon(
+                              Icons.gps_fixed_rounded,
+                              size: 18,
+                              color: isGps ? Colors.white : AppTheme.textMedium,
+                            ),
+                          SizedBox(width: 6),
+                          Text(
+                            "Yaqin ustalar",
+                            style: GoogleFonts.poppins(
+                              color: isGps ? Colors.white : AppTheme.textMedium,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      );
+                    }),
+                  ),
+                ),
+              ),
+              SizedBox(width: 4),
+              // Region Button
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => Get.toNamed('/region'),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeOutCubic,
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    decoration: BoxDecoration(
+                      gradient: !isGps ? AppTheme.goldGradient : null,
+                      color: !isGps ? null : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: !isGps
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.map_rounded,
+                          size: 18,
+                          color: !isGps ? Colors.white : AppTheme.textMedium,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          region.isNotEmpty ? region : "Viloyat",
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            color: !isGps ? Colors.white : AppTheme.textMedium,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ).animate().fadeIn(delay: 220.ms);
+    });
   }
 
   // ─── BARBER OF THE WEEK ───
@@ -985,6 +1139,29 @@ class HomeView extends GetView<HomeController> {
                                   ),
                                 ),
                               ),
+                              // GPS distance badge
+                              if (barber['_distanceKm'] != null)
+                                Container(
+                                  margin: EdgeInsets.only(left: 6),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    "${(barber['_distanceKm'] as double).toStringAsFixed(1)} km",
+                                    style: GoogleFonts.poppins(
+                                      color: AppTheme.primary,
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
                             ],
                           ),
                           if (!isActive)

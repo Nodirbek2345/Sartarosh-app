@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
 import '../views/widgets/review_bottom_sheet.dart';
@@ -158,27 +160,77 @@ class HomeController extends GetxController {
     _subscriptions.add(sub);
   }
 
+  // ═══════════════════════════════════════════════════════
+  // HAVERSINE DISTANCE (km)
+  // ═══════════════════════════════════════════════════════
+  static double _distanceKm(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) {
+    const R = 6371.0; // Earth radius in km
+    final dLat = _degToRad(lat2 - lat1);
+    final dLng = _degToRad(lng2 - lng1);
+    final a =
+        sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degToRad(lat1)) *
+            cos(_degToRad(lat2)) *
+            sin(dLng / 2) *
+            sin(dLng / 2);
+    final c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  static double _degToRad(double deg) => deg * (pi / 180);
+
+  // ═══════════════════════════════════════════════════════
+  // DUAL-MODE FETCH BARBERS
+  // ═══════════════════════════════════════════════════════
   void _fetchBarbers() {
     final userService = Get.find<UserService>();
     final targetGender = userService.targetGender.value;
+    final mode = userService.filterMode.value;
     final targetRegion = userService.selectedRegion.value;
 
-    // Server-side filtering by gender and region for efficiency
+    // Base query: always filter by gender
     var query = _firestore
         .collection('barbers')
         .where('gender', isEqualTo: targetGender);
 
-    if (targetRegion.isNotEmpty) {
+    // REGION mode: add Firestore-level region filter
+    if (mode == 'REGION' && targetRegion.isNotEmpty) {
       query = query.where('location', isEqualTo: targetRegion);
     }
 
     final sub = query.snapshots().listen(
       (snapshot) {
-        final list = snapshot.docs.map((doc) {
+        var list = snapshot.docs.map((doc) {
           final data = doc.data();
           data['id'] = doc.id;
           return data;
         }).toList();
+
+        // GPS mode: client-side distance filter (5km)
+        if (mode == 'GPS' && userService.userLat.value != 0.0) {
+          final myLat = userService.userLat.value;
+          final myLng = userService.userLng.value;
+          list = list.where((b) {
+            final bLat = (b['lat'] as num?)?.toDouble() ?? 0.0;
+            final bLng = (b['lng'] as num?)?.toDouble() ?? 0.0;
+            if (bLat == 0.0 && bLng == 0.0) return false;
+            final dist = _distanceKm(myLat, myLng, bLat, bLng);
+            b['_distanceKm'] = dist; // inject distance for UI
+            return dist <= 5.0;
+          }).toList();
+          // Sort by distance (nearest first)
+          list.sort(
+            (a, b) => ((a['_distanceKm'] as double?) ?? 99).compareTo(
+              (b['_distanceKm'] as double?) ?? 99,
+            ),
+          );
+        }
+
         rxBarbers.value = list;
         isLoading.value = false;
       },
@@ -190,14 +242,109 @@ class HomeController extends GetxController {
     _subscriptions.add(sub);
   }
 
+  // ═══════════════════════════════════════════════════════
+  // MODE SWITCHES (PRO)
+  // ═══════════════════════════════════════════════════════
+  final isLocating = false.obs;
+
+  Future<void> switchToGps() async {
+    isLocating.value = true;
+    try {
+      LocationPermission permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          Get.snackbar(
+            "Ruxsat berilmadi",
+            "GPS ruxsatini bering",
+            backgroundColor: Colors.redAccent,
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+          isLocating.value = false;
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        Get.snackbar(
+          "GPS bloklangan",
+          "Sozlamalardan GPS ni oching",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          snackPosition: SnackPosition.BOTTOM,
+        );
+        isLocating.value = false;
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      // Validate coordinates
+      if (position.latitude < -90 ||
+          position.latitude > 90 ||
+          position.longitude < -180 ||
+          position.longitude > 180) {
+        Get.snackbar("Xatolik", "Noto'g'ri koordinatalar");
+        isLocating.value = false;
+        return;
+      }
+
+      final userService = Get.find<UserService>();
+      userService.setGpsMode(position.latitude, position.longitude);
+      _cancelBarberSubscriptions();
+      _fetchBarbers();
+
+      Get.snackbar(
+        "📍 GPS faol",
+        "5 km radiusdagi ustalar ko'rsatilmoqda",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+        margin: const EdgeInsets.all(16),
+      );
+    } catch (e) {
+      Get.snackbar(
+        "GPS xatolik",
+        "Joylashuvni aniqlab bo'lmadi",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    } finally {
+      isLocating.value = false;
+    }
+  }
+
+  void switchToRegion(String region) {
+    final userService = Get.find<UserService>();
+    userService.setRegionMode(region);
+    _cancelBarberSubscriptions();
+    _fetchBarbers();
+  }
+
+  /// Cancel only barber-related stream subscriptions before re-fetching
+  void _cancelBarberSubscriptions() {
+    for (final sub in _subscriptions) {
+      sub.cancel();
+    }
+    _subscriptions.clear();
+    // Re-subscribe to non-barber streams
+    _fetchServices();
+    _fetchUpcomingBookings();
+    _fetchPastBookings();
+  }
+
   void refreshBarbers() {
-    // Swipe-to-refresh shouldn't trigger initial loading UI
+    _cancelBarberSubscriptions();
     _fetchBarbers();
   }
 
   @override
   void onClose() {
-    // Cancel all stream subscriptions to prevent memory leaks
     for (final sub in _subscriptions) {
       sub.cancel();
     }

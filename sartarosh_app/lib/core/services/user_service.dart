@@ -17,6 +17,11 @@ class UserService extends GetxService {
   final uid = ''.obs;
   final userRole = 'client'.obs;
 
+  // GPS + Region dual-mode filter
+  final filterMode = 'REGION'.obs; // 'GPS' or 'REGION'
+  final userLat = 0.0.obs;
+  final userLng = 0.0.obs;
+
   late FlutterSecureStorage _storage;
 
   String get currentUid {
@@ -50,6 +55,11 @@ class UserService extends GetxService {
     selectedRegion.value = await _storage.read(key: 'selected_region') ?? '';
     userRole.value = await _storage.read(key: 'user_role') ?? 'client';
     uid.value = await _storage.read(key: 'user_uid') ?? '';
+    filterMode.value = await _storage.read(key: 'filter_mode') ?? 'REGION';
+    final storedLat = await _storage.read(key: 'user_lat');
+    final storedLng = await _storage.read(key: 'user_lng');
+    if (storedLat != null) userLat.value = double.tryParse(storedLat) ?? 0.0;
+    if (storedLng != null) userLng.value = double.tryParse(storedLng) ?? 0.0;
 
     // Sync with Firebase Auth
     final firebaseUser = FirebaseAuth.instance.currentUser;
@@ -122,6 +132,30 @@ class UserService extends GetxService {
   void setRegion(String region) async {
     selectedRegion.value = region;
     await _storage.write(key: 'selected_region', value: region);
+  }
+
+  /// Switch to GPS mode — clears region, stores coords
+  void setGpsMode(double lat, double lng) async {
+    filterMode.value = 'GPS';
+    userLat.value = lat;
+    userLng.value = lng;
+    selectedRegion.value = '';
+    await _storage.write(key: 'filter_mode', value: 'GPS');
+    await _storage.write(key: 'user_lat', value: lat.toString());
+    await _storage.write(key: 'user_lng', value: lng.toString());
+    await _storage.write(key: 'selected_region', value: '');
+  }
+
+  /// Switch to Region mode — clears GPS coords
+  void setRegionMode(String region) async {
+    filterMode.value = 'REGION';
+    selectedRegion.value = region;
+    userLat.value = 0.0;
+    userLng.value = 0.0;
+    await _storage.write(key: 'filter_mode', value: 'REGION');
+    await _storage.write(key: 'selected_region', value: region);
+    await _storage.write(key: 'user_lat', value: '0.0');
+    await _storage.write(key: 'user_lng', value: '0.0');
   }
 
   void setUserRole(String role) async {
