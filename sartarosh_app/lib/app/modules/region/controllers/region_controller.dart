@@ -133,7 +133,8 @@ class RegionController extends GetxController {
         _showError("Joylashuvni aniqlab bo'lmadi");
       }
     } catch (e) {
-      _showError("GPS xatolik: $e");
+      debugPrint("GPS error: $e");
+      _showError("GPS xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
     } finally {
       isDetecting.value = false;
     }

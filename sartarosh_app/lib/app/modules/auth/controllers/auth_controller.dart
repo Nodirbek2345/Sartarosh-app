@@ -146,7 +146,7 @@ class AuthController extends GetxController {
       } else if (e.code == 'account-exists-with-different-credential') {
         message = "Bu akkaunt boshqa usulda ro'yxatdan o'tgan";
       } else {
-        message = "Firebase xatolik: ${e.code}";
+        message = "Tizimga kirishda xatolik yuz berdi";
       }
       Get.snackbar(
         "Xatolik",
