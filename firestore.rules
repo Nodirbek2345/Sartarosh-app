@@ -34,15 +34,14 @@ service cloud.firestore {
       allow read: if isSignedIn() && isOwner(userId);
       
       allow create: if isSignedIn() && isOwner(userId)
-                    && incomingData().keys().hasAll(['name', 'role'])
-                    && incomingData().role in ['client', 'barber']
+                    && incomingData().keys().hasAll(['name'])
                     && incomingData().name is string
                     && incomingData().name.size() > 0
                     && incomingData().name.size() <= 100;
       
-      // Role ni o'zgartirish taqiqlangan
+      // Role ni o'zgartirish taqiqlangan (faqat merge allowed)
       allow update: if isSignedIn() && isOwner(userId)
-                    && incomingData().role == existingData().role;
+                    && (!incomingData().keys().hasAny(['role']) || incomingData().role == existingData().role);
       
       allow delete: if false;
     }
@@ -51,6 +50,7 @@ service cloud.firestore {
     // 2. SARTAROSHLAR (Barbers)
     // ═══════════════════════════════════════════════════════
     match /barbers/{barberDocId} {
+      // Hamma o'qiy oladi (public profil)
       allow read: if true;
       
       allow create: if isSignedIn() 
@@ -60,10 +60,13 @@ service cloud.firestore {
                     && incomingData().name.size() > 0
                     && incomingData().name.size() <= 100;
       
-      // uid ni o'zgartirish mumkin emas
+      // Faqat o'z profilini tahrirlash, uid o'zgartirish mumkin emas
+      // rating va reviewCount faqat server orqali o'zgartiriladi
       allow update: if isSignedIn() 
                     && existingData().uid == request.auth.uid 
-                    && incomingData().uid == existingData().uid;
+                    && incomingData().uid == existingData().uid
+                    && (!incomingData().keys().hasAny(['rating']) || incomingData().rating == existingData().rating)
+                    && (!incomingData().keys().hasAny(['reviewCount']) || incomingData().reviewCount == existingData().reviewCount);
                     
       allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
     }
@@ -80,33 +83,60 @@ service cloud.firestore {
     // 4. BRONLAR (Bookings) — STRICT STATE MACHINE
     // ═══════════════════════════════════════════════════════
     match /bookings/{bookingId} {
-      allow read: if isSignedIn();
+      // SCOPED READ: faqat o'z bronlarini yoki o'ziga tegishli bronlarni o'qish
+      allow read: if isSignedIn() 
+                  && (existingData().clientUid == request.auth.uid 
+                      || existingData().barberUid == request.auth.uid);
       
       // Client creates booking (confirmed status for cash flow)
       allow create: if isSignedIn() 
                     && incomingData().clientUid == request.auth.uid
-                    && incomingData().keys().hasAll(['clientUid', 'barberId', 'service', 'status'])
+                    && incomingData().keys().hasAll(['clientUid', 'barberUid', 'barberId', 'service', 'status', 'date', 'time', 'price'])
                     && incomingData().status in ['pending', 'confirmed']
                     && incomingData().service is string
-                    && incomingData().service.size() > 0;
+                    && incomingData().service.size() > 0
+                    && incomingData().price is number
+                    && incomingData().price > 0
+                    && incomingData().date is string
+                    && incomingData().date.size() == 10
+                    && incomingData().time is string
+                    && incomingData().time.size() == 5;
       
       // Strict state machine transitions
-      // Client can: pending→cancelled, confirmed→cancelled
-      // Barber can: pending→confirmed, confirmed→in-progress, confirmed→cancelled, confirmed→no-show, in-progress→completed
       allow update: if isSignedIn() 
+                    // clientUid, barberId, barberUid o'zgartirish mumkin emas
                     && incomingData().clientUid == existingData().clientUid
+                    && incomingData().barberId == existingData().barberId
+                    && incomingData().barberUid == existingData().barberUid
+                    // Narxni o'zgartirish mumkin emas
+                    && (!incomingData().keys().hasAny(['price']) || incomingData().price == existingData().price)
                     && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed', 'in-progress', 'no-show', 'penalty']
                     && (
-                      // Client cancellation (own booking only)
+                      // CLIENT ACTIONS: cancel own booking (pending/confirmed → cancelled/penalty)
                       (existingData().clientUid == request.auth.uid 
                         && incomingData().status in ['cancelled', 'penalty']
                         && existingData().status in ['pending', 'confirmed'])
                       ||
-                      // Barber actions
-                      (existingData().barberId == request.auth.uid || existingData().barberUid == request.auth.uid)
+                      // BARBER ACTIONS: manage assigned bookings
+                      (existingData().barberUid == request.auth.uid
+                        && (
+                          // pending → confirmed
+                          (existingData().status == 'pending' && incomingData().status == 'confirmed')
+                          // pending → cancelled  
+                          || (existingData().status == 'pending' && incomingData().status == 'cancelled')
+                          // confirmed → in-progress
+                          || (existingData().status == 'confirmed' && incomingData().status == 'in-progress')
+                          // confirmed → cancelled
+                          || (existingData().status == 'confirmed' && incomingData().status == 'cancelled')
+                          // confirmed → no-show
+                          || (existingData().status == 'confirmed' && incomingData().status == 'no-show')
+                          // in-progress → completed
+                          || (existingData().status == 'in-progress' && incomingData().status == 'completed')
+                        )
+                      )
                     );
                     
-      allow delete: if isSignedIn() && existingData().clientUid == request.auth.uid;
+      allow delete: if false; // Bronni o'chirish mumkin emas
     }
     
     // ═══════════════════════════════════════════════════════
@@ -114,11 +144,11 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════
     match /branches/{branchId} {
       allow read: if true;
-      allow write: if false; // Admin SDK orqali boshqariladi
+      allow write: if false;
     }
     
     // ═══════════════════════════════════════════════════════
-    // 6. SHARHLAR (Reviews) — O'qish hammaga, yozish faqat mijozga
+    // 6. SHARHLAR (Reviews)
     // ═══════════════════════════════════════════════════════
     match /reviews/{reviewId} {
       allow read: if true;
@@ -130,7 +160,7 @@ service cloud.firestore {
                     && incomingData().rating >= 1
                     && incomingData().rating <= 5;
       
-      allow update, delete: if false; // Sharhni o'zgartirish/o'chirish mumkin emas
+      allow update, delete: if false;
     }
     
     // ═══════════════════════════════════════════════════════
@@ -138,11 +168,11 @@ service cloud.firestore {
     // ═══════════════════════════════════════════════════════
     match /settings/{settingId} {
       allow read: if isSignedIn();
-      allow write: if false; // Admin SDK orqali boshqariladi
+      allow write: if false;
     }
     
     // ═══════════════════════════════════════════════════════
-    // 8. QOLLAB-QUVVATLASH (Support) — Foydalanuvchi yuboradi
+    // 8. QOLLAB-QUVVATLASH (Support)
     // ═══════════════════════════════════════════════════════
     match /support/{ticketId} {
       allow read: if isSignedIn() 

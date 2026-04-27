@@ -52,6 +52,19 @@ class BarberDashboardController extends GetxController {
   }
 
   Future<void> _initAndListen() async {
+    // Security: verify barber role
+    final userService = Get.find<UserService>();
+    if (userService.userRole.value != 'barber') {
+      Get.snackbar(
+        "Ruxsat yo'q",
+        "Faqat ustalar uchun",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      Get.offAllNamed('/home');
+      return;
+    }
+
     await _initBarberRef();
     _listenTodayBookings();
     _listenAllBookings();
@@ -528,6 +541,19 @@ class BarberDashboardController extends GetxController {
 
       File nativeFile = File(pickedFile.path);
 
+      // Security: pre-check file size (max 5MB raw)
+      final fileSize = await nativeFile.length();
+      if (fileSize > 5 * 1024 * 1024) {
+        Get.snackbar(
+          "Fayl juda katta",
+          "Rasm hajmi 5MB dan oshmasligi kerak",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        isUploadingPhoto.value = false;
+        return;
+      }
+
       // Compress Image (Pro optimization)
       final tempDir = await getTemporaryDirectory();
       final targetPath =
@@ -631,6 +657,32 @@ class BarberDashboardController extends GetxController {
   }
 
   Future<void> updateWorkingHours(String open, String close) async {
+    // Validate time format
+    if (!_isValidTime(open) || !_isValidTime(close)) {
+      Get.snackbar(
+        "Xatolik",
+        "Vaqt formati noto'g'ri (HH:mm)",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Validate open < close
+    final openParts = open.split(':');
+    final closeParts = close.split(':');
+    final openMin = int.parse(openParts[0]) * 60 + int.parse(openParts[1]);
+    final closeMin = int.parse(closeParts[0]) * 60 + int.parse(closeParts[1]);
+    if (openMin >= closeMin) {
+      Get.snackbar(
+        "Xatolik",
+        "Ochilish vaqti yopilish vaqtidan oldin bo'lishi kerak",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     try {
       if (_barberDocRef != null) {
         await _barberDocRef!.update({
@@ -654,6 +706,16 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  bool _isValidTime(String time) {
+    if (time.length != 5) return false;
+    final parts = time.split(':');
+    if (parts.length != 2) return false;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return false;
+    return h >= 0 && h <= 23 && m >= 0 && m <= 59;
+  }
+
   // ============== PORTFOLIO COMPRESSION & UPLOAD ==============
   final isUploadingPortfolio = false.obs;
 
@@ -668,6 +730,19 @@ class BarberDashboardController extends GetxController {
       }
 
       File nativeFile = File(pickedFile.path);
+
+      // Security: pre-check file size (max 5MB raw)
+      final fileSize = await nativeFile.length();
+      if (fileSize > 5 * 1024 * 1024) {
+        Get.snackbar(
+          "Fayl juda katta",
+          "Rasm hajmi 5MB dan oshmasligi kerak",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+        );
+        isUploadingPortfolio.value = false;
+        return;
+      }
 
       final tempDir = await getTemporaryDirectory();
       final targetPath =

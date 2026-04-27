@@ -37,6 +37,41 @@ class InputSanitizer {
     return price != null && price > 0 && price <= 10000000; // Max 10M so'm
   }
 
+  /// Validate time format (HH:mm)
+  static bool isValidTimeFormat(String time) {
+    if (time.length != 5) return false;
+    final parts = time.split(':');
+    if (parts.length != 2) return false;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return false;
+    return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59;
+  }
+
+  /// Validate date format (yyyy-MM-dd)
+  static bool isValidDateFormat(String date) {
+    if (date.length != 10) return false;
+    try {
+      final parsed = DateTime.parse(date);
+      // Ensure it round-trips correctly (catches invalid dates like 2024-02-30)
+      final formatted =
+          '${parsed.year.toString().padLeft(4, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.day.toString().padLeft(2, '0')}';
+      return formatted == date;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Validate GPS coordinates
+  static bool isValidCoordinate(double lat, double lng) {
+    return lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  }
+
+  /// Validate file size (in bytes) — returns true if within limit
+  static bool isValidFileSize(int sizeBytes, {int maxMB = 5}) {
+    return sizeBytes > 0 && sizeBytes <= maxMB * 1024 * 1024;
+  }
+
   /// Sanitize for Firestore document fields
   static Map<String, dynamic> sanitizeMap(Map<String, dynamic> data) {
     return data.map((key, value) {

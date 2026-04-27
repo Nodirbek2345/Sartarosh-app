@@ -1,0 +1,50 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ═══════════════════════════════════════════════════════
+    // UMUMIY FUNKSIYALAR
+    // ═══════════════════════════════════════════════════════
+    
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(uid) {
+      return request.auth.uid == uid;
+    }
+    
+    function isImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // SARTAROSH PROFIL RASMI — Max 1MB
+    // ═══════════════════════════════════════════════════════
+    match /barbers/{userId}.jpg {
+      allow read: if true; // Public profil rasmi
+      allow write: if isSignedIn() 
+                   && isOwner(userId)
+                   && isImageType()
+                   && request.resource.size < 1 * 1024 * 1024; // 1MB
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // SARTAROSH PORTFOLIO — Max 2MB per image
+    // ═══════════════════════════════════════════════════════
+    match /barbers/{userId}/portfolio/{fileName} {
+      allow read: if true; // Public portfolio
+      allow write: if isSignedIn()
+                   && isOwner(userId)
+                   && isImageType()
+                   && request.resource.size < 2 * 1024 * 1024; // 2MB
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // CATCH-ALL DENY
+    // ═══════════════════════════════════════════════════════
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

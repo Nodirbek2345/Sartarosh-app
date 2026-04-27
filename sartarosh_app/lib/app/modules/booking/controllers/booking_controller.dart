@@ -283,6 +283,29 @@ class BookingController extends GetxController {
       return;
     }
 
+    // Validate time format
+    if (!InputSanitizer.isValidTimeFormat(selectedTime.value)) {
+      Get.snackbar(
+        "Xatolik",
+        "Vaqt formati noto'g'ri",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
+    // Validate date range (max 30 days ahead)
+    final maxDate = DateTime.now().add(const Duration(days: 30));
+    if (selectedDate.value.isAfter(maxDate)) {
+      Get.snackbar(
+        "Xatolik",
+        "Bronni faqat 30 kun oldindan qilish mumkin",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     isSubmitting.value = true;
     try {
       final userService = Get.find<UserService>();
@@ -365,6 +388,36 @@ class BookingController extends GetxController {
         return;
       }
 
+      // Anti-abuse: Cancellation rate check (max 3 cancels in 7 days)
+      final sevenDaysAgo = DateTime.now().subtract(const Duration(days: 7));
+      final recentCancels = await _firestore
+          .collection('bookings')
+          .where('clientUid', isEqualTo: uid)
+          .where('status', isEqualTo: 'cancelled')
+          .get();
+
+      int recentCancelCount = 0;
+      for (var doc in recentCancels.docs) {
+        final createdAt = doc.data()['createdAt'];
+        if (createdAt != null) {
+          final ts = (createdAt as dynamic).toDate();
+          if (ts.isAfter(sevenDaysAgo)) {
+            recentCancelCount++;
+          }
+        }
+      }
+      if (recentCancelCount >= 3) {
+        Get.snackbar(
+          "Ogohlantirish",
+          "Siz ohirgi 7 kunda 3 marta bron bekor qildingiz. Yangi bron qilish vaqtincha cheklangan.",
+          backgroundColor: Colors.redAccent,
+          colorText: Colors.white,
+          duration: Duration(seconds: 5),
+        );
+        isSubmitting.value = false;
+        return;
+      }
+
       // === SERVER-SIDE DOUBLE BOOKING GUARD (Transaction) ===
       final barberId = selectedBarber.value?['id'] ?? '';
       final timeVal = selectedTime.value;
@@ -383,6 +436,13 @@ class BookingController extends GetxController {
           throw Exception('TIME_SLOT_TAKEN');
         }
 
+        // Get barber UID for Firestore rules enforcement
+        final barberDoc = await _firestore
+            .collection('barbers')
+            .doc(barberId)
+            .get();
+        final barberUid = barberDoc.data()?['uid'] ?? '';
+
         final newDocRef = _firestore.collection('bookings').doc();
         transaction.set(newDocRef, {
           'clientUid': uid,
@@ -390,6 +450,7 @@ class BookingController extends GetxController {
           'clientPhone': InputSanitizer.sanitizePhone(userService.phone.value),
           'barberName': barberName,
           'barberId': barberId,
+          'barberUid': barberUid,
           'service': InputSanitizer.sanitizeText(serviceName),
           'price': servicePrice,
           'durationMinutes': serviceDurationMinutes,
