@@ -594,6 +594,66 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  // ============== WORKING HOURS ==============
+  Future<Map<String, String>> getWorkingHours() async {
+    try {
+      if (_barberDocRef != null) {
+        final doc = await _barberDocRef!.get();
+        if (doc.exists) {
+          final data = doc.data() as Map<String, dynamic>;
+          if (data.containsKey('workingHours')) {
+            return {
+              'open': data['workingHours']['open'] ?? '09:00',
+              'close': data['workingHours']['close'] ?? '21:00',
+            };
+          }
+        }
+      } else {
+        final snapshot = await _firestore
+            .collection('barbers')
+            .where('uid', isEqualTo: currentUid)
+            .get();
+        if (snapshot.docs.isNotEmpty) {
+          _barberDocRef = snapshot.docs.first.reference;
+          final data = snapshot.docs.first.data();
+          if (data.containsKey('workingHours')) {
+            return {
+              'open': data['workingHours']['open'] ?? '09:00',
+              'close': data['workingHours']['close'] ?? '21:00',
+            };
+          }
+        }
+      }
+    } catch (e) {
+      print("Error fetching working hours: $e");
+    }
+    return {'open': '09:00', 'close': '21:00'};
+  }
+
+  Future<void> updateWorkingHours(String open, String close) async {
+    try {
+      if (_barberDocRef != null) {
+        await _barberDocRef!.update({
+          'workingHours': {'open': open, 'close': close},
+        });
+        Get.back();
+        Get.snackbar(
+          "Muvaffaqiyatli",
+          "Ish vaqtingiz yangilandi",
+          backgroundColor: Colors.green,
+          colorText: Colors.white,
+        );
+      }
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Ish vaqtini saqlashda xato",
+        backgroundColor: Colors.redAccent,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   // ============== PORTFOLIO COMPRESSION & UPLOAD ==============
   final isUploadingPortfolio = false.obs;
 

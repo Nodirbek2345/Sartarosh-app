@@ -174,6 +174,72 @@ class HomeView extends GetView<HomeController> {
               }),
             ),
             Spacer(),
+            // Bell Button
+            Obx(() {
+              final hasBooking = controller.upcomingBooking.value != null;
+              return GestureDetector(
+                onTap: () {
+                  if (hasBooking) {
+                    Get.snackbar(
+                      "Bildirishnoma",
+                      "Sizda yaqinlashib kelayotgan bron mavjud! Bronlar bo'limidan tekshiring.",
+                      backgroundColor: AppTheme.primary,
+                      colorText: Colors.white,
+                    );
+                    Get.toNamed('/my-bookings');
+                  } else {
+                    Get.snackbar(
+                      "Bildirishnomalar",
+                      "Sizda hozircha yangi bildirishnomalar yo'q.",
+                      backgroundColor: AppTheme.primary,
+                      colorText: Colors.white,
+                    );
+                  }
+                },
+                child: Container(
+                  margin: EdgeInsets.only(right: 12),
+                  padding: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primary,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.2),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Icon(
+                        Icons.notifications_active_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      if (hasBooking)
+                        Positioned(
+                          top: -2,
+                          right: -2,
+                          child: Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              color: Colors.redAccent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: AppTheme.primary,
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              );
+            }),
             // Avatar
             Obx(() {
               final avatarBase64 = Get.find<UserService>().avatarBase64.value;
