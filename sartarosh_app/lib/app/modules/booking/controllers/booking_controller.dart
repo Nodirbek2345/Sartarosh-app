@@ -88,8 +88,7 @@ class BookingController extends GetxController {
 
     _firestore
         .collection('barbers')
-        .where('targetGender', isEqualTo: userGender)
-        .where('isActive', isEqualTo: true) // Only show active barbers
+        .where('gender', isEqualTo: userGender)
         .snapshots()
         .listen((snapshot) {
           final list = snapshot.docs.map((doc) {

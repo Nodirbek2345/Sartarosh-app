@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/services/user_service.dart';
 
 class ServicesController extends GetxController {
   final selectedService = Rxn<Map<String, dynamic>>();
@@ -7,6 +8,7 @@ class ServicesController extends GetxController {
 
   // Track the current category to filter by
   final currentCategory = 'Barchasi'.obs;
+  final isLoading = true.obs;
 
   // Icon mapping for known service categories/names
   static const Map<String, int> _iconMap = {
@@ -34,9 +36,12 @@ class ServicesController extends GetxController {
   }
 
   void _loadServicesFromBarbers() {
+    isLoading.value = true;
+    final targetGender = Get.find<UserService>().targetGender.value;
+
     FirebaseFirestore.instance
         .collection('barbers')
-        .where('isActive', isEqualTo: true)
+        .where('gender', isEqualTo: targetGender)
         .snapshots()
         .listen((querySnapshot) {
           final Map<String, Map<String, dynamic>> aggregated = {};
@@ -102,6 +107,7 @@ class ServicesController extends GetxController {
             );
 
           services.value = result;
+          isLoading.value = false;
         });
   }
 

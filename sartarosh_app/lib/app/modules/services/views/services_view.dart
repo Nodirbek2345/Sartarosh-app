@@ -44,6 +44,93 @@ class ServicesView extends GetView<ServicesController> {
             SizedBox(height: 20),
             Expanded(
               child: Obx(() {
+                if (controller.isLoading.value) {
+                  return ListView.builder(
+                    physics: NeverScrollableScrollPhysics(),
+                    itemCount: 4,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Container(
+                          height: 96,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          padding: EdgeInsets.all(20),
+                          child: Row(
+                            children: [
+                              Container(
+                                    width: 56,
+                                    height: 56,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  )
+                                  .animate(onPlay: (c) => c.repeat())
+                                  .shimmer(
+                                    duration: 1500.ms,
+                                    color: Colors.white.withValues(alpha: 0.5),
+                                  ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                          width: 140,
+                                          height: 16,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                        )
+                                        .animate(onPlay: (c) => c.repeat())
+                                        .shimmer(
+                                          duration: 1500.ms,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.5,
+                                          ),
+                                        ),
+                                    SizedBox(height: 8),
+                                    Container(
+                                          width: 100,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade100,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                        )
+                                        .animate(onPlay: (c) => c.repeat())
+                                        .shimmer(
+                                          duration: 1500.ms,
+                                          color: Colors.white.withValues(
+                                            alpha: 0.5,
+                                          ),
+                                        ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                }
+
                 if (controller.services.isEmpty) {
                   return Center(
                     child: Column(
@@ -81,7 +168,7 @@ class ServicesView extends GetView<ServicesController> {
                         ),
                       ],
                     ),
-                  );
+                  ).animate().fadeIn(duration: 400.ms);
                 }
 
                 return ListView.builder(
