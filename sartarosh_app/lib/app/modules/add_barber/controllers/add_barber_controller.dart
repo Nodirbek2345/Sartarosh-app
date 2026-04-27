@@ -54,6 +54,10 @@ class AddBarberController extends GetxController {
     final userService = Get.find<UserService>();
     location.value = userService.selectedRegion.value;
     gender.value = userService.targetGender.value;
+
+    // Reactively filter services whenever the barber changes gender
+    ever(gender, (_) => _filterServices());
+
     _fetchGlobalServices();
 
     // Auto-fetch location for Pro experience
@@ -72,56 +76,98 @@ class AddBarberController extends GetxController {
     return 0xe14f;
   }
 
+  // Store all raw services from Firestore in memory to avoid redundant DB trips
+  final _allRawServices = <Map<String, dynamic>>[];
+
   // Standard services catalog — auto-seeded if missing from Firestore
+  // Each service has a 'gender' field: 'male', 'female', or 'all'
   static const List<Map<String, String>> _defaultServices = [
-    {'name': 'Soch olish', 'category': 'Soch olish'},
-    {'name': 'Soqol olish', 'category': 'Soqol olish'},
-    {'name': 'Soch + Soqol', 'category': 'Kompleks'},
-    {'name': 'Styling', 'category': 'Styling'},
-    {'name': 'Bosh yuvish', 'category': 'Bosh yuvish'},
-    {'name': 'Bolalar soch olish', 'category': 'Bolalar'},
-    {'name': 'Soch turmaklash', 'category': 'Soch olish'},
-    {"name": "Bo'yash", "category": "Maxsus"},
-    {'name': 'Makiyaj', 'category': 'Maxsus'},
+    // ─── ERKAKLAR (male) ───
+    {'name': 'Soch olish', 'category': 'Soch olish', 'gender': 'male'},
+    {'name': 'Soqol olish', 'category': 'Soqol olish', 'gender': 'male'},
+    {'name': 'Soch + Soqol', 'category': 'Kompleks', 'gender': 'male'},
+    {'name': 'Styling', 'category': 'Styling', 'gender': 'male'},
+    {'name': 'Bosh yuvish', 'category': 'Bosh yuvish', 'gender': 'male'},
+    {'name': 'Bolalar soch olish', 'category': 'Bolalar', 'gender': 'male'},
+
+    // ─── AYOLLAR (female) ───
+    {'name': 'Soch turmaklash', 'category': 'Soch turmak', 'gender': 'female'},
+    {"name": "Bo'yash", "category": "Bo'yash", "gender": "female"},
+    {'name': 'Makiyaj', 'category': 'Makiyaj', 'gender': 'female'},
+    {'name': 'Manikyur', 'category': 'Manikyur', 'gender': 'female'},
+    {'name': 'Soch kesish', 'category': 'Soch olish', 'gender': 'female'},
+    {'name': 'Kompleks xizmat', 'category': 'Kompleks', 'gender': 'female'},
   ];
 
   Future<void> _fetchGlobalServices() async {
     try {
       isLoadingServices.value = true;
-      final snap = await _firestore.collection('services').get();
 
-      // Auto-seed: if fewer than standard count, add missing ones
-      final existingNames = snap.docs
-          .map((d) => d.data()['name'] as String? ?? '')
-          .toSet();
+      // Auto-seed and Auto-patch: ensure all default services exist AND have the correct gender tag
       for (final def in _defaultServices) {
-        if (!existingNames.contains(def['name'])) {
-          await _firestore.collection('services').add(def);
+        final defName = def['name']!;
+        try {
+          final query = await _firestore
+              .collection('services')
+              .where('name', isEqualTo: defName)
+              .get();
+
+          if (query.docs.isEmpty) {
+            // Missing? Add it
+            await _firestore.collection('services').add(def);
+          } else {
+            // Exists? Ensure it has the correct gender field
+            for (var doc in query.docs) {
+              if (doc.data()['gender'] != def['gender']) {
+                await doc.reference.update({'gender': def['gender']});
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint("Failed to seed/patch service $defName: $e");
         }
       }
 
-      // Re-fetch after seeding
+      // Re-fetch after seeding/patching
       final freshSnap = await _firestore.collection('services').get();
-      final list = <RxMap<String, dynamic>>[];
+
+      // Cache all raw services
+      _allRawServices.clear();
       for (final doc in freshSnap.docs) {
-        final data = doc.data();
-        final name = data['name'] ?? '';
-        final category = data['category'] ?? '';
-        list.add(
-          {
-            'name': name,
-            'category': category,
-            'icon': _getIcon(name, category),
-            'priceCtrl': TextEditingController(text: '0'),
-          }.obs,
-        );
+        _allRawServices.add(doc.data());
       }
-      servicesList.value = list;
+
+      // Initial filter based on current `gender.value`
+      _filterServices();
     } catch (e) {
       debugPrint("Error fetching global services: $e");
     } finally {
       isLoadingServices.value = false;
     }
+  }
+
+  void _filterServices() {
+    final barberGender = gender.value; // 'male' or 'female'
+    final list = <RxMap<String, dynamic>>[];
+
+    for (final data in _allRawServices) {
+      final serviceGender = data['gender'] ?? 'all';
+
+      // Show only services matching barber's gender (or 'all')
+      if (serviceGender != barberGender && serviceGender != 'all') continue;
+
+      final name = data['name'] ?? '';
+      final category = data['category'] ?? '';
+      list.add(
+        {
+          'name': name,
+          'category': category,
+          'icon': _getIcon(name, category),
+          'priceCtrl': TextEditingController(text: '0'),
+        }.obs,
+      );
+    }
+    servicesList.value = list;
   }
 
   void nextStep() {
