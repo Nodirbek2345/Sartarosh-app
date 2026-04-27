@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/user_service.dart';
+import '../../home/controllers/home_controller.dart';
 
 class ServicesController extends GetxController {
   final selectedService = Rxn<Map<String, dynamic>>();
@@ -46,6 +47,34 @@ class ServicesController extends GetxController {
         .listen((querySnapshot) {
           final Map<String, Map<String, dynamic>> aggregated = {};
 
+          try {
+            final globalServices = Get.find<HomeController>().rxServices;
+            for (final gs in globalServices) {
+              final name = (gs['name'] ?? '') as String;
+              final category = (gs['category'] ?? '') as String;
+              if (name.isEmpty) continue;
+
+              if (currentCategory.value != 'Barchasi') {
+                final target = currentCategory.value.toLowerCase();
+                final matchCat = category.toLowerCase().contains(target);
+                final matchName = name.toLowerCase().contains(target);
+                if (!matchCat && !matchName) continue;
+              }
+
+              aggregated[name] = {
+                'name': name,
+                'category': category,
+                'price': 0,
+                'minPrice': 0,
+                'maxPrice': 0,
+                'duration': 0,
+                'totalDuration': 0,
+                'barberCount': 0,
+                'icon': _getIcon(name, category),
+              };
+            }
+          } catch (_) {}
+
           for (final doc in querySnapshot.docs) {
             final data = doc.data();
             final barberServices = data['services'] as List?;
@@ -75,14 +104,25 @@ class ServicesController extends GetxController {
                 final existing = aggregated[name]!;
                 final minP = existing['minPrice'] as int;
                 final maxP = existing['maxPrice'] as int;
-                existing['minPrice'] = price < minP ? price : minP;
-                existing['maxPrice'] = price > maxP ? price : maxP;
-                existing['barberCount'] = (existing['barberCount'] as int) + 1;
-                // Average duration
-                final totalDur = (existing['totalDuration'] as int) + duration;
-                final count = existing['barberCount'] as int;
-                existing['totalDuration'] = totalDur;
-                existing['duration'] = totalDur ~/ count;
+
+                if (existing['barberCount'] == 0) {
+                  existing['minPrice'] = price;
+                  existing['maxPrice'] = price;
+                  existing['duration'] = duration;
+                  existing['totalDuration'] = duration;
+                  existing['barberCount'] = 1;
+                } else {
+                  existing['minPrice'] = price < minP ? price : minP;
+                  existing['maxPrice'] = price > maxP ? price : maxP;
+                  existing['barberCount'] =
+                      (existing['barberCount'] as int) + 1;
+                  // Average duration
+                  final totalDur =
+                      (existing['totalDuration'] as int) + duration;
+                  final count = existing['barberCount'] as int;
+                  existing['totalDuration'] = totalDur;
+                  existing['duration'] = totalDur ~/ count;
+                }
               } else {
                 aggregated[name] = {
                   'name': name,
