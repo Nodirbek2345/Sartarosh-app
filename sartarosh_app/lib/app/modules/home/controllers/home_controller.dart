@@ -12,6 +12,7 @@ class HomeController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final rxBarbers = <Map<String, dynamic>>[].obs;
+  final availableCategories = <Map<String, dynamic>>[].obs;
   final rxServices = <Map<String, dynamic>>[].obs;
   final upcomingBooking = Rxn<Map<String, dynamic>>();
   final lastBooking = Rxn<Map<String, dynamic>>();
@@ -234,6 +235,7 @@ class HomeController extends GetxController {
         }
 
         rxBarbers.value = list;
+        _computeAvailableCategories(list);
         isLoading.value = false;
       },
       onError: (e) {
@@ -241,6 +243,55 @@ class HomeController extends GetxController {
         Get.snackbar("Xatolik", "Baza bilan ulanishda xatolik");
       },
     );
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // DYNAMIC CATEGORIES
+  // ═══════════════════════════════════════════════════════
+  void _computeAvailableCategories(List<Map<String, dynamic>> barbers) {
+    final Set<String> foundCats = {};
+    for (final b in barbers) {
+      final services = b['services'] as List<dynamic>? ?? [];
+      for (final s in services) {
+        if (s is Map && s.containsKey('category')) {
+          final cat = s['category'].toString().trim();
+          if (cat.isNotEmpty) foundCats.add(cat);
+        }
+      }
+    }
+
+    final Map<String, IconData> categoryIcons = {
+      'soch olish': Icons.content_cut_rounded,
+      'soqol olish': Icons.face_rounded,
+      'soqol': Icons.face_rounded,
+      'styling': Icons.auto_awesome_rounded,
+      'bosh yuvish': Icons.water_drop_rounded,
+      'bolalar': Icons.child_care_rounded,
+      'kompleks': Icons.spa_rounded,
+      'soch turmak': Icons.content_cut_rounded,
+      'makiyaj': Icons.face_retouching_natural_rounded,
+      "bo'yash": Icons.color_lens_rounded,
+      'manikyur': Icons.back_hand_rounded,
+      'maxsus': Icons.star_border_rounded,
+    };
+
+    final list = <Map<String, dynamic>>[
+      {'icon': Icons.grid_view_rounded, 'name': 'Barchasi'},
+    ];
+
+    for (final c in foundCats) {
+      final lower = c.toLowerCase();
+      IconData icon = Icons.category_rounded;
+      for (final entry in categoryIcons.entries) {
+        if (lower.contains(entry.key)) {
+          icon = entry.value;
+          break;
+        }
+      }
+      list.add({'icon': icon, 'name': c});
+    }
+
+    availableCategories.value = list;
   }
 
   // ═══════════════════════════════════════════════════════

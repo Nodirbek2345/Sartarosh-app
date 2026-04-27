@@ -566,28 +566,11 @@ class HomeView extends GetView<HomeController> {
   Widget _buildCategories() {
     return Obx(() {
       final gender = Get.find<UserService>().targetGender.value;
+      final categories = controller.availableCategories;
 
-      final List<Map<String, dynamic>> categories;
-
-      if (gender == 'female') {
-        categories = [
-          {'icon': Icons.grid_view_rounded, 'name': 'Barchasi'},
-          {'icon': Icons.content_cut_rounded, 'name': 'Soch turmak'},
-          {'icon': Icons.face_retouching_natural_rounded, 'name': 'Makiyaj'},
-          {'icon': Icons.color_lens_rounded, 'name': "Bo'yash"},
-          {'icon': Icons.back_hand_rounded, 'name': 'Manikyur'},
-          {'icon': Icons.spa_rounded, 'name': 'Kompleks'},
-        ];
-      } else {
-        categories = [
-          {'icon': Icons.grid_view_rounded, 'name': 'Barchasi'},
-          {'icon': Icons.content_cut_rounded, 'name': 'Soch olish'},
-          {'icon': Icons.face_rounded, 'name': 'Soqol'},
-          {'icon': Icons.auto_awesome_rounded, 'name': 'Styling'},
-          {'icon': Icons.water_drop_rounded, 'name': 'Bosh yuvish'},
-          {'icon': Icons.child_care_rounded, 'name': 'Bolalar'},
-          {'icon': Icons.spa_rounded, 'name': 'Kompleks'},
-        ];
+      // Agar kategoriya hisoblanmagan yoki mos ustalar yo'q bo'lsa
+      if (categories.isEmpty) {
+        return SizedBox.shrink();
       }
 
       return Padding(
