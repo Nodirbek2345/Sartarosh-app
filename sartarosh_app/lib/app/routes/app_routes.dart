@@ -16,4 +16,5 @@ abstract class Routes {
   static const String supportChat = '/support-chat';
   static const String barberDashboard = '/barber-dashboard';
   static const String region = '/region';
+  static const String barberServices = '/barber-services';
 }

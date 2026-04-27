@@ -1415,6 +1415,11 @@ class _BarberProfileTab extends StatelessWidget {
                   () => Get.toNamed('/profile'),
                 ),
                 _profileMenuItem(
+                  Icons.content_cut_rounded,
+                  "Xizmatlarim va Narxlar",
+                  () => Get.toNamed('/barber-services'),
+                ),
+                _profileMenuItem(
                   Icons.access_time_rounded,
                   "Ish vaqti sozlamalari",
                   () {
