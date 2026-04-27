@@ -625,7 +625,7 @@ class BarberDashboardController extends GetxController {
         }
       }
     } catch (e) {
-      print("Error fetching working hours: $e");
+      debugPrint("Error fetching working hours: $e");
     }
     return {'open': '09:00', 'close': '21:00'};
   }

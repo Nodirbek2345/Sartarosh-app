@@ -1508,13 +1508,7 @@ class _BarberProfileTab extends StatelessWidget {
                 _profileMenuItem(
                   Icons.access_time_rounded,
                   "Ish vaqti sozlamalari",
-                  () {
-                    Get.snackbar(
-                      "Tez kunda",
-                      "Ish vaqti sozlamalari tez orada qo'shiladi",
-                      snackPosition: SnackPosition.BOTTOM,
-                    );
-                  },
+                  () => _showWorkingHours(context),
                 ),
                 _profileMenuItem(Icons.help_outline_rounded, "Yordam", () {
                   Get.toNamed('/support-chat');
@@ -1859,6 +1853,195 @@ class _BarberProfileTab extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  void _showWorkingHours(BuildContext context) async {
+    // 1. Fetch current hours
+    Get.dialog(
+      Center(child: CircularProgressIndicator(color: AppTheme.primary)),
+      barrierDismissible: false,
+    );
+    final hours = await controller.getWorkingHours();
+    Get.back(); // close loading dialog
+
+    final openTime = RxString(hours['open'] ?? "09:00");
+    final closeTime = RxString(hours['close'] ?? "21:00");
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.textLight.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Icon(
+                  Icons.access_time_filled_rounded,
+                  color: AppTheme.primary,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  "Ish vaqtini sozlash",
+                  style: GoogleFonts.poppins(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textDark,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            Text(
+              "Ochilish vaqti",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textMedium,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () async {
+                final initial = TimeOfDay(
+                  hour: int.parse(openTime.value.split(':')[0]),
+                  minute: int.parse(openTime.value.split(':')[1]),
+                );
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initial,
+                );
+                if (picked != null) {
+                  openTime.value =
+                      "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.05),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Obx(
+                  () => Text(
+                    openTime.value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              "Yopilish vaqti",
+              style: GoogleFonts.poppins(
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textMedium,
+              ),
+            ),
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () async {
+                final initial = TimeOfDay(
+                  hour: int.parse(closeTime.value.split(':')[0]),
+                  minute: int.parse(closeTime.value.split(':')[1]),
+                );
+                final picked = await showTimePicker(
+                  context: context,
+                  initialTime: initial,
+                );
+                if (picked != null) {
+                  closeTime.value =
+                      "${picked.hour.toString().padLeft(2, '0')}:${picked.minute.toString().padLeft(2, '0')}";
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.05),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.2),
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Obx(
+                  () => Text(
+                    closeTime.value,
+                    style: GoogleFonts.poppins(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            GestureDetector(
+              onTap: () {
+                controller.updateWorkingHours(openTime.value, closeTime.value);
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withValues(alpha: 0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Center(
+                  child: Text(
+                    "Saqlash",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
     );
   }
 }
