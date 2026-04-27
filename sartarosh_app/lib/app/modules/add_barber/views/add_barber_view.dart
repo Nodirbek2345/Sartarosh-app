@@ -145,7 +145,9 @@ class AddBarberView extends GetView<AddBarberController> {
           Obx(
             () => _goldField(
               "Manzil *",
-              "📍 tugmasini bosib joylashuvni aniqlang",
+              controller.isLocating.value
+                  ? "📍 Avtomatik aniqlanmoqda..."
+                  : "📍 Manzilingiz",
               Icons.location_on_rounded,
               controller.addressCtrl,
               400,

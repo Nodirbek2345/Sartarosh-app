@@ -55,6 +55,9 @@ class AddBarberController extends GetxController {
     location.value = userService.selectedRegion.value;
     gender.value = userService.targetGender.value;
     _fetchGlobalServices();
+
+    // Auto-fetch location for Pro experience
+    Future.microtask(() => fetchLocation());
   }
 
   int _getIcon(String name, String category) {
