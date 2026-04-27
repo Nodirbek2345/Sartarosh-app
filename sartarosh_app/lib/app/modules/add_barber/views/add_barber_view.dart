@@ -459,10 +459,10 @@ class AddBarberView extends GetView<AddBarberController> {
                   ),
                 ),
                 Divider(height: 20),
-                ...controller.servicesList.map(
+                ...controller.activeServices.map(
                   (s) => _previewRow(
                     s['name'],
-                    "${(s['price'] / 1000).toStringAsFixed(0)} ming so'm",
+                    "${((s['price'] as int) / 1000).toStringAsFixed(0)} ming so'm",
                   ),
                 ),
               ],

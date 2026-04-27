@@ -69,12 +69,38 @@ class AddBarberController extends GetxController {
     return 0xe14f;
   }
 
+  // Standard services catalog — auto-seeded if missing from Firestore
+  static const List<Map<String, String>> _defaultServices = [
+    {'name': 'Soch olish', 'category': 'Soch olish'},
+    {'name': 'Soqol olish', 'category': 'Soqol olish'},
+    {'name': 'Soch + Soqol', 'category': 'Kompleks'},
+    {'name': 'Styling', 'category': 'Styling'},
+    {'name': 'Bosh yuvish', 'category': 'Bosh yuvish'},
+    {'name': 'Bolalar soch olish', 'category': 'Bolalar'},
+    {'name': 'Soch turmaklash', 'category': 'Soch olish'},
+    {"name": "Bo'yash", "category": "Maxsus"},
+    {'name': 'Makiyaj', 'category': 'Maxsus'},
+  ];
+
   Future<void> _fetchGlobalServices() async {
     try {
       isLoadingServices.value = true;
       final snap = await _firestore.collection('services').get();
+
+      // Auto-seed: if fewer than standard count, add missing ones
+      final existingNames = snap.docs
+          .map((d) => d.data()['name'] as String? ?? '')
+          .toSet();
+      for (final def in _defaultServices) {
+        if (!existingNames.contains(def['name'])) {
+          await _firestore.collection('services').add(def);
+        }
+      }
+
+      // Re-fetch after seeding
+      final freshSnap = await _firestore.collection('services').get();
       final list = <RxMap<String, dynamic>>[];
-      for (final doc in snap.docs) {
+      for (final doc in freshSnap.docs) {
         final data = doc.data();
         final name = data['name'] ?? '';
         final category = data['category'] ?? '';
