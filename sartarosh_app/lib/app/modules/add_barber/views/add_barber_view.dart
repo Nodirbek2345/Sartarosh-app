@@ -145,10 +145,11 @@ class AddBarberView extends GetView<AddBarberController> {
           Obx(
             () => _goldField(
               "Manzil *",
-              "Toshkent, Chilonzor tumani, 7-mavze",
+              "📍 tugmasini bosib joylashuvni aniqlang",
               Icons.location_on_rounded,
               controller.addressCtrl,
               400,
+              readOnly: true,
               suffixIcon: IconButton(
                 icon: controller.isLocating.value
                     ? SizedBox(
@@ -500,6 +501,7 @@ class AddBarberView extends GetView<AddBarberController> {
     TextInputType? inputType,
     int? maxLines,
     Widget? suffixIcon,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -528,6 +530,7 @@ class AddBarberView extends GetView<AddBarberController> {
           child: TextField(
             controller: ctrl,
             keyboardType: inputType,
+            readOnly: readOnly,
             inputFormatters: [
               if (inputType == TextInputType.number)
                 FilteringTextInputFormatter.digitsOnly,
