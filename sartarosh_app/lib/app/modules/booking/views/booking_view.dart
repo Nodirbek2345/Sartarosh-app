@@ -32,7 +32,12 @@ class BookingView extends GetView<BookingController> {
                 if (controller.currentStep.value == 0) {
                   return _step1Barbers(bgColor, cardColor, goldColor);
                 } else {
-                  return _step2BookingForm(bgColor, cardColor, goldColor);
+                  return _step2BookingForm(
+                    bgColor,
+                    cardColor,
+                    goldColor,
+                    context,
+                  );
                 }
               }),
             ),
@@ -569,7 +574,12 @@ class BookingView extends GetView<BookingController> {
     return months[month - 1];
   }
 
-  Widget _step2BookingForm(Color bg, Color card, Color gold) {
+  Widget _step2BookingForm(
+    Color bg,
+    Color card,
+    Color gold,
+    BuildContext context,
+  ) {
     return SingleChildScrollView(
       physics: BouncingScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -732,6 +742,17 @@ class BookingView extends GetView<BookingController> {
           _sectionHeader(gold, "📋 Xulosa", "Bron ma'lumotlarini tekshiring"),
           SizedBox(height: 12),
           _buildServiceInfoCard(card, gold),
+
+          SizedBox(height: 24),
+
+          // ─── PAYMENT METHOD ───
+          _sectionHeader(
+            gold,
+            "💳 To'lov usuli",
+            "To'lov qanday amalga oshiriladi?",
+          ),
+          SizedBox(height: 12),
+          _buildPaymentMethodSelector(card, gold, context),
 
           SizedBox(height: 24),
 
@@ -1249,5 +1270,269 @@ class BookingView extends GetView<BookingController> {
         ),
       ),
     ).animate().fadeIn(delay: 400.ms);
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // PAYMENT SELECTOR (PREMIUM)
+  // ═══════════════════════════════════════════════════════
+  Widget _buildPaymentMethodSelector(
+    Color card,
+    Color gold,
+    BuildContext context,
+  ) {
+    return GestureDetector(
+      onTap: () => _showPaymentBottomSheet(context, card, gold),
+      child: Container(
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: gold.withValues(alpha: 0.2)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: gold.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.account_balance_wallet_rounded,
+                color: gold,
+                size: 20,
+              ),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Obx(() {
+                    String methodText = "Naqd pul";
+                    if (controller.selectedPaymentMethod.value == 'payme')
+                      methodText = "Payme";
+                    return Text(
+                      methodText,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    );
+                  }),
+                  Text(
+                    "Joyida to'lov",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white54,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(Icons.keyboard_arrow_down_rounded, color: Colors.white30),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(delay: 300.ms);
+  }
+
+  void _showPaymentBottomSheet(BuildContext context, Color card, Color gold) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: Color(0xFF0F1120),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              SizedBox(height: 24),
+              Text(
+                "To'lov usulini tanlang",
+                style: GoogleFonts.poppins(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 20),
+
+              // 1. NAQD PUL (Active)
+              GestureDetector(
+                onTap: () {
+                  controller.selectedPaymentMethod.value = 'cash';
+                  Get.back();
+                },
+                child: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: gold.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: gold),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(Icons.money_rounded, color: gold, size: 24),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Naqd pul",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              "Usta oldida joyida to'lanadi",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.check_circle_rounded, color: gold),
+                    ],
+                  ),
+                ),
+              ),
+
+              SizedBox(height: 12),
+
+              // 2. PAYME (Coming soon)
+              _buildComingSoonPayment(
+                "Payme",
+                "Payme orqali onlayn to'lov",
+                Icons.credit_score_rounded,
+                card,
+                gold,
+              ),
+              SizedBox(height: 12),
+
+              // 3. CLICK (Coming soon)
+              _buildComingSoonPayment(
+                "Click Up",
+                "Click orqali onlayn to'lov",
+                Icons.bolt_rounded,
+                card,
+                gold,
+              ),
+              SizedBox(height: 12),
+
+              // 4. UZUM PAY (Coming soon)
+              _buildComingSoonPayment(
+                "Uzum Pay",
+                "Uzum orqali muddatli to'lov",
+                Icons.local_mall_rounded,
+                card,
+                gold,
+              ),
+
+              SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildComingSoonPayment(
+    String name,
+    String desc,
+    IconData iconData,
+    Color card,
+    Color gold,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: card.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(iconData, color: Colors.white30, size: 18),
+          ),
+          SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white38,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  desc,
+                  style: GoogleFonts.poppins(
+                    color: Colors.white24,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: gold.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child:
+                Text(
+                      "Tez kunda",
+                      style: GoogleFonts.poppins(
+                        color: gold,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    )
+                    .animate(onPlay: (c) => c.repeat())
+                    .shimmer(duration: 2000.ms, color: Colors.white),
+          ),
+        ],
+      ),
+    );
   }
 }

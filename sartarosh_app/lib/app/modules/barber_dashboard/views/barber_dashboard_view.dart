@@ -1870,7 +1870,12 @@ class _BarberProfileTab extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.of(context).padding.bottom + 32, // Lift it higher!
+        ),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -1908,7 +1913,7 @@ class _BarberProfileTab extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               "Ochilish vaqti",
               style: GoogleFonts.poppins(
@@ -1936,7 +1941,7 @@ class _BarberProfileTab extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 16,
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.primary.withValues(alpha: 0.05),
@@ -1957,7 +1962,7 @@ class _BarberProfileTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             Text(
               "Yopilish vaqti",
               style: GoogleFonts.poppins(
@@ -1985,7 +1990,7 @@ class _BarberProfileTab extends StatelessWidget {
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 14,
+                  vertical: 16,
                 ),
                 decoration: BoxDecoration(
                   color: AppTheme.primary.withValues(alpha: 0.05),
@@ -2006,14 +2011,16 @@ class _BarberProfileTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(
+              height: 48,
+            ), // Push save button higher relative to inputs
             GestureDetector(
               onTap: () {
                 controller.updateWorkingHours(openTime.value, closeTime.value);
               },
               child: Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                padding: const EdgeInsets.symmetric(vertical: 18),
                 decoration: BoxDecoration(
                   color: AppTheme.primary,
                   borderRadius: BorderRadius.circular(16),
@@ -2037,7 +2044,6 @@ class _BarberProfileTab extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
           ],
         ),
       ),
