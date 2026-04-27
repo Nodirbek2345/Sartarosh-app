@@ -51,6 +51,9 @@ class MyBookingsController extends GetxController {
 
       pastBookings.value = docs.where((b) {
         final s = b['status'];
+        final clientDeleted = b['clientDeleted'] ?? false;
+        if (clientDeleted) return false;
+
         return s == 'completed' ||
             s == 'cancelled' ||
             s == 'no-show' ||
@@ -116,6 +119,22 @@ class MyBookingsController extends GetxController {
             Get.snackbar("Xatolik", "Usta tizimdan topilmadi.");
           }
         });
+  }
+
+  Future<void> deleteHistoryItem(String id) async {
+    try {
+      await _firestore.collection('bookings').doc(id).update({
+        'clientDeleted': true,
+      });
+      Get.snackbar(
+        "O'chirildi",
+        "Bron tarixdan o'chirildi.",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xatolik", "O'chirishda xatolik yuz berdi");
+    }
   }
 
   @override

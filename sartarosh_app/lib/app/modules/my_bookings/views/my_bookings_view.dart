@@ -165,6 +165,52 @@ class MyBookingsView extends GetView<MyBookingsController> {
                           ),
                         ),
                       ),
+                      if (!isActive) ...[
+                        SizedBox(width: 8),
+                        GestureDetector(
+                          onTap: () {
+                            Get.dialog(
+                              AlertDialog(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                title: Text("Tarixdan o'chirish"),
+                                content: Text(
+                                  "Haqiqatan ham bu yozuvni tarixdan yashirmoqchimisiz?",
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Get.back(),
+                                    child: Text("Yo'q"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () {
+                                      Get.back();
+                                      controller.deleteHistoryItem(b['id']);
+                                    },
+                                    child: Text(
+                                      "Ha, o'chirish",
+                                      style: TextStyle(color: Colors.red),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          child: Container(
+                            padding: EdgeInsets.all(5),
+                            decoration: BoxDecoration(
+                              color: Colors.red.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Icon(
+                              Icons.delete_outline_rounded,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                   Padding(
