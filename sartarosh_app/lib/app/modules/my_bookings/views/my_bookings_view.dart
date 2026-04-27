@@ -439,13 +439,13 @@ class MyBookingsView extends GetView<MyBookingsController> {
       case 'pending':
         return 'Kutilmoqda';
       case 'confirmed':
-        return 'Tasdiqlangan';
+        return 'Qabul qildi';
       case 'in-progress':
         return 'Jarayonda';
       case 'completed':
         return 'Tugallangan';
       case 'cancelled':
-        return 'Bekor qilingan';
+        return 'Bekor qilindi';
       case 'penalty':
         return 'Kech bekor qilingan';
       case 'no-show':
