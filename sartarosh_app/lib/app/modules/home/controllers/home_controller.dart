@@ -39,17 +39,25 @@ class HomeController extends GetxController {
   }
 
   void _fetchServices() {
+    final targetGender = Get.find<UserService>().targetGender.value;
     final sub = _firestore.collection('services').snapshots().listen((
       snapshot,
     ) {
-      rxServices.value = snapshot.docs.map((doc) {
-        final data = doc.data();
-        return {
-          'id': doc.id,
-          'name': data['name'] ?? '',
-          'category': data['category'] ?? '',
-        };
-      }).toList();
+      rxServices.value = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            return {
+              'id': doc.id,
+              'name': data['name'] ?? '',
+              'category': data['category'] ?? '',
+              'gender': data['gender'] ?? 'all',
+            };
+          })
+          .where((s) {
+            final g = s['gender'] as String;
+            return g == targetGender || g == 'all';
+          })
+          .toList();
     });
     _subscriptions.add(sub);
   }

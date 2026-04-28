@@ -52,7 +52,12 @@ class ServicesController extends GetxController {
             for (final gs in globalServices) {
               final name = (gs['name'] ?? '') as String;
               final category = (gs['category'] ?? '') as String;
+              final serviceGender = (gs['gender'] ?? 'all') as String;
               if (name.isEmpty) continue;
+
+              // Skip services that don't match the target gender
+              if (serviceGender != targetGender && serviceGender != 'all')
+                continue;
 
               if (currentCategory.value != 'Barchasi') {
                 final target = currentCategory.value.toLowerCase();
