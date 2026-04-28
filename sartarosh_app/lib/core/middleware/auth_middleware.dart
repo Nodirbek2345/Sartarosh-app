@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/user_service.dart';
@@ -30,7 +31,7 @@ class AuthMiddleware extends GetMiddleware {
       Get.snackbar(
         "Avtorizatsiya",
         "Iltimos, ushbu sahifaga kirish uchun avval tizimga kiring",
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
+        backgroundColor: AppTheme.danger.withValues(alpha: 0.9),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         margin: EdgeInsets.all(16),
@@ -44,3 +45,4 @@ class AuthMiddleware extends GetMiddleware {
     return null;
   }
 }
+

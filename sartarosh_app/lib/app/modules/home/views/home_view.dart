@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -226,7 +226,7 @@ class HomeView extends GetView<HomeController> {
                             width: 8,
                             height: 8,
                             decoration: BoxDecoration(
-                              color: Colors.redAccent,
+                              color: AppTheme.danger,
                               shape: BoxShape.circle,
                               border: Border.all(
                                 color: AppTheme.primary,
@@ -1030,7 +1030,7 @@ class HomeView extends GetView<HomeController> {
               borderRadius: BorderRadius.circular(20),
               border: isActive
                   ? null
-                  : Border.all(color: Colors.red.withValues(alpha: 0.1)),
+                  : Border.all(color: AppTheme.danger.withValues(alpha: 0.1)),
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withValues(alpha: 0.03),
@@ -1106,7 +1106,7 @@ class HomeView extends GetView<HomeController> {
                                         ? Icons.favorite_rounded
                                         : Icons.favorite_border_rounded,
                                     color: isFav
-                                        ? Colors.redAccent
+                                        ? AppTheme.danger
                                         : AppTheme.textLight,
                                     size: 20,
                                   ),
@@ -1125,7 +1125,7 @@ class HomeView extends GetView<HomeController> {
                                 decoration: BoxDecoration(
                                   color: isActive
                                       ? AppTheme.success.withValues(alpha: 0.1)
-                                      : Colors.red.withValues(alpha: 0.08),
+                                      : AppTheme.danger.withValues(alpha: 0.08),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Row(
@@ -1138,7 +1138,7 @@ class HomeView extends GetView<HomeController> {
                                         shape: BoxShape.circle,
                                         color: isActive
                                             ? AppTheme.success
-                                            : Colors.red,
+                                            : AppTheme.danger,
                                       ),
                                     ),
                                     SizedBox(width: 4),
@@ -1147,7 +1147,7 @@ class HomeView extends GetView<HomeController> {
                                       style: GoogleFonts.poppins(
                                         color: isActive
                                             ? AppTheme.success
-                                            : Colors.red,
+                                            : AppTheme.danger,
                                         fontSize: 9,
                                         fontWeight: FontWeight.w700,
                                       ),
@@ -1549,7 +1549,7 @@ class HomeView extends GetView<HomeController> {
                   _menuItem(
                     icon: Icons.logout_rounded,
                     title: "Tizimdan chiqish",
-                    color: Colors.redAccent,
+                    color: AppTheme.danger,
                     onTap: () {
                       Get.back();
                       userService.logout();
@@ -1608,3 +1608,4 @@ class HomeView extends GetView<HomeController> {
     );
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -78,7 +78,7 @@ class BarberDetailView extends StatelessWidget {
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     () => Get.find<UserService>().toggleFavorite(barber['id']),
-                    color: isFav ? Colors.redAccent : AppTheme.textDark,
+                    color: isFav ? AppTheme.danger : AppTheme.textDark,
                   );
                 }),
               ),
@@ -129,7 +129,7 @@ class BarberDetailView extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isActive
                                   ? AppTheme.success.withValues(alpha: 0.1)
-                                  : Colors.red.withValues(alpha: 0.08),
+                                  : AppTheme.danger.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Row(
@@ -142,13 +142,13 @@ class BarberDetailView extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     color: isActive
                                         ? AppTheme.success
-                                        : Colors.red,
+                                        : AppTheme.danger,
                                     boxShadow: [
                                       BoxShadow(
                                         color:
                                             (isActive
                                                     ? AppTheme.success
-                                                    : Colors.red)
+                                                    : AppTheme.danger)
                                                 .withValues(alpha: 0.4),
                                         blurRadius: 6,
                                       ),
@@ -161,7 +161,7 @@ class BarberDetailView extends StatelessWidget {
                                   style: GoogleFonts.poppins(
                                     color: isActive
                                         ? AppTheme.success
-                                        : Colors.red,
+                                        : AppTheme.danger,
                                     fontWeight: FontWeight.w600,
                                     fontSize: 12,
                                   ),
@@ -328,7 +328,7 @@ class BarberDetailView extends StatelessWidget {
                               "⚠️ Usta hozir ishda emas",
                               "Usta ish o'rniga qaytganda qayta urinib ko'ring",
                               snackPosition: SnackPosition.TOP,
-                              backgroundColor: Colors.red.withValues(
+                              backgroundColor: AppTheme.danger.withValues(
                                 alpha: 0.9,
                               ),
                               colorText: Colors.white,
@@ -498,7 +498,7 @@ class BarberDetailView extends StatelessWidget {
                         "⚠️ Usta hozir ishda emas",
                         "Usta ish o'rniga qaytganda siz bron qila olasiz",
                         snackPosition: SnackPosition.TOP,
-                        backgroundColor: Colors.red.withValues(alpha: 0.9),
+                        backgroundColor: AppTheme.danger.withValues(alpha: 0.9),
                         colorText: Colors.white,
                         duration: Duration(seconds: 3),
                         margin: EdgeInsets.all(16),
@@ -681,3 +681,4 @@ class BarberDetailView extends StatelessWidget {
     ).animate().fadeIn(delay: 350.ms);
   }
 }
+

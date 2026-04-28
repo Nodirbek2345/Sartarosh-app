@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
@@ -58,7 +59,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Ruxsat yo'q",
         "Faqat ustalar uchun",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
       Get.offAllNamed('/home');
@@ -294,7 +295,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Bu bron holatini o'zgartirish mumkin emas",
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -324,14 +325,14 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Muvaffaqiyatli",
         "Bron qabul qilindi",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
     } catch (e) {
       Get.snackbar(
         "Xatolik",
         "Xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -346,7 +347,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Bu bronni bekor qilish mumkin emas",
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -364,7 +365,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -402,7 +403,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Faqat tasdiqlangan bronni boshlash mumkin",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -431,7 +432,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Avval boshlangan mijozni yakunlang!",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -451,7 +452,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Xizmatni boshlashda xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -466,7 +467,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Faqat jarayondagi xizmatni tugatish mumkin",
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -479,14 +480,14 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Tugallandi",
         "Xizmat muvaffaqiyatli yakunlandi",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
     } catch (e) {
       Get.snackbar(
         "Xatolik",
         "Xizmatni tugatishda xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -501,7 +502,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Faqat tasdiqlangan bronni 'Kelmadi' deb belgilash mumkin",
-          backgroundColor: Colors.red,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         return;
@@ -520,7 +521,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -547,7 +548,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Fayl juda katta",
           "Rasm hajmi 5MB dan oshmasligi kerak",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         isUploadingPhoto.value = false;
@@ -605,14 +606,14 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Muvaffaqiyatli",
         "Rasm yuklandi va SIQILDI",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
     } catch (e) {
       Get.snackbar(
         "Xatolik",
         "Rasm yuklashda xatolik yuz berdi",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     } finally {
@@ -662,7 +663,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Vaqt formati noto'g'ri (HH:mm)",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
       return;
@@ -677,7 +678,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Ochilish vaqti yopilish vaqtidan oldin bo'lishi kerak",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
       return;
@@ -692,7 +693,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Muvaffaqiyatli",
           "Ish vaqtingiz yangilandi",
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
           colorText: Colors.white,
         );
       }
@@ -700,7 +701,7 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Ish vaqtini saqlashda xato",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -737,7 +738,7 @@ class BarberDashboardController extends GetxController {
         Get.snackbar(
           "Fayl juda katta",
           "Rasm hajmi 5MB dan oshmasligi kerak",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         isUploadingPortfolio.value = false;
@@ -785,14 +786,14 @@ class BarberDashboardController extends GetxController {
       Get.snackbar(
         "Muvaffaqiyatli",
         "Portfolio rasm yuklandi",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
     } catch (e) {
       Get.snackbar(
         "Xatolik",
         "Portfolio rasm yuklashda xatolik yuz berdi",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     } finally {
@@ -836,3 +837,4 @@ class BarberDashboardController extends GetxController {
     super.onClose();
   }
 }
+

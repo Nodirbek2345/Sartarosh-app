@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../controllers/my_bookings_controller.dart';
@@ -190,7 +190,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
                                     },
                                     child: Text(
                                       "Ha, o'chirish",
-                                      style: TextStyle(color: Colors.red),
+                                      style: TextStyle(color: AppTheme.danger),
                                     ),
                                   ),
                                 ],
@@ -200,12 +200,12 @@ class MyBookingsView extends GetView<MyBookingsController> {
                           child: Container(
                             padding: EdgeInsets.all(5),
                             decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: 0.1),
+                              color: AppTheme.danger.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Icon(
                               Icons.delete_outline_rounded,
-                              color: Colors.red,
+                              color: AppTheme.danger,
                               size: 18,
                             ),
                           ),
@@ -331,7 +331,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
                                 },
                                 child: Text(
                                   "Ha, bekor qilish",
-                                  style: TextStyle(color: Colors.red),
+                                  style: TextStyle(color: AppTheme.danger),
                                 ),
                               ),
                             ],
@@ -342,14 +342,14 @@ class MyBookingsView extends GetView<MyBookingsController> {
                         width: double.infinity,
                         padding: EdgeInsets.symmetric(vertical: 12),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withValues(alpha: 0.1),
+                          color: AppTheme.danger.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Center(
                           child: Text(
                             "Bekor qilish",
                             style: TextStyle(
-                              color: Colors.redAccent,
+                              color: AppTheme.danger,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
@@ -401,18 +401,18 @@ class MyBookingsView extends GetView<MyBookingsController> {
   Color _statusColor(String status) {
     switch (status) {
       case 'confirmed':
-        return Color(0xFF16A34A); // Green as requested
+        return AppTheme.success;
       case 'in-progress':
         return AppTheme.primary;
       case 'completed':
-        return Color(0xFF16A34A);
+        return AppTheme.success;
       case 'cancelled':
-        return Color(0xFFDC2626);
+        return AppTheme.danger;
       case 'no-show':
       case 'penalty':
-        return Color(0xFF475569);
+        return AppTheme.textMedium;
       default:
-        return Color(0xFFD97706);
+        return const Color(0xFFD97706); // Orange for pending/others
     }
   }
 

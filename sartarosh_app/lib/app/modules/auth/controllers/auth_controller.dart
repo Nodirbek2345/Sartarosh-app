@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -19,7 +20,7 @@ class AuthController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Iltimos, to'g'ri raqam kiriting (9+ raqam)",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -151,7 +152,7 @@ class AuthController extends GetxController {
       Get.snackbar(
         "Xatolik",
         message,
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -159,7 +160,7 @@ class AuthController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Tizimga kirishda xatolik yuz berdi. Qaytadan urinib ko'ring.",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         duration: Duration(seconds: 6),
@@ -179,3 +180,4 @@ class AuthController extends GetxController {
     super.onClose();
   }
 }
+

@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -158,7 +159,7 @@ class BarberServicesController extends GetxController {
         Get.snackbar(
           "Saqlandi",
           "Xizmatlar va narxlar muvaffaqiyatli saqlandi!",
-          backgroundColor: Colors.green,
+          backgroundColor: AppTheme.success,
           colorText: Colors.white,
         );
       } else {
@@ -168,7 +169,7 @@ class BarberServicesController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Saqlashda xatolik yuz berdi",
-        backgroundColor: Colors.red,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     } finally {
@@ -176,3 +177,4 @@ class BarberServicesController extends GetxController {
     }
   }
 }
+

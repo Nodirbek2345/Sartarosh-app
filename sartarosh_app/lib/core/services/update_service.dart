@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -155,7 +155,7 @@ class UpdateService extends GetxService {
       Get.snackbar(
         "Xatolik",
         "Ilovani yuklab olishda xatolik yuz berdi. URL ni tekshiring.",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     } finally {
@@ -375,3 +375,4 @@ class UpdateService extends GetxService {
     );
   }
 }
+

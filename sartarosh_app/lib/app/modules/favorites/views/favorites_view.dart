@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../controllers/favorites_controller.dart';
@@ -160,12 +160,12 @@ class FavoritesView extends GetView<FavoritesController> {
                   child: Container(
                     padding: EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.redAccent.withValues(alpha: 0.1),
+                      color: AppTheme.danger.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: Icon(
                       Icons.favorite_rounded,
-                      color: Colors.redAccent,
+                      color: AppTheme.danger,
                       size: 20,
                     ),
                   ),
@@ -179,3 +179,4 @@ class FavoritesView extends GetView<FavoritesController> {
         .slideX(begin: 0.1);
   }
 }
+

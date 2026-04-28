@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
@@ -53,7 +53,7 @@ class RegionController extends GetxController {
       Get.snackbar(
         "Diqqat",
         "Iltimos, viloyatingizni tanlang",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -233,9 +233,10 @@ class RegionController extends GetxController {
     Get.snackbar(
       "Xatolik",
       msg,
-      backgroundColor: Colors.redAccent,
+      backgroundColor: AppTheme.danger,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
   }
 }
+

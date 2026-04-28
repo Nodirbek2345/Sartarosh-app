@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -516,7 +516,7 @@ class _DashboardTab extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: isActive
                       ? AppTheme.success.withValues(alpha: 0.05)
-                      : Colors.redAccent.withValues(alpha: 0.05),
+                      : AppTheme.danger.withValues(alpha: 0.05),
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
@@ -529,7 +529,7 @@ class _DashboardTab extends StatelessWidget {
                       width: 10,
                       height: 10,
                       decoration: BoxDecoration(
-                        color: isActive ? AppTheme.success : Colors.redAccent,
+                        color: isActive ? AppTheme.success : AppTheme.danger,
                         shape: BoxShape.circle,
                       ),
                     ),
@@ -568,7 +568,7 @@ class _DashboardTab extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: isActive ? Colors.redAccent : AppTheme.success,
+                          color: isActive ? AppTheme.danger : AppTheme.success,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -725,7 +725,7 @@ class _DashboardTab extends StatelessWidget {
         statusText = "Tugatilgan";
         break;
       case 'cancelled':
-        statusColor = Colors.red;
+        statusColor = AppTheme.danger;
         statusText = "Bekor qilingan";
         break;
       default:
@@ -846,7 +846,7 @@ class _DashboardTab extends StatelessWidget {
                 Expanded(
                   child: _actionBtn(
                     "Qaytarish",
-                    Colors.redAccent,
+                    AppTheme.danger,
                     () => controller.rejectBooking(booking['docId']),
                   ),
                 ),
@@ -1119,7 +1119,7 @@ class _BarberBookingsTab extends StatelessWidget {
         statusIcon = Icons.task_alt_rounded;
         break;
       case 'cancelled':
-        statusColor = Colors.red;
+        statusColor = AppTheme.danger;
         statusText = "Bekor qilingan";
         statusIcon = Icons.cancel_outlined;
         break;
@@ -1297,7 +1297,7 @@ class _BarberBookingsTab extends StatelessWidget {
                 Expanded(
                   child: _btn(
                     "✗ Rad etish",
-                    Colors.redAccent,
+                    AppTheme.danger,
                     () => controller.rejectBooking(booking['docId']),
                   ),
                 ),
@@ -1640,7 +1640,7 @@ class _BarberProfileTab extends StatelessWidget {
                             },
                             child: const Text(
                               "Ha, chiqish",
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: AppTheme.danger),
                             ),
                           ),
                         ],
@@ -1779,7 +1779,7 @@ class _BarberProfileTab extends StatelessWidget {
                                   },
                                   child: const Text(
                                     "Ha",
-                                    style: TextStyle(color: Colors.red),
+                                    style: TextStyle(color: AppTheme.danger),
                                   ),
                                 ),
                               ],
@@ -1789,7 +1789,7 @@ class _BarberProfileTab extends StatelessWidget {
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
-                            color: Colors.red,
+                            color: AppTheme.danger,
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -2053,3 +2053,4 @@ class _BarberProfileTab extends StatelessWidget {
     );
   }
 }
+

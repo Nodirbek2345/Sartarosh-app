@@ -1349,9 +1349,15 @@ class BookingView extends GetView<BookingController> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return Container(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.only(
+            left: 24,
+            right: 24,
+            top: 24,
+            bottom: MediaQuery.paddingOf(context).bottom + 24,
+          ),
           decoration: BoxDecoration(
             color: Color(0xFF0F1120),
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),

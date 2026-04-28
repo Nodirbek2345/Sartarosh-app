@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -130,7 +131,7 @@ class MyBookingsController extends GetxController {
       Get.snackbar(
         "O'chirildi",
         "Bron tarixdan o'chirildi.",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
     } catch (e) {
@@ -144,3 +145,4 @@ class MyBookingsController extends GetxController {
     super.onClose();
   }
 }
+

@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -265,7 +266,7 @@ class BookingController extends GetxController {
       Get.snackbar(
         "Kechirasiz",
         "Bugun uchun bo'sh vaqt qolmadi",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     }
@@ -291,7 +292,7 @@ class BookingController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Vaqt formati noto'g'ri",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
       return;
@@ -303,7 +304,7 @@ class BookingController extends GetxController {
       Get.snackbar(
         "Xatolik",
         "Bronni faqat 30 kun oldindan qilish mumkin",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
       return;
@@ -318,7 +319,7 @@ class BookingController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Iltimos, avval tizimga kiring",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         Get.offAllNamed('/phone-login');
@@ -334,7 +335,7 @@ class BookingController extends GetxController {
         Get.snackbar(
           "Xatolik",
           "Iltimos, vaqtni tanlang",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         isSubmitting.value = false;
@@ -347,7 +348,7 @@ class BookingController extends GetxController {
         Get.snackbar(
           "Vaqt band!",
           "Kechirasiz, ustaning bu vaqti allaqachon band. Boshqa vaqt tanlang.",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
         );
         isSubmitting.value = false;
@@ -365,7 +366,7 @@ class BookingController extends GetxController {
         Get.snackbar(
           "Bloklangan!",
           "Sizda 2 marta yoki undan ko'p 'Kelmadi' holati mavjud. Bron qilish vaqtincha ta'qiqlanadi.",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
           duration: Duration(seconds: 4),
         );
@@ -413,7 +414,7 @@ class BookingController extends GetxController {
         Get.snackbar(
           "Ogohlantirish",
           "Siz ohirgi 7 kunda 3 marta bron bekor qildingiz. Yangi bron qilish vaqtincha cheklangan.",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
           duration: Duration(seconds: 5),
         );
@@ -488,7 +489,7 @@ class BookingController extends GetxController {
       Get.snackbar(
         "Xatolik",
         msg,
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
     } finally {
@@ -496,3 +497,4 @@ class BookingController extends GetxController {
     }
   }
 }
+

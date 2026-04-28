@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:get/get.dart';
@@ -317,7 +318,7 @@ class HomeController extends GetxController {
           Get.snackbar(
             "Ruxsat berilmadi",
             "GPS ruxsatini bering",
-            backgroundColor: Colors.redAccent,
+            backgroundColor: AppTheme.danger,
             colorText: Colors.white,
             snackPosition: SnackPosition.BOTTOM,
           );
@@ -329,7 +330,7 @@ class HomeController extends GetxController {
         Get.snackbar(
           "GPS bloklangan",
           "Sozlamalardan GPS ni oching",
-          backgroundColor: Colors.redAccent,
+          backgroundColor: AppTheme.danger,
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
         );
@@ -361,7 +362,7 @@ class HomeController extends GetxController {
       Get.snackbar(
         "📍 GPS faol",
         "5 km radiusdagi ustalar ko'rsatilmoqda",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
         margin: const EdgeInsets.all(16),
@@ -370,7 +371,7 @@ class HomeController extends GetxController {
       Get.snackbar(
         "GPS xatolik",
         "Joylashuvni aniqlab bo'lmadi",
-        backgroundColor: Colors.redAccent,
+        backgroundColor: AppTheme.danger,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,
       );
@@ -407,3 +408,4 @@ class HomeController extends GetxController {
     super.onClose();
   }
 }
+

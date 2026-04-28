@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -212,7 +212,7 @@ class AddBarberController extends GetxController {
     Get.snackbar(
       "Xatolik",
       msg,
-      backgroundColor: Colors.redAccent,
+      backgroundColor: AppTheme.danger,
       colorText: Colors.white,
       snackPosition: SnackPosition.BOTTOM,
     );
@@ -540,3 +540,4 @@ class AddBarberController extends GetxController {
     super.onClose();
   }
 }
+

@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
@@ -69,7 +70,7 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
       Get.snackbar(
         "Katta Rahmat! 🎉",
         "Sizning fikringiz $barberName va boshqa mijozlar uchun juda muhim.",
-        backgroundColor: Colors.green,
+        backgroundColor: AppTheme.success,
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         margin: const EdgeInsets.all(16),
@@ -261,3 +262,4 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
     );
   }
 }
+

@@ -1,3 +1,4 @@
+﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../services/user_service.dart';
@@ -17,7 +18,7 @@ class BarberMiddleware extends GetMiddleware {
       Get.snackbar(
         "Avtorizatsiya",
         "Iltimos, tizimga kiring.",
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
+        backgroundColor: AppTheme.danger.withValues(alpha: 0.9),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         margin: EdgeInsets.all(16),
@@ -31,7 +32,7 @@ class BarberMiddleware extends GetMiddleware {
       Get.snackbar(
         "Ruxsat yo'q",
         "Siz usta rejimida emassiz yoki hali ro'yxatdan o'tmagansiz. Usta bo'limiga kirish uchu avval rejimni o'zgartiring yoki ro'yxatdan o'ting.",
-        backgroundColor: Colors.redAccent.withValues(alpha: 0.9),
+        backgroundColor: AppTheme.danger.withValues(alpha: 0.9),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,
         margin: EdgeInsets.all(16),
@@ -44,3 +45,4 @@ class BarberMiddleware extends GetMiddleware {
     return null;
   }
 }
+

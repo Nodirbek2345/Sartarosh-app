@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
@@ -267,7 +267,7 @@ class ProfileView extends StatelessWidget {
                                   Get.snackbar(
                                     "Kechirasiz",
                                     "Sizning usta profilingiz tizimda mavjud emas yoki o'chirilgan.",
-                                    backgroundColor: Colors.redAccent,
+                                    backgroundColor: AppTheme.danger,
                                     colorText: Colors.white,
                                     snackPosition: SnackPosition.TOP,
                                   );
@@ -956,7 +956,7 @@ class ProfileView extends StatelessWidget {
                             },
                             child: Text(
                               "Ha, chiqish",
-                              style: TextStyle(color: Colors.red),
+                              style: TextStyle(color: AppTheme.danger),
                             ),
                           ),
                         ],
@@ -1351,3 +1351,4 @@ class ProfileView extends StatelessWidget {
     });
   }
 }
+
