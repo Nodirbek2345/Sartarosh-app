@@ -1876,7 +1876,7 @@ class _BarberProfileTab extends StatelessWidget {
           left: 24,
           right: 24,
           top: 24,
-          bottom: MediaQuery.of(context).padding.bottom + 32, // Lift it higher!
+          bottom: MediaQuery.paddingOf(context).bottom + 72, // Lift it higher!
         ),
         decoration: const BoxDecoration(
           color: Colors.white,
