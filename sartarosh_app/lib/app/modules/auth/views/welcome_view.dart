@@ -293,7 +293,7 @@ class WelcomeView extends GetView<AuthController> {
         controller.goToHome();
       },
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+        padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(24),
@@ -308,10 +308,21 @@ class WelcomeView extends GetView<AuthController> {
         child: Column(
           children: [
             Container(
-              padding: EdgeInsets.all(16),
+              padding: EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    color.withValues(alpha: 0.15),
+                    color.withValues(alpha: 0.05),
+                  ],
+                ),
                 shape: BoxShape.circle,
+                border: Border.all(
+                  color: color.withValues(alpha: 0.2),
+                  width: 2,
+                ),
               ),
               child: Icon(icon, size: 40, color: color),
             ),
@@ -321,9 +332,9 @@ class WelcomeView extends GetView<AuthController> {
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
                 color: AppTheme.textDark,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                height: 1.4,
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                height: 1.3,
               ),
             ),
           ],

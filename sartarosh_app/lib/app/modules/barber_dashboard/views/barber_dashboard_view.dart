@@ -1865,6 +1865,8 @@ class _BarberProfileTab extends StatelessWidget {
     final hours = await controller.getWorkingHours();
     Get.back(); // close loading dialog
 
+    if (!context.mounted) return;
+
     final openTime = RxString(hours['open'] ?? "09:00");
     final closeTime = RxString(hours['close'] ?? "21:00");
 
