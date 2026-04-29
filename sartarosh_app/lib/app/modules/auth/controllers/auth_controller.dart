@@ -66,58 +66,87 @@ class AuthController extends GetxController {
       final user = userCredential.user;
       if (user != null) {
         final userService = Get.find<UserService>();
-        final userName = InputSanitizer.sanitizeText(
+        final googleName = InputSanitizer.sanitizeText(
           user.displayName ?? 'Foydalanuvchi',
         );
-        final userPhone = InputSanitizer.sanitizePhone(phoneCtrl.text.trim());
+        final inputPhone = InputSanitizer.sanitizePhone(phoneCtrl.text.trim());
         final userPhoto = user.photoURL ?? '';
+
+        // 1. Phone collision check (Prevent Number hijacking)
+        final phoneCheck = await _firestore
+            .collection('users')
+            .where('phone', isEqualTo: inputPhone)
+            .get();
+
+        if (phoneCheck.docs.isNotEmpty) {
+          final existingAccountUid = phoneCheck.docs.first.id;
+          if (existingAccountUid != user.uid) {
+            // This phone belongs to a DIFFERENT Google account!
+            isLoading.value = false;
+            await googleSignIn.signOut();
+            await FirebaseAuth.instance.signOut();
+
+            Get.snackbar(
+              "Xatolik",
+              "Bu raqam (${inputPhone}) boshqa hisobga ulangan! O'sha Google akkauntdan kiring.",
+              backgroundColor: AppTheme.danger,
+              colorText: Colors.white,
+              snackPosition: SnackPosition.BOTTOM,
+              duration: Duration(seconds: 5),
+            );
+            return;
+          }
+        }
 
         // Save UID first (critical for security)
         userService.updateUid(user.uid);
-        userService.updateUser(userName, userPhone);
 
         // Save Google photo URL
         if (userPhoto.isNotEmpty) {
           userService.updatePhotoUrl(userPhoto);
         }
 
-        // FETCH USER DOC FIRST!
+        // 2. Fetch User Document by UID
         final userDoc = await _firestore
             .collection('users')
             .doc(user.uid)
             .get();
-        String currentRole = 'client';
 
-        if (userDoc.exists) {
-          final data = userDoc.data();
-          if (data != null && data.containsKey('role')) {
-            currentRole = data['role'] ?? 'client';
-          }
-        }
+        String savedRole = 'client';
+        String finalName = googleName;
+        String finalPhone = inputPhone;
 
-        // Save to Firestore backend with UID as document key
-        final updateData = {
-          'uid': user.uid,
-          'name': userName,
-          'phone': userPhone,
+        final updateData = <String, dynamic>{
           'email': user.email ?? '',
           'photoUrl': userPhoto,
           'lastLogin': FieldValue.serverTimestamp(),
         };
 
-        // Only set default values if user is completely new
-        if (!userDoc.exists) {
+        if (userDoc.exists) {
+          // RESTORE EXISTING PROFILE! (Do NOT overwrite name/phone from input/google)
+          final data = userDoc.data()!;
+          if (data.containsKey('role')) savedRole = data['role'] ?? 'client';
+          if (data.containsKey('name')) finalName = data['name'] ?? googleName;
+          if (data.containsKey('phone'))
+            finalPhone = data['phone'] ?? inputPhone;
+        } else {
+          // BRAND NEW PROFILE
+          updateData['uid'] = user.uid;
+          updateData['name'] = finalName;
+          updateData['phone'] = finalPhone;
           updateData['role'] = 'client';
           updateData['createdAt'] = FieldValue.serverTimestamp();
         }
 
+        // Update Backend
         await _firestore
             .collection('users')
             .doc(user.uid)
             .set(updateData, SetOptions(merge: true));
 
-        // SYNC user service locally so it overrides any stale FlutterSecureStorage value!
-        userService.setUserRole(currentRole);
+        // 3. Update Local Storage and State correctly
+        userService.updateUser(finalName, finalPhone);
+        userService.setUserRole(savedRole);
 
         // Ensure Barber mode is off when initially logging in to prevent ghost states
         if (userService.isBarberMode.value) {
@@ -131,7 +160,7 @@ class AuthController extends GetxController {
 
         Get.snackbar(
           "Muvaffaqiyatli!",
-          "Xush kelibsiz, $userName!",
+          "Xush kelibsiz, $finalName!",
           backgroundColor: Color(0xFFC9A96E),
           colorText: Colors.white,
           snackPosition: SnackPosition.BOTTOM,
@@ -180,4 +209,3 @@ class AuthController extends GetxController {
     super.onClose();
   }
 }
-
