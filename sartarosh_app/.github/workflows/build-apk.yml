@@ -49,9 +49,10 @@ jobs:
             Yangi versiya tayyor!
             
             ### O'zgarishlar:
-            - GPS aniqligi yaxshilandi
-            - Yangilanish tizimi qo'shildi
-            - Xatoliklar tuzatildi
+            - Haqiqiy Bildirishnomalar Markazi (Notification Center) qo'shildi
+            - Premium Haptic Feedback (vibratsiya vositalari) joriy etildi
+            - SARTAROSH logosi uchun Shimmer jilo qo'shildi
+            - "Mening bronlarim" menyusiga Pull-to-refresh tortib yangilash mexanizmi qo'shildi
           files: build/app/outputs/flutter-apk/app-release.apk
           draft: false
           prerelease: false
