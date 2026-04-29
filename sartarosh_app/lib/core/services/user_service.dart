@@ -68,6 +68,51 @@ class UserService extends GetxService {
       await _storage.write(key: 'user_uid', value: firebaseUser.uid);
     }
 
+    // PRO: Auto-restore profile from Firestore after reinstall/device change
+    // When local storage is empty (name = default) but user is still authenticated,
+    // pull saved profile data from Firestore to restore the user's custom name/phone/avatar
+    if (currentUid.isNotEmpty && name.value == "Mijoz") {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .get();
+        if (userDoc.exists) {
+          final data = userDoc.data()!;
+          final serverName = data['name'] as String? ?? '';
+          final serverPhone = data['phone'] as String? ?? '';
+          final serverRole = data['role'] as String? ?? 'client';
+          final serverAvatar = data['avatar'] as String? ?? '';
+          final serverPhotoUrl = data['photoUrl'] as String? ?? '';
+
+          if (serverName.isNotEmpty && serverName != "Mijoz") {
+            name.value = serverName;
+            await _storage.write(key: 'user_name', value: serverName);
+          }
+          if (serverPhone.isNotEmpty) {
+            phone.value = serverPhone;
+            await _storage.write(key: 'user_phone', value: serverPhone);
+          }
+          if (serverRole.isNotEmpty) {
+            userRole.value = serverRole;
+            await _storage.write(key: 'user_role', value: serverRole);
+          }
+          if (serverAvatar.isNotEmpty) {
+            avatarBase64.value = serverAvatar;
+            await _storage.write(key: 'user_avatar', value: serverAvatar);
+          }
+          if (serverPhotoUrl.isNotEmpty) {
+            photoUrl.value = serverPhotoUrl;
+            await _storage.write(key: 'user_photo_url', value: serverPhotoUrl);
+          }
+
+          // Mark as logged in since Firestore profile exists
+          isLogged.value = true;
+          await _storage.write(key: 'is_logged', value: 'true');
+        }
+      } catch (_) {}
+    }
+
     // PRO: Auto role-recovery — fix desync for users stuck as 'client'
     if (currentUid.isNotEmpty && userRole.value == 'client') {
       try {
