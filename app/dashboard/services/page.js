@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { FaServer, FaPlus, FaEdit, FaTrash, FaSpinner, FaTimes } from "react-icons/fa";
-import { onServicesSnapshot, addService, updateService, deleteService, formatPrice } from "@/lib/firestore";
+import { onServicesSnapshot, addService, updateService, deleteService } from "@/lib/firestore";
 import toast from "react-hot-toast";
 
 export default function ServicesPage() {
@@ -10,8 +10,9 @@ export default function ServicesPage() {
     const [showModal, setShowModal] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [activeTab, setActiveTab] = useState("male");
 
-    const emptyForm = { name: "", category: "Soch olish" };
+    const emptyForm = { name: "", category: "Soch olish", gender: "male" };
     const [form, setForm] = useState({ ...emptyForm });
 
     useEffect(() => {
@@ -23,13 +24,13 @@ export default function ServicesPage() {
     }, []);
 
     const openAddModal = () => {
-        setForm({ ...emptyForm });
+        setForm({ ...emptyForm, gender: activeTab });
         setEditMode(false);
         setShowModal(true);
     };
 
     const openEditModal = (service) => {
-        setForm({ ...service });
+        setForm({ ...emptyForm, ...service });
         setEditMode(true);
         setShowModal(true);
     };
@@ -41,7 +42,7 @@ export default function ServicesPage() {
         }
         setSaving(true);
         try {
-            const dataToSave = { name: form.name.trim(), category: form.category };
+            const dataToSave = { name: form.name.trim(), category: form.category, gender: form.gender };
             if (editMode && form.id) {
                 await updateService(form.id, dataToSave);
                 toast.success("Xizmat yangilandi!");
@@ -75,6 +76,12 @@ export default function ServicesPage() {
         );
     }
 
+    const filteredServices = services.filter((s) => {
+        const gen = s.gender || "male";
+        if (activeTab === "all") return true;
+        return gen === activeTab;
+    });
+
     return (
         <div>
             <div className="dashboard-topbar">
@@ -87,10 +94,34 @@ export default function ServicesPage() {
                 </button>
             </div>
 
+            {/* TABS */}
+            <div style={{ display: 'flex', gap: 16, marginBottom: 20, borderBottom: '1px solid #E2E8F0' }}>
+                <button
+                    onClick={() => setActiveTab('male')}
+                    style={{
+                        padding: '12px 16px', background: 'none', border: 'none',
+                        borderBottom: activeTab === 'male' ? '3px solid #3B82F6' : '3px solid transparent',
+                        color: activeTab === 'male' ? '#3B82F6' : '#64748B',
+                        fontWeight: activeTab === 'male' ? 700 : 500, cursor: 'pointer', fontSize: 15
+                    }}>
+                    Erkaklar u-n
+                </button>
+                <button
+                    onClick={() => setActiveTab('female')}
+                    style={{
+                        padding: '12px 16px', background: 'none', border: 'none',
+                        borderBottom: activeTab === 'female' ? '3px solid #EC4899' : '3px solid transparent', // Pink for female
+                        color: activeTab === 'female' ? '#EC4899' : '#64748B',
+                        fontWeight: activeTab === 'female' ? 700 : 500, cursor: 'pointer', fontSize: 15
+                    }}>
+                    Ayollar u-n
+                </button>
+            </div>
+
             <div className="dash-card">
-                {services.length === 0 ? (
+                {filteredServices.length === 0 ? (
                     <div style={{ textAlign: "center", padding: 40, color: "#94A3B8", fontSize: 14 }}>
-                        Hech qanday xizmat topilmadi
+                        Bu turga oid xizmat topilmadi
                     </div>
                 ) : (
                     <table className="dash-table">
@@ -102,11 +133,11 @@ export default function ServicesPage() {
                             </tr>
                         </thead>
                         <tbody>
-                            {services.map((s) => (
+                            {filteredServices.map((s) => (
                                 <tr key={s.id}>
                                     <td style={{ fontWeight: 600 }}>{s.name}</td>
                                     <td>
-                                        <span className="badge badge-info">{s.category || 'Umumiy'}</span>
+                                        <span className="badge badge-info" style={{ background: activeTab === 'female' ? '#FCE7F3' : '#EFF6FF', color: activeTab === 'female' ? '#BE185D' : '#1D4ED8' }}>{s.category || 'Umumiy'}</span>
                                     </td>
                                     <td>
                                         <div style={{ display: "flex", gap: 8 }}>
@@ -163,10 +194,28 @@ export default function ServicesPage() {
                                 <option value="Soqol olish" />
                                 <option value="Kompleks" />
                                 <option value="Maxsus" />
+                                <option value="Soch turmak" />
+                                <option value="Makiyaj" />
+                                <option value="Manikyur" />
                             </datalist>
                         </div>
+                        <div className="dash-form-group">
+                            <label>Jinsi</label>
+                            <select
+                                value={form.gender}
+                                onChange={(e) => setForm(p => ({ ...p, gender: e.target.value }))}
+                                style={{
+                                    width: "100%", padding: "12px 16px", borderRadius: 12, border: "1px solid #E2E8F0",
+                                    outline: "none", background: "#F8FAFC", color: "#1E293B", fontSize: 15
+                                }}
+                            >
+                                <option value="male">Faqat Erkaklar uchun</option>
+                                <option value="female">Faqat Ayollar uchun</option>
+                                <option value="all">Barchaga (Umumiy)</option>
+                            </select>
+                        </div>
 
-                        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 16 }}>
+                        <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
                             <button onClick={() => setShowModal(false)} style={{
                                 padding: "10px 24px", borderRadius: 10, border: "none", background: "#F1F5F9", color: "#475569", fontWeight: 600, cursor: "pointer"
                             }}>Bekor qilish</button>
