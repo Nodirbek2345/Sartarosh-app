@@ -189,7 +189,43 @@ service cloud.firestore {
     }
 
     // ═══════════════════════════════════════════════════════
-    // 9. BOSHQA HAMMA NARSA — CATCH-ALL DENY
+    // 9. BILDARISHNOMALAR VA QURILMALAR (Notifications & Tokens)
+    // ═══════════════════════════════════════════════════════
+    match /notifications/{notifId} {
+      // Faqat o'ziga tegishli xabarlarni o'qish
+      allow read: if isSignedIn() && existingData().userId == request.auth.uid;
+      
+      // Xabar yaratish (shuningdek transaction orqali boshqaga xabar yuborish ham ruxsat etiladi
+      // chunki bron tasdiqlanganda mijoz sartaroshga xabar yaratadi)
+      allow create: if isSignedIn() 
+                    && incomingData().keys().hasAll(['userId', 'title', 'message', 'type', 'isRead'])
+                    && incomingData().title is string && incomingData().title.size() <= 100
+                    && incomingData().message is string && incomingData().message.size() <= 500;
+                    
+      // Faqat o'qilganlik (isRead) holatini o'zgartirish ruxsat etiladi
+      allow update: if isSignedIn() 
+                    && existingData().userId == request.auth.uid
+                    && incomingData().userId == existingData().userId
+                    && incomingData().title == existingData().title
+                    && incomingData().message == existingData().message
+                    && incomingData().type == existingData().type;
+                    
+      allow delete: if isSignedIn() && existingData().userId == request.auth.uid;
+    }
+    
+    match /device_tokens/{tokenId} {
+      allow read: if isSignedIn() && existingData().uid == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().token is string;
+      allow update: if isSignedIn() 
+                    && existingData().uid == request.auth.uid
+                    && incomingData().uid == existingData().uid;
+      allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 10. BOSHQA HAMMA NARSA — CATCH-ALL DENY
     // ═══════════════════════════════════════════════════════
     match /{document=**} {
       allow read, write: if false;

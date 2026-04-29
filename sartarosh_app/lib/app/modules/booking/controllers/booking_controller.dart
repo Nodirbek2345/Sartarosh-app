@@ -100,10 +100,15 @@ class BookingController extends GetxController {
   void _fetchBarbers() {
     final userService = Get.find<UserService>();
     final userGender = userService.targetGender.value;
+    final targetRegion = userService.selectedRegion.value;
 
     _firestore
         .collection('barbers')
         .where('gender', isEqualTo: userGender)
+        .where(
+          'region',
+          isEqualTo: targetRegion,
+        ) // SECURITY: Strictly scope by GPS region
         .snapshots()
         .listen((snapshot) {
           final list = snapshot.docs.map((doc) {

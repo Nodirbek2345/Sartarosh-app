@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../../core/utils/input_sanitizer.dart';
 
 class UserService extends GetxService {
   final name = "Mijoz".obs;
@@ -275,7 +276,10 @@ class UserService extends GetxService {
     await _storage.write(key: 'user_role', value: role);
   }
 
-  void updateUser(String newName, String newPhone) async {
+  void updateUser(String rawName, String rawPhone) async {
+    final newName = InputSanitizer.sanitizeText(rawName);
+    final newPhone = InputSanitizer.sanitizePhone(rawPhone);
+
     if (newName.isNotEmpty) {
       name.value = newName;
       await _storage.write(key: 'user_name', value: newName);
