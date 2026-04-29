@@ -82,319 +82,327 @@ class MyBookingsView extends GetView<MyBookingsController> {
       ).animate().fadeIn();
     }
 
-    return ListView.builder(
-      padding: EdgeInsets.all(16),
-      physics: BouncingScrollPhysics(),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final b = items[index];
-        final status = b['status'] ?? 'pending';
-        return Container(
-              margin: EdgeInsets.only(bottom: 12),
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: _statusColor(status).withValues(alpha: 0.2),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.03),
-                    blurRadius: 10,
-                    offset: Offset(0, 4),
+    return RefreshIndicator(
+      color: AppTheme.primary,
+      onRefresh: () async {
+        await Future.delayed(const Duration(milliseconds: 800));
+      },
+      child: ListView.builder(
+        padding: EdgeInsets.all(16),
+        physics: BouncingScrollPhysics(),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final b = items[index];
+          final status = b['status'] ?? 'pending';
+          return Container(
+                margin: EdgeInsets.only(bottom: 12),
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: _statusColor(status).withValues(alpha: 0.2),
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: _statusColor(status).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: _statusColor(status).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            _statusIcon(status),
+                            color: _statusColor(status),
+                            size: 22,
+                          ),
                         ),
-                        child: Icon(
-                          _statusIcon(status),
-                          color: _statusColor(status),
-                          size: 22,
+                        SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                b['service'] ?? 'Xizmat',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textDark,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                "${b['barberName'] ?? '—'}",
+                                style: TextStyle(
+                                  color: AppTheme.textMedium,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              b['service'] ?? 'Xizmat',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textDark,
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _statusColor(status).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _statusLabel(status),
+                            style: TextStyle(
+                              color: _statusColor(status),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        if (!isActive) ...[
+                          SizedBox(width: 8),
+                          GestureDetector(
+                            onTap: () {
+                              Get.dialog(
+                                AlertDialog(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  title: Text("Tarixdan o'chirish"),
+                                  content: Text(
+                                    "Haqiqatan ham bu yozuvni tarixdan yashirmoqchimisiz?",
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Get.back(),
+                                      child: Text("Yo'q"),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Get.back();
+                                        controller.deleteHistoryItem(b['id']);
+                                      },
+                                      child: Text(
+                                        "Ha, o'chirish",
+                                        style: TextStyle(
+                                          color: AppTheme.danger,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                            child: Container(
+                              padding: EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.danger.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Icon(
+                                Icons.delete_outline_rounded,
+                                color: AppTheme.danger,
+                                size: 18,
                               ),
                             ),
-                            SizedBox(height: 4),
+                          ),
+                        ],
+                      ],
+                    ),
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Divider(height: 1, color: AppTheme.background),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.calendar_month_rounded,
+                              size: 14,
+                              color: AppTheme.textLight,
+                            ),
+                            SizedBox(width: 4),
                             Text(
-                              "${b['barberName'] ?? '—'}",
+                              "${b['date'] ?? '—'} • ${b['time'] ?? ''}",
                               style: TextStyle(
                                 color: AppTheme.textMedium,
                                 fontSize: 13,
-                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: _statusColor(status).withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          _statusLabel(status),
+                        Text(
+                          "${((b['price'] ?? 0) ~/ 1000)} ming so'm",
                           style: TextStyle(
-                            color: _statusColor(status),
-                            fontSize: 11,
+                            color: AppTheme.textDark,
                             fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      if (!isActive) ...[
-                        SizedBox(width: 8),
-                        GestureDetector(
-                          onTap: () {
-                            Get.dialog(
-                              AlertDialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                title: Text("Tarixdan o'chirish"),
-                                content: Text(
-                                  "Haqiqatan ham bu yozuvni tarixdan yashirmoqchimisiz?",
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Get.back(),
-                                    child: Text("Yo'q"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Get.back();
-                                      controller.deleteHistoryItem(b['id']);
-                                    },
-                                    child: Text(
-                                      "Ha, o'chirish",
-                                      style: TextStyle(color: AppTheme.danger),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          child: Container(
-                            padding: EdgeInsets.all(5),
-                            decoration: BoxDecoration(
-                              color: AppTheme.danger.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Icon(
-                              Icons.delete_outline_rounded,
-                              color: AppTheme.danger,
-                              size: 18,
-                            ),
+                            fontSize: 14,
                           ),
                         ),
                       ],
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(height: 1, color: AppTheme.background),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_month_rounded,
-                            size: 14,
-                            color: AppTheme.textLight,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            "${b['date'] ?? '—'} • ${b['time'] ?? ''}",
-                            style: TextStyle(
-                              color: AppTheme.textMedium,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text(
-                        "${((b['price'] ?? 0) ~/ 1000)} ming so'm",
-                        style: TextStyle(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
+                    ),
+                    if (isActive && status == 'confirmed')
+                      Container(
+                        margin: EdgeInsets.only(top: 14),
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                      ),
-                    ],
-                  ),
-                  if (isActive && status == 'confirmed')
-                    Container(
-                      margin: EdgeInsets.only(top: 14),
-                      padding: EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.info_outline,
-                                size: 16,
-                                color: AppTheme.primary,
-                              ),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  "Hizmat tasdiqlandi. Iltimos o'z vaqtida keling.",
-                                  style: TextStyle(
-                                    color: AppTheme.primary,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.bold,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.info_outline,
+                                  size: 16,
+                                  color: AppTheme.primary,
+                                ),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    "Hizmat tasdiqlandi. Iltimos o'z vaqtida keling.",
+                                    style: TextStyle(
+                                      color: AppTheme.primary,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 6),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.payments_outlined,
-                                size: 16,
-                                color: AppTheme.textDark,
-                              ),
-                              SizedBox(width: 6),
-                              Expanded(
-                                child: Text(
-                                  "Naqd to'lov: Xizmatdan so'ng joyida to'laysiz.",
-                                  style: TextStyle(
-                                    color: AppTheme.textDark,
-                                    fontSize: 12,
+                              ],
+                            ),
+                            SizedBox(height: 6),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.payments_outlined,
+                                  size: 16,
+                                  color: AppTheme.textDark,
+                                ),
+                                SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    "Naqd to'lov: Xizmatdan so'ng joyida to'laysiz.",
+                                    style: TextStyle(
+                                      color: AppTheme.textDark,
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  SizedBox(height: 14),
-                  if (isActive &&
-                      (status == 'pending' || status == 'confirmed'))
-                    GestureDetector(
-                      onTap: () {
-                        Get.dialog(
-                          AlertDialog(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            title: Text("Bekor qilish"),
-                            content: Text(
-                              "Haqiqatan ham ushbu bronni bekor qilmoqchimisiz?",
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Get.back(),
-                                child: Text("Yo'q"),
-                              ),
-                              TextButton(
-                                onPressed: () {
-                                  Get.back();
-                                  controller.cancelBooking(
-                                    b['id'],
-                                    b['date'] ?? '',
-                                    b['time'] ?? '',
-                                  );
-                                },
-                                child: Text(
-                                  "Ha, bekor qilish",
-                                  style: TextStyle(color: AppTheme.danger),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          color: AppTheme.danger.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Center(
-                          child: Text(
-                            "Bekor qilish",
-                            style: TextStyle(
-                              color: AppTheme.danger,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (!isActive)
-                    GestureDetector(
-                      onTap: () => controller.rebook(b),
-                      child: Container(
-                        width: double.infinity,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [AppTheme.primary, AppTheme.accent],
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppTheme.primary.withValues(alpha: 0.3),
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
+                              ],
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            "Qayta bron qilish",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
+                      ),
+                    SizedBox(height: 14),
+                    if (isActive &&
+                        (status == 'pending' || status == 'confirmed'))
+                      GestureDetector(
+                        onTap: () {
+                          Get.dialog(
+                            AlertDialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              title: Text("Bekor qilish"),
+                              content: Text(
+                                "Haqiqatan ham ushbu bronni bekor qilmoqchimisiz?",
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Get.back(),
+                                  child: Text("Yo'q"),
+                                ),
+                                TextButton(
+                                  onPressed: () {
+                                    Get.back();
+                                    controller.cancelBooking(
+                                      b['id'],
+                                      b['date'] ?? '',
+                                      b['time'] ?? '',
+                                    );
+                                  },
+                                  child: Text(
+                                    "Ha, bekor qilish",
+                                    style: TextStyle(color: AppTheme.danger),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.danger.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Bekor qilish",
+                              style: TextStyle(
+                                color: AppTheme.danger,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                ],
-              ),
-            )
-            .animate()
-            .fadeIn(delay: Duration(milliseconds: 100 + (index * 50)))
-            .slideY(begin: 0.05);
-      },
+                    if (!isActive)
+                      GestureDetector(
+                        onTap: () => controller.rebook(b),
+                        child: Container(
+                          width: double.infinity,
+                          padding: EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [AppTheme.primary, AppTheme.accent],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              "Qayta bron qilish",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w700,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              )
+              .animate()
+              .fadeIn(delay: Duration(milliseconds: 100 + (index * 50)))
+              .slideY(begin: 0.05);
+        },
+      ),
     );
   }
 

@@ -1,4 +1,5 @@
 ﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
 import 'package:get/get.dart';
@@ -328,6 +329,7 @@ class BarberDashboardController extends GetxController {
         backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
+      HapticFeedback.lightImpact();
     } catch (e) {
       Get.snackbar(
         "Xatolik",
@@ -448,6 +450,7 @@ class BarberDashboardController extends GetxController {
         backgroundColor: Colors.blue,
         colorText: Colors.white,
       );
+      HapticFeedback.lightImpact();
     } catch (e) {
       Get.snackbar(
         "Xatolik",
@@ -483,6 +486,7 @@ class BarberDashboardController extends GetxController {
         backgroundColor: AppTheme.success,
         colorText: Colors.white,
       );
+      HapticFeedback.heavyImpact();
     } catch (e) {
       Get.snackbar(
         "Xatolik",
@@ -837,4 +841,3 @@ class BarberDashboardController extends GetxController {
     super.onClose();
   }
 }
-

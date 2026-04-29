@@ -56,14 +56,23 @@ class SplashView extends GetView<SplashController> {
               SizedBox(height: 40),
 
               Text(
-                "SARTAROSH",
-                style: GoogleFonts.playfairDisplay(
-                  color: Colors.white,
-                  fontSize: 38,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 4,
-                ),
-              ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.3),
+                    "SARTAROSH",
+                    style: GoogleFonts.playfairDisplay(
+                      color: Colors.white,
+                      fontSize: 38,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 4,
+                    ),
+                  )
+                  .animate()
+                  .fadeIn(delay: 400.ms)
+                  .slideY(begin: 0.3)
+                  .shimmer(
+                    duration: 1200.ms,
+                    delay: 1000.ms,
+                    color: Colors.white,
+                    angle: 1,
+                  ),
 
               SizedBox(height: 12),
 
