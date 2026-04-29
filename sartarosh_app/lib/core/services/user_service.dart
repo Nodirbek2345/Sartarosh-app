@@ -211,6 +211,36 @@ class UserService extends GetxService {
     }
     isLogged.value = true;
     await _storage.write(key: 'is_logged', value: 'true');
+
+    // PRO FIX: Sync to Firestore so reinstalling app doesn't lose the custom name/phone
+    if (currentUid.isNotEmpty) {
+      try {
+        final Map<String, dynamic> updateData = {};
+        if (newName.isNotEmpty) updateData['name'] = newName;
+        if (newPhone.isNotEmpty) updateData['phone'] = newPhone;
+
+        if (updateData.isNotEmpty) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(currentUid)
+              .set(updateData, SetOptions(merge: true));
+
+          // If the user is also a barber, sync their name to the barber doc as well
+          if (userRole.value == 'barber') {
+            final snap = await FirebaseFirestore.instance
+                .collection('barbers')
+                .where('uid', isEqualTo: currentUid)
+                .limit(1)
+                .get();
+            if (snap.docs.isNotEmpty) {
+              if (newName.isNotEmpty) {
+                await snap.docs.first.reference.update({'name': newName});
+              }
+            }
+          }
+        }
+      } catch (_) {}
+    }
   }
 
   Future<void> logout() async {

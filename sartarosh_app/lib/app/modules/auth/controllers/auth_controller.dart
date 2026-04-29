@@ -88,7 +88,7 @@ class AuthController extends GetxController {
 
             Get.snackbar(
               "Xatolik",
-              "Bu raqam (${inputPhone}) boshqa hisobga ulangan! O'sha Google akkauntdan kiring.",
+              "Bu raqam ($inputPhone) boshqa hisobga ulangan! O'sha Google akkauntdan kiring.",
               backgroundColor: AppTheme.danger,
               colorText: Colors.white,
               snackPosition: SnackPosition.BOTTOM,
@@ -127,8 +127,9 @@ class AuthController extends GetxController {
           final data = userDoc.data()!;
           if (data.containsKey('role')) savedRole = data['role'] ?? 'client';
           if (data.containsKey('name')) finalName = data['name'] ?? googleName;
-          if (data.containsKey('phone'))
+          if (data.containsKey('phone')) {
             finalPhone = data['phone'] ?? inputPhone;
+          }
         } else {
           // BRAND NEW PROFILE
           updateData['uid'] = user.uid;
