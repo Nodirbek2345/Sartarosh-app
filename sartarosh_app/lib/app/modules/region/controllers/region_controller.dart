@@ -6,8 +6,6 @@ import '../../../../core/services/user_service.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class RegionController extends GetxController {
-  final searchQuery = ''.obs;
-  final selectedRegion = ''.obs;
   final isDetecting = false.obs;
 
   final regions = <Map<String, String>>[
@@ -27,42 +25,8 @@ class RegionController extends GetxController {
     {'name': 'Qoraqalpog\'iston Respublikasi', 'key': 'Qoraqalpog\'iston'},
   ];
 
-  List<Map<String, String>> get filteredRegions {
-    if (searchQuery.value.isEmpty) return regions;
-    return regions
-        .where(
-          (r) => r['name']!.toLowerCase().contains(
-            searchQuery.value.toLowerCase(),
-          ),
-        )
-        .toList();
-  }
-
-  @override
-  void onInit() {
-    super.onInit();
-    selectedRegion.value = Get.find<UserService>().selectedRegion.value;
-  }
-
-  void selectRegion(String regionKey) {
-    selectedRegion.value = regionKey;
-  }
-
-  void confirmAndGo() {
-    if (selectedRegion.value.isEmpty) {
-      Get.snackbar(
-        "Diqqat",
-        "Iltimos, viloyatingizni tanlang",
-        backgroundColor: AppTheme.danger,
-        colorText: Colors.white,
-        snackPosition: SnackPosition.BOTTOM,
-      );
-      return;
-    }
-    _saveAndNavigate(selectedRegion.value);
-  }
-
-  Future<void> detectLocation() async {
+  /// GPS orqali joylashuvni aniqlash va avtomatik yo'naltirish
+  Future<void> detectAndGo() async {
     isDetecting.value = true;
     try {
       LocationPermission permission = await Geolocator.checkPermission();
@@ -103,16 +67,14 @@ class RegionController extends GetxController {
           return;
         }
 
-        // Ularni oynada tanlab qo'yamiz
-        selectRegion(regionKey);
+        // Save region and navigate to home
+        final userService = Get.find<UserService>();
+        userService.setRegionMode(regionKey);
 
-        // Aniq nima topilganini ko'rsatamiz
         final street = place.street ?? '';
         final subLocality = place.subLocality ?? '';
         final locality = place.locality ?? '';
         final adminArea = place.administrativeArea ?? '';
-
-        // Form a nice string
         final parts = [
           street,
           subLocality,
@@ -122,13 +84,17 @@ class RegionController extends GetxController {
         final exactPlace = parts.join(', ');
 
         Get.snackbar(
-          "📍 Joylashuv aniqlandi",
-          exactPlace.isNotEmpty ? exactPlace : "$regionKey tanlandi",
-          backgroundColor: AppTheme.gold,
+          "📍 $regionKey",
+          exactPlace.isNotEmpty
+              ? exactPlace
+              : "$regionKey dagi ustalar ko'rsatilmoqda",
+          backgroundColor: AppTheme.primary,
           colorText: Colors.white,
-          snackPosition: SnackPosition.TOP,
-          duration: Duration(seconds: 4),
+          snackPosition: SnackPosition.BOTTOM,
+          duration: Duration(seconds: 3),
         );
+
+        Get.offAllNamed('/home');
       } else {
         _showError("Joylashuvni aniqlab bo'lmadi");
       }
@@ -146,7 +112,6 @@ class RegionController extends GetxController {
     final sub = (placemark.subAdministrativeArea ?? '').toLowerCase();
     final combined = '$admin $locality $sub';
 
-    // Surxondaryo — Google maps returns 'Surxondaryo Region', 'Surkhondaryо', 'Сурхандарья' etc.
     if (combined.contains('surxon') ||
         combined.contains('surkhan') ||
         combined.contains('surkhon') ||
@@ -200,7 +165,6 @@ class RegionController extends GetxController {
     } else if (combined.contains('tashkent') ||
         combined.contains('toshkent') ||
         combined.contains('ташкент')) {
-      // Distinguish city from region
       if (combined.contains('viloyat') ||
           combined.contains('region') ||
           combined.contains('oblast')) {
@@ -209,24 +173,7 @@ class RegionController extends GetxController {
       return 'Toshkent';
     }
 
-    // Aniqlash imkoni bo'lmasa bo'sh qaytaramiz (Toshkentga majburan yo'naltirmaymiz)
     return '';
-  }
-
-  void _saveAndNavigate(String region) {
-    final userService = Get.find<UserService>();
-    userService.setRegionMode(region);
-
-    Get.snackbar(
-      "📍 $region",
-      "$region dagi ustalar ko'rsatilmoqda",
-      backgroundColor: AppTheme.primary,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
-      duration: Duration(seconds: 2),
-    );
-
-    Get.offAllNamed('/home');
   }
 
   void _showError(String msg) {
@@ -239,4 +186,3 @@ class RegionController extends GetxController {
     );
   }
 }
-
