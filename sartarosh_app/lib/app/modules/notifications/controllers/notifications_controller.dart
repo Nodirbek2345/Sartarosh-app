@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/services.dart';
 import '../../../../core/services/user_service.dart';
 
 class NotificationsController extends GetxController {
@@ -34,8 +35,14 @@ class NotificationsController extends GetxController {
             return data;
           }).toList();
 
+          final newUnreadCount = list.where((n) => n['isRead'] == false).length;
+
+          if (!isLoading.value && newUnreadCount > unreadCount.value) {
+            HapticFeedback.vibrate();
+          }
+
           notifications.value = list;
-          unreadCount.value = list.where((n) => n['isRead'] == false).length;
+          unreadCount.value = newUnreadCount;
           isLoading.value = false;
         });
   }
