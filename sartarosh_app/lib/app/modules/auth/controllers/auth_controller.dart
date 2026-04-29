@@ -115,6 +115,7 @@ class AuthController extends GetxController {
         String savedRole = 'client';
         String finalName = googleName;
         String finalPhone = inputPhone;
+        bool isReturningUser = false;
 
         final updateData = <String, dynamic>{
           'email': user.email ?? '',
@@ -124,6 +125,7 @@ class AuthController extends GetxController {
 
         if (userDoc.exists) {
           // RESTORE EXISTING PROFILE! (Do NOT overwrite name/phone from input/google)
+          isReturningUser = true;
           final data = userDoc.data()!;
           if (data.containsKey('role')) savedRole = data['role'] ?? 'client';
           if (data.containsKey('name')) finalName = data['name'] ?? googleName;
@@ -159,16 +161,101 @@ class AuthController extends GetxController {
           Get.find<NotificationService>().uploadTokenIfNeeded();
         }
 
-        Get.snackbar(
-          "Muvaffaqiyatli!",
-          "Xush kelibsiz, $finalName!",
-          backgroundColor: Color(0xFFC9A96E),
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-        );
+        if (isReturningUser) {
+          // PRO: For returning users — show name confirmation dialog
+          // so they can fix their name immediately after reinstall
+          final nameCtrl = TextEditingController(text: finalName);
+          final confirmedName = await Get.dialog<String>(
+            AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Text(
+                "Qaytib kelganingiz bilan! 🎉",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Ismingiz to'g'rimi? Kerak bo'lsa o'zgartiring:",
+                    style: TextStyle(color: AppTheme.textMedium, fontSize: 14),
+                  ),
+                  SizedBox(height: 16),
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: InputDecoration(
+                      labelText: "Ismingiz",
+                      prefixIcon: Icon(
+                        Icons.person_rounded,
+                        color: AppTheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppTheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Get.back(result: nameCtrl.text.trim()),
+                  child: Text(
+                    "Davom etish →",
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            barrierDismissible: false,
+          );
 
-        // Go to welcome (gender selection)
-        Get.offAllNamed('/welcome');
+          // If user edited the name, update everywhere
+          if (confirmedName != null &&
+              confirmedName.isNotEmpty &&
+              confirmedName != finalName) {
+            finalName = confirmedName;
+            userService.updateUser(finalName, finalPhone);
+          }
+
+          Get.snackbar(
+            "Muvaffaqiyatli!",
+            "Xush kelibsiz, $finalName!",
+            backgroundColor: Color(0xFFC9A96E),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+
+          // Returning user → skip welcome, go straight to home
+          Get.offAllNamed('/home');
+        } else {
+          // Brand new user → go through onboarding (role + gender selection)
+          Get.snackbar(
+            "Muvaffaqiyatli!",
+            "Xush kelibsiz, $finalName!",
+            backgroundColor: Color(0xFFC9A96E),
+            colorText: Colors.white,
+            snackPosition: SnackPosition.BOTTOM,
+          );
+
+          Get.offAllNamed('/welcome');
+        }
       }
     } on FirebaseAuthException catch (e) {
       String message = "Xatolik yuz berdi";
