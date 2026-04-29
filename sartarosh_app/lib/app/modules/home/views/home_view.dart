@@ -11,6 +11,7 @@ import '../../../../core/utils/image_helper.dart';
 import '../../barber_dashboard/views/barber_dashboard_view.dart';
 import '../../barber_dashboard/controllers/barber_dashboard_controller.dart';
 import '../../barber_dashboard/bindings/barber_dashboard_binding.dart';
+import '../../notifications/controllers/notifications_controller.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -176,26 +177,14 @@ class HomeView extends GetView<HomeController> {
             Spacer(),
             // Bell Button
             Obx(() {
-              final hasBooking = controller.upcomingBooking.value != null;
+              final notifController =
+                  Get.isRegistered<NotificationsController>()
+                  ? Get.find<NotificationsController>()
+                  : Get.put(NotificationsController());
+
+              final unread = notifController.unreadCount.value;
               return GestureDetector(
-                onTap: () {
-                  if (hasBooking) {
-                    Get.snackbar(
-                      "Bildirishnoma",
-                      "Sizda yaqinlashib kelayotgan bron mavjud! Bronlar bo'limidan tekshiring.",
-                      backgroundColor: AppTheme.primary,
-                      colorText: Colors.white,
-                    );
-                    Get.toNamed('/my-bookings');
-                  } else {
-                    Get.snackbar(
-                      "Bildirishnomalar",
-                      "Sizda hozircha yangi bildirishnomalar yo'q.",
-                      backgroundColor: AppTheme.primary,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
+                onTap: () => Get.toNamed('/notifications'),
                 child: Container(
                   margin: EdgeInsets.only(right: 12),
                   padding: EdgeInsets.all(10),
@@ -214,23 +203,40 @@ class HomeView extends GetView<HomeController> {
                     clipBehavior: Clip.none,
                     children: [
                       Icon(
-                        Icons.notifications_active_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      if (hasBooking)
+                            Icons.notifications_active_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          )
+                          .animate(
+                            target: unread > 0 ? 1 : 0,
+                            onPlay: (c) => c.repeat(reverse: true),
+                          )
+                          .shimmer()
+                          .shake(hz: 4),
+
+                      if (unread > 0)
                         Positioned(
-                          top: -2,
-                          right: -2,
+                          top: -4,
+                          right: -4,
                           child: Container(
-                            width: 8,
-                            height: 8,
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.danger,
-                              shape: BoxShape.circle,
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: AppTheme.primary,
                                 width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              "$unread",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
                           ),
@@ -1608,4 +1614,3 @@ class HomeView extends GetView<HomeController> {
     );
   }
 }
-

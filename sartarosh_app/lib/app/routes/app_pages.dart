@@ -33,6 +33,8 @@ import '../modules/region/bindings/region_binding.dart';
 import '../modules/region/views/region_view.dart';
 import '../modules/barber_services/bindings/barber_services_binding.dart';
 import '../modules/barber_services/views/barber_services_view.dart';
+import '../modules/notifications/bindings/notifications_binding.dart';
+import '../modules/notifications/views/notifications_view.dart';
 import '../../core/middleware/auth_middleware.dart';
 import '../../core/middleware/barber_middleware.dart';
 
@@ -154,6 +156,12 @@ class AppPages {
       binding: BarberServicesBinding(),
       transition: Transition.rightToLeftWithFade,
       middlewares: [BarberMiddleware()],
+    ),
+    GetPage(
+      name: Routes.notifications,
+      page: () => NotificationsView(),
+      binding: NotificationsBinding(),
+      transition: Transition.fadeIn,
     ),
   ];
 }

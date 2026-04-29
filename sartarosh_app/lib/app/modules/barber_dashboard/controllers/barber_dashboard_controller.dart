@@ -323,6 +323,18 @@ class BarberDashboardController extends GetxController {
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'confirmed',
       });
+
+      final clientUid = data['clientUid'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Bron tasdiqlandi!',
+          'message': 'Usta sizning $date $time dagi broningizni tasdiqladi.',
+          'type': 'booking_confirmed',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       Get.snackbar(
         "Muvaffaqiyatli",
         "Bron qabul qilindi",
@@ -357,6 +369,20 @@ class BarberDashboardController extends GetxController {
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'cancelled',
       });
+
+      final clientUid = snapshot.data()!['clientUid'] ?? '';
+      final date = snapshot.data()!['date'] ?? '';
+      final time = snapshot.data()!['time'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Bron bekor qilindi',
+          'message': 'Usta sizning $date $time dagi broningizni bekor qildi.',
+          'type': 'booking_cancelled',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       Get.snackbar(
         "Bekor qilindi",
         "Bron rad etildi",

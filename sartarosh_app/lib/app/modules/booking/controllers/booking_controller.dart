@@ -468,6 +468,19 @@ class BookingController extends GetxController {
           'status': 'confirmed',
           'createdAt': FieldValue.serverTimestamp(),
         });
+
+        if (barberUid.isNotEmpty) {
+          final notifRef = _firestore.collection('notifications').doc();
+          transaction.set(notifRef, {
+            'userId': barberUid,
+            'title': 'Yangi Mijoz',
+            'message':
+                '${InputSanitizer.sanitizeText(userService.name.value)} sizga $dateStr $timeVal ga ($serviceName) yozildi.',
+            'type': 'booking_created',
+            'isRead': false,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
       });
 
       Get.snackbar(

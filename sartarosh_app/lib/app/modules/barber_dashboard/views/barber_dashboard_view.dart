@@ -7,6 +7,7 @@ import '../controllers/barber_dashboard_controller.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
+import '../../notifications/controllers/notifications_controller.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 class BarberDashboardView extends GetView<BarberDashboardController> {
@@ -228,25 +229,14 @@ class _DashboardTab extends StatelessWidget {
               ),
             ),
             Obx(() {
-              final pending = controller.pendingCount.value;
+              final notifController =
+                  Get.isRegistered<NotificationsController>()
+                  ? Get.find<NotificationsController>()
+                  : Get.put(NotificationsController());
+
+              final unread = notifController.unreadCount.value;
               return GestureDetector(
-                onTap: () {
-                  if (pending > 0) {
-                    Get.snackbar(
-                      "Yangi bronlar!",
-                      "Sizda $pending ta tasdiqlanmagan bron mavjud. Bronlar bo'limidan tekshiring.",
-                      backgroundColor: AppTheme.accent,
-                      colorText: Colors.white,
-                    );
-                  } else {
-                    Get.snackbar(
-                      "Bildirishnomalar",
-                      "Sizda yangi bronlar mavjud emas.",
-                      backgroundColor: AppTheme.primary,
-                      colorText: Colors.white,
-                    );
-                  }
-                },
+                onTap: () => Get.toNamed('/notifications'),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [
@@ -267,7 +257,7 @@ class _DashboardTab extends StatelessWidget {
                           ),
                         )
                         .animate(
-                          target: pending > 0 ? 1 : 0,
+                          target: unread > 0 ? 1 : 0,
                           onPlay: (controller) =>
                               controller.repeat(reverse: true),
                         )
@@ -278,7 +268,7 @@ class _DashboardTab extends StatelessWidget {
                           duration: 2000.ms,
                         ),
 
-                    if (pending > 0)
+                    if (unread > 0)
                       Positioned(
                         top: -4,
                         right: -4,
@@ -297,7 +287,7 @@ class _DashboardTab extends StatelessWidget {
                                 ),
                               ),
                               child: Text(
-                                "$pending",
+                                "$unread",
                                 style: GoogleFonts.poppins(
                                   color: Colors.white,
                                   fontSize: 10,
@@ -2053,4 +2043,3 @@ class _BarberProfileTab extends StatelessWidget {
     );
   }
 }
-
