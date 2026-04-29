@@ -13,7 +13,16 @@ class MyBookingsController extends GetxController {
   final pastBookings = <Map<String, dynamic>>[].obs;
   final isLoading = true.obs;
 
+  // Queue position map: bookingId -> queue position
+  final queuePositions = <String, int>{}.obs;
+
+  // Total waiting for same barber/date
+  final queueTotals = <String, int>{}.obs;
+
   StreamSubscription? _bookingsSub;
+
+  // Track queue subscriptions per barber/date pair
+  final Map<String, StreamSubscription> _queueSubs = {};
 
   @override
   void onInit() {
@@ -62,7 +71,85 @@ class MyBookingsController extends GetxController {
       }).toList();
 
       isLoading.value = false;
+
+      // Calculate queue positions for all active bookings
+      _updateQueuePositions();
     });
+  }
+
+  /// Real-time queue position: listen to all bookings for same barber & date
+  void _updateQueuePositions() {
+    // Cancel old queue subscriptions
+    for (var sub in _queueSubs.values) {
+      sub.cancel();
+    }
+    _queueSubs.clear();
+
+    // Group active bookings by barber+date
+    final Map<String, List<Map<String, dynamic>>> grouped = {};
+    for (var b in activeBookings) {
+      final key = '${b['barberId'] ?? ''}_${b['date'] ?? ''}';
+      grouped.putIfAbsent(key, () => []);
+      grouped[key]!.add(b);
+    }
+
+    for (var entry in grouped.entries) {
+      final parts = entry.key.split('_');
+      if (parts.length < 2) continue;
+      final barberId = parts[0];
+      final date = parts.sublist(1).join('_');
+      if (barberId.isEmpty || date.isEmpty) continue;
+
+      final sub = _firestore
+          .collection('bookings')
+          .where('barberId', isEqualTo: barberId)
+          .where('date', isEqualTo: date)
+          .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
+          .snapshots()
+          .listen((snap) {
+            final allBookings = snap.docs.map((d) {
+              final data = d.data();
+              data['id'] = d.id;
+              return data;
+            }).toList();
+
+            // Sort by time
+            allBookings.sort(
+              (a, b) => (a['time'] ?? '').compareTo(b['time'] ?? ''),
+            );
+
+            final total = allBookings.length;
+
+            for (var myBooking in entry.value) {
+              final myId = myBooking['id'];
+              int myPos = -1;
+              for (int i = 0; i < allBookings.length; i++) {
+                if (allBookings[i]['id'] == myId) {
+                  myPos = i + 1;
+                  break;
+                }
+              }
+              if (myPos > 0) {
+                queuePositions[myId] = myPos;
+                queueTotals[myId] = total;
+              }
+            }
+          });
+      _queueSubs[entry.key] = sub;
+    }
+  }
+
+  /// Get estimated wait time for a booking based on queue position
+  String getEstimatedWait(Map<String, dynamic> booking) {
+    final id = booking['id'] as String? ?? '';
+    final pos = queuePositions[id] ?? 0;
+    if (pos <= 1) return "Sizning navbatingiz!";
+    final waitMinutes = (pos - 1) * (booking['durationMinutes'] ?? 30);
+    if (waitMinutes < 60) return "~$waitMinutes daqiqa";
+    final hours = waitMinutes ~/ 60;
+    final mins = waitMinutes % 60;
+    if (mins == 0) return "~$hours soat";
+    return "~$hours soat $mins daqiqa";
   }
 
   Future<void> cancelBooking(String id, String dateStr, String timeStr) async {
@@ -83,6 +170,29 @@ class MyBookingsController extends GetxController {
         'status': newStatus,
         'cancelledAt': FieldValue.serverTimestamp(),
       });
+
+      // Send notification to barber
+      try {
+        final bookingDoc = await _firestore
+            .collection('bookings')
+            .doc(id)
+            .get();
+        final barberUid = bookingDoc.data()?['barberUid'] ?? '';
+        final date = bookingDoc.data()?['date'] ?? '';
+        final time = bookingDoc.data()?['time'] ?? '';
+        final clientName = bookingDoc.data()?['client'] ?? 'Mijoz';
+        if (barberUid.isNotEmpty) {
+          await _firestore.collection('notifications').add({
+            'userId': barberUid,
+            'title': 'Bron bekor qilindi',
+            'message': '$clientName $date $time dagi bronni bekor qildi.',
+            'type': 'booking_cancelled',
+            'isRead': false,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+      } catch (_) {}
+
       if (newStatus == 'penalty') {
         Get.snackbar(
           "Ogohlantirish",
@@ -91,7 +201,12 @@ class MyBookingsController extends GetxController {
           colorText: Colors.white,
         );
       } else {
-        Get.snackbar("Muvaffaqiyatli", "Bron bekor qilindi!");
+        Get.snackbar(
+          "Muvaffaqiyatli",
+          "Bron bekor qilindi!",
+          backgroundColor: AppTheme.success,
+          colorText: Colors.white,
+        );
       }
     } catch (e) {
       Get.snackbar("Xatolik", "Bekor qilishda xatolik yuz berdi");
@@ -142,7 +257,10 @@ class MyBookingsController extends GetxController {
   @override
   void onClose() {
     _bookingsSub?.cancel();
+    for (var sub in _queueSubs.values) {
+      sub.cancel();
+    }
+    _queueSubs.clear();
     super.onClose();
   }
 }
-
