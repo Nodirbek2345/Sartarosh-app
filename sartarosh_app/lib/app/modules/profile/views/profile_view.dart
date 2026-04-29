@@ -197,9 +197,15 @@ class ProfileView extends StatelessWidget {
                             () => _showSettings(),
                           ),
                           _menuItem(
+                            Icons.rate_review_rounded,
+                            "Talab va takliflar",
+                            3,
+                            () => _showFeedbackBottomSheet(),
+                          ),
+                          _menuItem(
                             Icons.help_outline_rounded,
                             "Yordam",
-                            3,
+                            4,
                             () => _showHelp(),
                           ),
                         ],
@@ -291,6 +297,12 @@ class ProfileView extends StatelessWidget {
                             "Sozlamalar",
                             idx++,
                             () => _showSettings(),
+                          ),
+                          _menuItem(
+                            Icons.rate_review_rounded,
+                            "Talab va takliflar",
+                            idx++,
+                            () => _showFeedbackBottomSheet(),
                           ),
                           _menuItem(
                             Icons.help_outline_rounded,
@@ -1350,5 +1362,168 @@ class ProfileView extends StatelessWidget {
       );
     });
   }
-}
 
+  // ─── TALAB VA TAKLIFLAR ───
+  void _showFeedbackBottomSheet() {
+    final userService = Get.find<UserService>();
+    final msgCtrl = TextEditingController();
+    bool isSubmitting = false;
+
+    Get.bottomSheet(
+      StatefulBuilder(
+        builder: (context, setState) {
+          return Container(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              12,
+              16,
+              MediaQuery.of(context).viewInsets.bottom + 24,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            child: SafeArea(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: AppTheme.textLight.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    SizedBox(height: 20),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.rate_review_rounded,
+                          color: AppTheme.primary,
+                          size: 24,
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          "Talab va takliflar",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textDark,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      "Ilovani yaxshilashda bizga yordam bering! Fikr, talab yoki takliflaringizni yozib qoldiring.",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: AppTheme.textMedium,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    TextField(
+                      controller: msgCtrl,
+                      maxLines: 5,
+                      textInputAction: TextInputAction.done,
+                      decoration: InputDecoration(
+                        hintText: "Shu yerga yozing...",
+                        hintStyle: TextStyle(color: AppTheme.textLight),
+                        filled: true,
+                        fillColor: AppTheme.background,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide(
+                            color: AppTheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    GestureDetector(
+                      onTap: () async {
+                        if (msgCtrl.text.trim().isEmpty) return;
+                        setState(() => isSubmitting = true);
+                        try {
+                          await FirebaseFirestore.instance
+                              .collection('app_feedbacks')
+                              .add({
+                                'uid': userService.currentUid,
+                                'name': userService.name.value,
+                                'phone': userService.phone.value,
+                                'role': userService.userRole.value,
+                                'message': msgCtrl.text.trim(),
+                                'createdAt': FieldValue.serverTimestamp(),
+                              });
+                          Get.back();
+                          Get.snackbar(
+                            "Rahmat!",
+                            "Fikringiz muvaffaqiyatli yuborildi.",
+                            backgroundColor: AppTheme.success,
+                            colorText: Colors.white,
+                            snackPosition: SnackPosition.BOTTOM,
+                            margin: EdgeInsets.all(16),
+                            borderRadius: 14,
+                            icon: Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.white,
+                            ),
+                          );
+                        } catch (e) {
+                          setState(() => isSubmitting = false);
+                          Get.snackbar(
+                            "Xatolik",
+                            "Yuborishda xatolik yuz berdi",
+                          );
+                        }
+                      },
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: isSubmitting
+                                ? [AppTheme.textLight, AppTheme.textMedium]
+                                : [AppTheme.primary, AppTheme.accent],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Center(
+                          child: isSubmitting
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  "Yuborish",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+      isScrollControlled: true,
+    );
+  }
+}

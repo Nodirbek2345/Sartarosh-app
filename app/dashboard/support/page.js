@@ -19,12 +19,13 @@ export default function SupportPage() {
 
     useEffect(() => {
         const q = query(
-            collection(db, "support_messages"),
+            collection(db, "app_feedbacks"),
             orderBy("createdAt", "desc")
         );
         const unsub = onSnapshot(q, (snap) => {
             const data = snap.docs.map((d) => ({
                 id: d.id,
+                status: "new", // default if not set
                 ...d.data(),
                 createdAt: d.data().createdAt?.toDate?.() || new Date(),
             }));
@@ -37,7 +38,7 @@ export default function SupportPage() {
     const handleDelete = async (id) => {
         if (!window.confirm("Bu murojaatni o'chirmoqchimisiz?")) return;
         try {
-            await deleteDoc(doc(db, "support_messages", id));
+            await deleteDoc(doc(db, "app_feedbacks", id));
             toast.success("Murojaat o'chirildi");
         } catch (e) {
             toast.error("Xatolik yuz berdi");
@@ -46,7 +47,7 @@ export default function SupportPage() {
 
     const handleResolve = async (id) => {
         try {
-            await updateDoc(doc(db, "support_messages", id), {
+            await updateDoc(doc(db, "app_feedbacks", id), {
                 status: "resolved",
                 resolvedAt: serverTimestamp(),
             });
@@ -56,27 +57,15 @@ export default function SupportPage() {
         }
     };
 
-    // Group by user
-    const userMessages = {};
-    messages.forEach((m) => {
-        if (!userMessages[m.userId]) {
-            userMessages[m.userId] = { userName: m.userName, messages: [] };
-        }
-        userMessages[m.userId].messages.push(m);
-    });
-
-    // Filter only user messages for display
-    const userOnlyMessages = messages.filter((m) => m.sender === "user");
-
-    const filtered = userOnlyMessages.filter((m) => {
+    const filtered = messages.filter((m) => {
         const matchSearch =
-            m.text?.toLowerCase().includes(search.toLowerCase()) ||
-            m.userName?.toLowerCase().includes(search.toLowerCase());
+            m.message?.toLowerCase().includes(search.toLowerCase()) ||
+            m.name?.toLowerCase().includes(search.toLowerCase());
         if (filter === "all") return matchSearch;
         return matchSearch && m.status === filter;
     });
 
-    const newCount = userOnlyMessages.filter((m) => m.status === "new").length;
+    const newCount = messages.filter((m) => m.status === "new").length;
 
     if (loading) {
         return (
@@ -109,7 +98,7 @@ export default function SupportPage() {
                         )}
                     </h1>
                     <p style={{ color: "#94A3B8", fontSize: 14, marginTop: 2 }}>
-                        Jami {userOnlyMessages.length} ta mijoz murojaati
+                        Jami {messages.length} ta foydalanuvchi qoldirgan taklif/shikoyatlar
                     </p>
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -194,11 +183,16 @@ export default function SupportPage() {
                                             <FaUser style={{ color: "#4F6BED" }} />
                                         </div>
                                         <div>
-                                            <div style={{ fontWeight: 600, color: "#1E293B", fontSize: 15 }}>
-                                                {m.userName || "Noma'lum"}
+                                            <div style={{ fontWeight: 600, color: "#1E293B", fontSize: 15, display: "flex", alignItems: "center", gap: 8 }}>
+                                                {m.name || "Noma'lum"}
+                                                {m.role === "barber" ? (
+                                                    <span style={{ fontSize: 10, background: "#FEF3C7", color: "#D97706", padding: "2px 6px", borderRadius: 4 }}>Usta</span>
+                                                ) : m.role === "client" ? (
+                                                    <span style={{ fontSize: 10, background: "#EEF2FF", color: "#4F6BED", padding: "2px 6px", borderRadius: 4 }}>Mijoz</span>
+                                                ) : null}
                                             </div>
                                             <div style={{ color: "#94A3B8", fontSize: 12 }}>
-                                                {m.userId} • {m.createdAt.toLocaleString("uz-UZ")}
+                                                {m.phone || m.uid} • {m.createdAt.toLocaleString("uz-UZ")}
                                             </div>
                                         </div>
                                     </div>
@@ -224,7 +218,7 @@ export default function SupportPage() {
                                     lineHeight: 1.6,
                                     whiteSpace: "pre-wrap",
                                 }}>
-                                    {m.text}
+                                    {m.message}
                                 </div>
 
                                 <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>

@@ -199,21 +199,7 @@ export default function ServicesPage() {
                                 <option value="Manikyur" />
                             </datalist>
                         </div>
-                        <div className="dash-form-group">
-                            <label>Jinsi</label>
-                            <select
-                                value={form.gender}
-                                onChange={(e) => setForm(p => ({ ...p, gender: e.target.value }))}
-                                style={{
-                                    width: "100%", padding: "12px 16px", borderRadius: 12, border: "1px solid #E2E8F0",
-                                    outline: "none", background: "#F8FAFC", color: "#1E293B", fontSize: 15
-                                }}
-                            >
-                                <option value="male">Faqat Erkaklar uchun</option>
-                                <option value="female">Faqat Ayollar uchun</option>
-                                <option value="all">Barchaga (Umumiy)</option>
-                            </select>
-                        </div>
+// Jinsi formdan olib tashlandi, chunki avtomatik aktiv tabga qarab belgilanadi
 
                         <div style={{ display: "flex", gap: 12, justifyContent: "flex-end", marginTop: 24 }}>
                             <button onClick={() => setShowModal(false)} style={{
