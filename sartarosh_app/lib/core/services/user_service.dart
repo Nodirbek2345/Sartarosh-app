@@ -92,6 +92,36 @@ class UserService extends GetxService {
       } catch (_) {}
     }
 
+    // PRO: One-time migration — push local profile to Firestore
+    // This covers the case where user set a custom name on an older version
+    // that only saved to local storage. Now we auto-sync it to Firestore
+    // BEFORE they potentially delete the app.
+    if (currentUid.isNotEmpty &&
+        isLogged.value &&
+        name.value != "Mijoz" &&
+        name.value.isNotEmpty) {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .get();
+        if (userDoc.exists) {
+          final serverName = userDoc.data()?['name'] ?? '';
+          // If local name differs from server name → push local to server
+          if (serverName != name.value) {
+            final Map<String, dynamic> syncData = {'name': name.value};
+            if (phone.value.isNotEmpty && phone.value != "+998 -- --- -- --") {
+              syncData['phone'] = phone.value;
+            }
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUid)
+                .set(syncData, SetOptions(merge: true));
+          }
+        }
+      } catch (_) {}
+    }
+
     return this;
   }
 
