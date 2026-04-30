@@ -26,7 +26,7 @@ class NotificationsController extends GetxController {
     _firestore
         .collection('notifications')
         .where('userId', isEqualTo: uid)
-        .orderBy('createdAt', descending: true)
+        // Removed .orderBy('createdAt') to bypass missing index crash
         .snapshots()
         .listen((snapshot) {
           final list = snapshot.docs.map((doc) {
@@ -34,6 +34,16 @@ class NotificationsController extends GetxController {
             data['docId'] = doc.id;
             return data;
           }).toList();
+
+          // Client-side sort descending by createdAt
+          list.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return bTime.compareTo(aTime);
+          });
 
           final newUnreadCount = list.where((n) => n['isRead'] == false).length;
 

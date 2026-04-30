@@ -141,8 +141,7 @@ class BarberDashboardController extends GetxController {
     _allBookingsSub = _firestore
         .collection('bookings')
         .where('barberId', isEqualTo: _barberId)
-        .orderBy('createdAt', descending: true)
-        .limit(100)
+        // Removed .orderBy('createdAt') and .limit(100) to avoid missing composite index requirement
         .snapshots()
         .listen((snapshot) {
           final list = snapshot.docs.map((doc) {
@@ -150,6 +149,16 @@ class BarberDashboardController extends GetxController {
             data['docId'] = doc.id;
             return data;
           }).toList();
+
+          // Client-side sort to bypass Firestore index crash
+          list.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return bTime.compareTo(aTime); // Descending
+          });
 
           allBookings.value = list;
           pendingCount.value = list
