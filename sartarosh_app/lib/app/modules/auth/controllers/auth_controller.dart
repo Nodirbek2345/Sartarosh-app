@@ -185,6 +185,11 @@ class AuthController extends GetxController {
               data['avatar'].toString().isNotEmpty) {
             userService.updateAvatar(data['avatar']);
           }
+          if (data.containsKey('targetGender') &&
+              data['targetGender'] != null &&
+              data['targetGender'].toString().isNotEmpty) {
+            userService.setTargetGender(data['targetGender']);
+          }
         }
 
         // Ensure Barber mode is off when initially logging in to prevent ghost states

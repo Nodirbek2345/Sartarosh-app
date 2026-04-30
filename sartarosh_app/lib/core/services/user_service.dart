@@ -85,6 +85,7 @@ class UserService extends GetxService {
           final serverRole = data['role'] as String? ?? 'client';
           final serverAvatar = data['avatar'] as String? ?? '';
           final serverPhotoUrl = data['photoUrl'] as String? ?? '';
+          final serverTargetGender = data['targetGender'] as String? ?? '';
 
           if (serverName.isNotEmpty && serverName != "Mijoz") {
             name.value = serverName;
@@ -105,6 +106,13 @@ class UserService extends GetxService {
           if (serverPhotoUrl.isNotEmpty) {
             photoUrl.value = serverPhotoUrl;
             await _storage.write(key: 'user_photo_url', value: serverPhotoUrl);
+          }
+          if (serverTargetGender.isNotEmpty) {
+            targetGender.value = serverTargetGender;
+            await _storage.write(
+              key: 'target_gender',
+              value: serverTargetGender,
+            );
           }
 
           // Mark as logged in since Firestore profile exists
@@ -240,6 +248,15 @@ class UserService extends GetxService {
   void setTargetGender(String gender) async {
     targetGender.value = gender;
     await _storage.write(key: 'target_gender', value: gender);
+    final uidToUpdate = currentUid;
+    if (uidToUpdate.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uidToUpdate)
+            .set({'targetGender': gender}, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   void setRegion(String region) async {
