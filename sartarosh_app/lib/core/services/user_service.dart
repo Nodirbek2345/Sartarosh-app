@@ -70,9 +70,9 @@ class UserService extends GetxService {
     }
 
     // PRO: Auto-restore profile from Firestore after reinstall/device change
-    // When local storage is empty (name = default) but user is still authenticated,
-    // pull saved profile data from Firestore to restore the user's custom name/phone/avatar
-    if (currentUid.isNotEmpty && name.value == "Mijoz") {
+    // ALWAYS pull saved profile data from Firestore on app start to ensure UI
+    // strictly mirrors the database (single source of truth).
+    if (currentUid.isNotEmpty) {
       try {
         final userDoc = await FirebaseFirestore.instance
             .collection('users')
