@@ -417,30 +417,67 @@ class MyBookingsView extends GetView<MyBookingsController> {
                       ],
 
                       // ── Info Banner ──
-                      if (status == 'confirmed') ...[
+                      if (status == 'pending') ...[
                         const SizedBox(height: 14),
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: AppTheme.primary.withValues(alpha: 0.06),
+                            color: const Color(
+                              0xFFD97706,
+                            ).withValues(alpha: 0.08),
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
-                              color: AppTheme.primary.withValues(alpha: 0.15),
+                              color: const Color(
+                                0xFFD97706,
+                              ).withValues(alpha: 0.2),
                             ),
                           ),
                           child: Row(
                             children: [
                               Icon(
-                                Icons.info_outline_rounded,
+                                Icons.hourglass_top_rounded,
                                 size: 18,
-                                color: AppTheme.primary,
+                                color: const Color(0xFFD97706),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "Usta tasdiqlanishini kutmoqda...",
+                                  style: GoogleFonts.poppins(
+                                    color: const Color(0xFFD97706),
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      if (status == 'confirmed') ...[
+                        const SizedBox(height: 14),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: AppTheme.success.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AppTheme.success.withValues(alpha: 0.2),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.check_circle_rounded,
+                                size: 18,
+                                color: AppTheme.success,
                               ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
                                   "Tasdiqlangan. Iltimos o'z vaqtida keling.",
                                   style: GoogleFonts.poppins(
-                                    color: AppTheme.primary,
+                                    color: AppTheme.success,
                                     fontSize: 12,
                                     fontWeight: FontWeight.w600,
                                   ),

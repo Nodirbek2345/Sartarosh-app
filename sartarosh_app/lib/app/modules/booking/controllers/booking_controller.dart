@@ -469,7 +469,7 @@ class BookingController extends GetxController {
           'paymentStatus': selectedPaymentMethod.value == 'cash'
               ? 'unpaid'
               : 'pending_payment',
-          'status': 'confirmed',
+          'status': 'pending',
           'createdAt': FieldValue.serverTimestamp(),
         });
 
@@ -477,9 +477,9 @@ class BookingController extends GetxController {
           final notifRef = _firestore.collection('notifications').doc();
           transaction.set(notifRef, {
             'userId': barberUid,
-            'title': 'Yangi Mijoz',
+            'title': 'Yangi bron so\'rovi 📩',
             'message':
-                '${InputSanitizer.sanitizeText(userService.name.value)} sizga $dateStr $timeVal ga ($serviceName) yozildi.',
+                '${InputSanitizer.sanitizeText(userService.name.value)} sizga $dateStr $timeVal ga ($serviceName) bron so\'rovi yubordi. Tasdiqlash yoki rad etish uchun panelga kiring.',
             'type': 'booking_created',
             'isRead': false,
             'createdAt': FieldValue.serverTimestamp(),
@@ -488,8 +488,8 @@ class BookingController extends GetxController {
       });
 
       Get.snackbar(
-        "Broningiz muvaffaqiyatli tasdiqlandi! ✅",
-        "Sizni kutib qolamiz",
+        "Bron yuborildi! 📩",
+        "Usta tasdiqlashini kuting",
         backgroundColor: Color(0xFFC9A96E),
         colorText: Colors.white,
         snackPosition: SnackPosition.TOP,

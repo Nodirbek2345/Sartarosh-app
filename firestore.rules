@@ -88,7 +88,7 @@ service cloud.firestore {
                   && (existingData().clientUid == request.auth.uid 
                       || existingData().barberUid == request.auth.uid);
       
-      // Client creates booking (confirmed status for cash flow)
+      // Client creates booking (pending status — barber confirms)
       allow create: if isSignedIn() 
                     && incomingData().clientUid == request.auth.uid
                     && incomingData().keys().hasAll(['clientUid', 'barberUid', 'barberId', 'service', 'status', 'date', 'time', 'price'])

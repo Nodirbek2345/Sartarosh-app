@@ -126,9 +126,12 @@ class BarberDashboardController extends GetxController {
           final confirmedToday = list
               .where((b) => b['status'] == 'confirmed')
               .toList();
+          final pendingToday = list
+              .where((b) => b['status'] == 'pending')
+              .toList();
           nextClient.value = confirmedToday.isNotEmpty
               ? confirmedToday.first
-              : null;
+              : (pendingToday.isNotEmpty ? pendingToday.first : null);
 
           isLoading.value = false;
           _checkAutoTurnOff();

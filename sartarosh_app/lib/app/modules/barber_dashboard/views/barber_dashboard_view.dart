@@ -702,6 +702,10 @@ class _DashboardTab extends StatelessWidget {
     Color statusColor;
     String statusText;
     switch (status) {
+      case 'pending':
+        statusColor = const Color(0xFFD97706);
+        statusText = "Kutilmoqda";
+        break;
       case 'confirmed':
         statusColor = AppTheme.primary;
         statusText = "Tasdiqlangan";
@@ -720,7 +724,7 @@ class _DashboardTab extends StatelessWidget {
         break;
       default:
         statusColor = AppTheme.textMedium;
-        statusText = "Kutilmoqda";
+        statusText = status;
     }
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1093,6 +1097,11 @@ class _BarberBookingsTab extends StatelessWidget {
     String statusText;
     IconData statusIcon;
     switch (status) {
+      case 'pending':
+        statusColor = const Color(0xFFD97706);
+        statusText = "Kutilmoqda";
+        statusIcon = Icons.access_time_rounded;
+        break;
       case 'confirmed':
         statusColor = AppTheme.primary;
         statusText = "Tasdiqlangan";
@@ -1114,9 +1123,9 @@ class _BarberBookingsTab extends StatelessWidget {
         statusIcon = Icons.cancel_outlined;
         break;
       default:
-        statusColor = Colors.orangeAccent;
-        statusText = "Kutilmoqda";
-        statusIcon = Icons.access_time_rounded;
+        statusColor = AppTheme.textMedium;
+        statusText = status;
+        statusIcon = Icons.help_outline_rounded;
     }
 
     final date = booking['date'] ?? '';
