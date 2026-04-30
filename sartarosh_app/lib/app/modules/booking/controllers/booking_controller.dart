@@ -106,7 +106,7 @@ class BookingController extends GetxController {
         .collection('barbers')
         .where('gender', isEqualTo: userGender)
         .where(
-          'region',
+          'location',
           isEqualTo: targetRegion,
         ) // SECURITY: Strictly scope by GPS region
         .snapshots()

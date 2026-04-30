@@ -185,4 +185,74 @@ class RegionController extends GetxController {
       snackPosition: SnackPosition.BOTTOM,
     );
   }
+
+  void showRegionFallbackDialog() {
+    Get.bottomSheet(
+      Container(
+        height: 480,
+        padding: EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              Text(
+                "Viloyatni tanlang",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 10),
+              Divider(color: Colors.grey.withValues(alpha: 0.2)),
+              Expanded(
+                child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
+                  itemCount: regions.length,
+                  itemBuilder: (context, index) {
+                    final region = regions[index];
+                    return ListTile(
+                      leading: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.location_city_rounded,
+                          color: AppTheme.primary,
+                          size: 20,
+                        ),
+                      ),
+                      title: Text(region['name'] ?? ''),
+                      onTap: () {
+                        // Close BottomSheet
+                        Get.back();
+
+                        final regionKey = region['key'] ?? '';
+                        final userService = Get.find<UserService>();
+                        userService.setRegionMode(regionKey);
+
+                        Get.snackbar(
+                          "📍 $regionKey",
+                          "Hudud tanlandi",
+                          backgroundColor: AppTheme.primary,
+                          colorText: Colors.white,
+                          snackPosition: SnackPosition.BOTTOM,
+                          duration: Duration(seconds: 3),
+                        );
+
+                        Get.offAllNamed('/home');
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+    );
+  }
 }

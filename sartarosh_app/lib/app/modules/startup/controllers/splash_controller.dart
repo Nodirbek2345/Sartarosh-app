@@ -18,6 +18,13 @@ class SplashController extends GetxController {
       return;
     }
 
+    // Force Location Selection if empty
+    if (userService.filterMode.value == 'REGION' &&
+        userService.selectedRegion.value.isEmpty) {
+      Get.offAllNamed(Routes.region);
+      return;
+    }
+
     // Go straight to Home (Region can be selected manually from Home)
     Get.offAllNamed(Routes.home);
   }

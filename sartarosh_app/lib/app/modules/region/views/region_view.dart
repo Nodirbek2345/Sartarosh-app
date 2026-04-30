@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/region_controller.dart';
+import '../../../../core/services/user_service.dart';
 import '../../../../core/theme/app_theme.dart';
 
 class RegionView extends GetView<RegionController> {
@@ -17,24 +18,31 @@ class RegionView extends GetView<RegionController> {
           child: Column(
             children: [
               // ─── HEADER ───
-              Padding(
-                padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
-                child: Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () => Get.back(),
-                      child: Container(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(
-                          Icons.arrow_back_rounded,
-                          color: Color(0xFF1A1A1A),
-                          size: 24,
+              Obx(() {
+                final userService = Get.find<UserService>();
+                final canGoBack =
+                    userService.selectedRegion.value.isNotEmpty ||
+                    userService.filterMode.value == 'GPS';
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Row(
+                    children: [
+                      if (canGoBack)
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            padding: EdgeInsets.all(10),
+                            child: Icon(
+                              Icons.arrow_back_rounded,
+                              color: Color(0xFF1A1A1A),
+                              size: 24,
+                            ),
+                          ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              }),
 
               Expanded(
                 child: Center(
@@ -167,7 +175,55 @@ class RegionView extends GetView<RegionController> {
                           ),
                         ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.15),
 
-                        SizedBox(height: 20),
+                        SizedBox(height: 16),
+
+                        // ─── MANUAL SELECTION BUTTON ───
+                        GestureDetector(
+                          onTap: () => controller.showRegionFallbackDialog(),
+                          child: AnimatedContainer(
+                            duration: 300.ms,
+                            width: double.infinity,
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: AppTheme.primary.withValues(alpha: 0.2),
+                                width: 1.5,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.05,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.location_city_rounded,
+                                  color: AppTheme.primary,
+                                  size: 22,
+                                ),
+                                SizedBox(width: 12),
+                                Text(
+                                  "Viloyatni qo'lda tanlash",
+                                  style: GoogleFonts.poppins(
+                                    color: AppTheme.primary,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.15),
+
+                        SizedBox(height: 24),
 
                         // ─── INFO NOTE ───
                         Container(

@@ -274,6 +274,15 @@ class UserService extends GetxService {
     await _storage.write(key: 'user_lat', value: lat.toString());
     await _storage.write(key: 'user_lng', value: lng.toString());
     await _storage.write(key: 'selected_region', value: '');
+
+    if (currentUid.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .set({'region': ''}, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   /// Switch to Region mode — clears GPS coords
@@ -286,6 +295,15 @@ class UserService extends GetxService {
     await _storage.write(key: 'selected_region', value: region);
     await _storage.write(key: 'user_lat', value: '0.0');
     await _storage.write(key: 'user_lng', value: '0.0');
+
+    if (currentUid.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .set({'region': region}, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   void setUserRole(String role) async {

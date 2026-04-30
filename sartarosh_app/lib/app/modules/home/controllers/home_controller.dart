@@ -209,8 +209,19 @@ class HomeController extends GetxController {
         .collection('barbers')
         .where('gender', isEqualTo: targetGender);
 
-    // REGION mode: add Firestore-level region filter
-    if (mode == 'REGION' && targetRegion.isNotEmpty) {
+    // REGION mode: STRICT Firestore-level region filter
+    if (mode == 'REGION') {
+      if (targetRegion.isEmpty) {
+        // Prevent leaking all barbers and force location selection
+        rxBarbers.value = [];
+        isLoading.value = false;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (Get.currentRoute != '/region') {
+            Get.offAllNamed('/region');
+          }
+        });
+        return;
+      }
       query = query.where('location', isEqualTo: targetRegion);
     }
 
@@ -408,4 +419,3 @@ class HomeController extends GetxController {
     super.onClose();
   }
 }
-
