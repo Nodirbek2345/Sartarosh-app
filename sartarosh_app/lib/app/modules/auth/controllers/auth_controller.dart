@@ -101,12 +101,7 @@ class AuthController extends GetxController {
         // Save UID first (critical for security)
         userService.updateUid(user.uid);
 
-        // Save Google photo URL
-        if (userPhoto.isNotEmpty) {
-          userService.updatePhotoUrl(userPhoto);
-        }
-
-        // 2. Fetch User Document by UID
+        // 2. Fetch User Document by UID — Firestore is THE source of truth
         final userDoc = await _firestore
             .collection('users')
             .doc(user.uid)
@@ -117,24 +112,23 @@ class AuthController extends GetxController {
         String finalPhone = inputPhone;
         bool isReturningUser = false;
 
-        final updateData = <String, dynamic>{
-          'email': user.email ?? '',
-          'photoUrl': userPhoto,
-          'lastLogin': FieldValue.serverTimestamp(),
-        };
-
         if (userDoc.exists) {
-          // RESTORE EXISTING PROFILE! (Do NOT overwrite name/phone from input/google)
+          // ═══════════════════════════════════════════════════════
+          // RETURNING USER — RESTORE EVERYTHING FROM FIRESTORE
+          // ═══════════════════════════════════════════════════════
           isReturningUser = true;
           final data = userDoc.data()!;
+
+          // Role
           if (data.containsKey('role')) savedRole = data['role'] ?? 'client';
 
+          // Name — ONLY from Firestore, NEVER from Google
           if (data.containsKey('name') &&
               data['name'] != null &&
               data['name'].toString().trim().isNotEmpty) {
             finalName = data['name'];
           } else {
-            // Extreme fallback: Check if they are a barber and pull name from there
+            // Extreme fallback: Check barbers collection
             try {
               final barberDocs = await _firestore
                   .collection('barbers')
@@ -145,52 +139,66 @@ class AuthController extends GetxController {
                 final bName = barberDocs.docs.first.data()['name'];
                 if (bName != null && bName.toString().trim().isNotEmpty) {
                   finalName = bName;
-                } else {
-                  finalName = googleName;
                 }
-              } else {
-                finalName = googleName;
               }
-            } catch (_) {
-              finalName = googleName;
-            }
+            } catch (_) {}
           }
 
-          if (data.containsKey('phone')) {
-            finalPhone = data['phone'] ?? inputPhone;
+          // Phone — ONLY from Firestore
+          if (data.containsKey('phone') &&
+              data['phone'] != null &&
+              data['phone'].toString().trim().isNotEmpty) {
+            finalPhone = data['phone'];
           }
-        } else {
-          // BRAND NEW PROFILE
-          updateData['uid'] = user.uid;
-          updateData['name'] = finalName;
-          updateData['phone'] = finalPhone;
-          updateData['role'] = 'client';
-          updateData['createdAt'] = FieldValue.serverTimestamp();
-        }
 
-        // Update Backend
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .set(updateData, SetOptions(merge: true));
-
-        // 3. Update Local Storage and State correctly
-        userService.updateUser(finalName, finalPhone);
-        userService.setUserRole(savedRole);
-
-        if (userDoc.exists) {
-          final data = userDoc.data()!;
+          // Avatar (base64 custom image) — ONLY from Firestore
           if (data.containsKey('avatar') &&
               data['avatar'] != null &&
               data['avatar'].toString().isNotEmpty) {
-            userService.updateAvatar(data['avatar']);
+            userService.avatarBase64.value = data['avatar'];
           }
+
+          // PhotoUrl — use Firestore's saved version, NOT Google's
+          final savedPhoto = data['photoUrl'] as String? ?? '';
+          if (savedPhoto.isNotEmpty) {
+            userService.updatePhotoUrl(savedPhoto);
+          }
+
+          // Gender preference — ONLY from Firestore
           if (data.containsKey('targetGender') &&
               data['targetGender'] != null &&
               data['targetGender'].toString().isNotEmpty) {
             userService.setTargetGender(data['targetGender']);
           }
+
+          // Update ONLY non-destructive fields in Firestore (lastLogin, email)
+          await _firestore.collection('users').doc(user.uid).set({
+            'email': user.email ?? '',
+            'lastLogin': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
+        } else {
+          // ═══════════════════════════════════════════════════════
+          // BRAND NEW USER — Use Google data as initial values
+          // ═══════════════════════════════════════════════════════
+          if (userPhoto.isNotEmpty) {
+            userService.updatePhotoUrl(userPhoto);
+          }
+
+          await _firestore.collection('users').doc(user.uid).set({
+            'uid': user.uid,
+            'name': finalName,
+            'phone': finalPhone,
+            'email': user.email ?? '',
+            'photoUrl': userPhoto,
+            'role': 'client',
+            'createdAt': FieldValue.serverTimestamp(),
+            'lastLogin': FieldValue.serverTimestamp(),
+          }, SetOptions(merge: true));
         }
+
+        // 3. Update Local Storage and State
+        userService.updateUser(finalName, finalPhone);
+        userService.setUserRole(savedRole);
 
         // Ensure Barber mode is off when initially logging in to prevent ghost states
         if (userService.isBarberMode.value) {
