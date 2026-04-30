@@ -24,58 +24,41 @@ class UpdateService extends GetxService {
   void checkUpdate() async {
     try {
       final dio = Dio();
-      // YALANG'OCH pubspec o'rniga, to'g'ridan-to'g'ri so'nggi RELIZNI tekshiramiz.
-      // Shunda Github Actions to'liq qurib, ob'ektni qo'shmaguncha yangilanish chiqmaydi!
+      // Ochiq Github User Content orqali pubspec ni to'g'ridan-to'g'ri tekshiramiz.
+      // Bu API limit (60/soat) cheklovini to'liq chetlab o'tadi!
       final response = await dio.get(
-        'https://api.github.com/repos/Nodirbek2345/Sartarosh-app/releases/latest',
+        'https://raw.githubusercontent.com/Nodirbek2345/Sartarosh-app/refs/heads/master/sartarosh_app/pubspec.yaml',
       );
 
-      final latestTag = response.data['tag_name'] as String?;
-      final releaseName = response.data['name'] as String?;
-      final assets = response.data['assets'] as List?;
+      final content = response.data?.toString() ?? '';
 
-      if (latestTag == null || assets == null || assets.isEmpty) return;
-
-      // Extract version from tag_name or release_name using regex e.g. "v1.0.14" -> "1.0.14"
-      // If the tag is something else, we can fallback to extracting from release body or name
-      final bodyText = response.data['body']?.toString() ?? "";
-      final searchString = "$latestTag $releaseName $bodyText";
+      // "version: 3.3.2+224" -> "3.3.2" niamiz
       final versionMatch = RegExp(
-        r'([0-9]+\.[0-9]+\.[0-9]+)',
-      ).firstMatch(searchString);
+        r'version:\s*([0-9]+\.[0-9]+\.[0-9]+)',
+      ).firstMatch(content);
 
       if (versionMatch == null) return;
 
       final latestVersion = versionMatch.group(1);
 
-      // We must make sure there is an apk asset inside this release
-      String? apkDownloadUrl;
-      for (var asset in assets) {
-        final dlUrl = asset['browser_download_url'] as String?;
-        if (dlUrl != null && dlUrl.endsWith('.apk')) {
-          apkDownloadUrl = dlUrl;
-          break;
-        }
-      }
+      // Har doim eng so'nggi reliz uchun ochiq APK manzili
+      final updateUrl =
+          'https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk';
 
-      if (apkDownloadUrl == null) return; // No APK built yet for this release
-
-      final updateUrl = apkDownloadUrl; // Directly use the APK url
-      final releaseNotes = response.data['body']?.toString().isNotEmpty == true
-          ? response.data['body'].toString()
-          : 'Ilovaning yangi versiyasi ($latestVersion) chiqdi. Yangi imkoniyatlardan foydalanish hoziroq yuklab oling.';
+      final releaseNotes =
+          'Ilovaning yangi ($latestVersion) versiyasi mavjud! Xatolar tuzatildi va tezlik oshirildi. Iltimos, darhol yangilang.';
 
       if (latestVersion != null &&
           _isUpdateAvailable(currentVersion, latestVersion)) {
         _showUpdateDialog(
           latestVersion: latestVersion,
-          isRequired: false, // We will force it anyway in the UI
+          isRequired: false, // UI da Force rejimida turgan bo'lishi mumkin
           updateUrl: updateUrl,
           releaseNotes: releaseNotes,
         );
       }
     } catch (e) {
-      debugPrint("Update check from GitHub failed: $e");
+      debugPrint("Raw Github Update check failed: $e");
     }
   }
 
@@ -99,48 +82,18 @@ class UpdateService extends GetxService {
     return false;
   }
 
-  Future<String> _resolveGithubUrl(String url) async {
-    if (url.contains('github.com') && !url.endsWith('.apk')) {
-      try {
-        final uri = Uri.parse(url);
-        final pathSegments = uri.pathSegments;
-        if (pathSegments.length >= 2) {
-          final owner = pathSegments[0];
-          final repo = pathSegments[1];
-          final apiUrl =
-              "https://api.github.com/repos/$owner/$repo/releases/latest";
-          final dio = Dio();
-          final response = await dio.get(apiUrl);
-          final assets = response.data['assets'] as List?;
-          if (assets != null) {
-            for (var asset in assets) {
-              final dlUrl = asset['browser_download_url'] as String?;
-              if (dlUrl != null && dlUrl.endsWith('.apk')) {
-                return dlUrl;
-              }
-            }
-          }
-        }
-      } catch (e) {
-        debugPrint("GitHub release URL ni resolve qilishda xatolik: $e");
-      }
-    }
-    return url;
-  }
-
   Future<void> _downloadAndInstallApp(String url) async {
     isDownloading.value = true;
     downloadProgress.value = 0.0;
     try {
-      final resolvedUrl = await _resolveGithubUrl(url);
-
       var dir = await getExternalStorageDirectory();
       dir ??= await getTemporaryDirectory();
       final filePath = '${dir.path}/sartarosh_update.apk';
 
       final dio = Dio();
+      // Dio automatically handles 302 redirects for Github Releases
       await dio.download(
-        resolvedUrl,
+        url,
         filePath,
         deleteOnError: true,
         onReceiveProgress: (received, total) {
@@ -154,7 +107,7 @@ class UpdateService extends GetxService {
     } catch (e) {
       Get.snackbar(
         "Xatolik",
-        "Ilovani yuklab olishda xatolik yuz berdi. URL ni tekshiring.",
+        "Ilovani yuklab olishda xatolik yuz berdi. Internetni tekshiring.",
         backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
@@ -375,4 +328,3 @@ class UpdateService extends GetxService {
     );
   }
 }
-
