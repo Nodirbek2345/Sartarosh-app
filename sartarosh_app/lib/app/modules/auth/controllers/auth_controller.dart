@@ -128,7 +128,34 @@ class AuthController extends GetxController {
           isReturningUser = true;
           final data = userDoc.data()!;
           if (data.containsKey('role')) savedRole = data['role'] ?? 'client';
-          if (data.containsKey('name')) finalName = data['name'] ?? googleName;
+
+          if (data.containsKey('name') &&
+              data['name'] != null &&
+              data['name'].toString().trim().isNotEmpty) {
+            finalName = data['name'];
+          } else {
+            // Extreme fallback: Check if they are a barber and pull name from there
+            try {
+              final barberDocs = await _firestore
+                  .collection('barbers')
+                  .where('uid', isEqualTo: user.uid)
+                  .limit(1)
+                  .get();
+              if (barberDocs.docs.isNotEmpty) {
+                final bName = barberDocs.docs.first.data()['name'];
+                if (bName != null && bName.toString().trim().isNotEmpty) {
+                  finalName = bName;
+                } else {
+                  finalName = googleName;
+                }
+              } else {
+                finalName = googleName;
+              }
+            } catch (_) {
+              finalName = googleName;
+            }
+          }
+
           if (data.containsKey('phone')) {
             finalPhone = data['phone'] ?? inputPhone;
           }
