@@ -284,10 +284,12 @@ class BookingView extends GetView<BookingController> {
           Expanded(
             child: Obx(() {
               if (controller.barbers.isEmpty) {
-                return Center(
+                return SingleChildScrollView(
+                  physics: BouncingScrollPhysics(),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      SizedBox(height: 20),
                       Container(
                         padding: EdgeInsets.all(24),
                         decoration: BoxDecoration(
@@ -304,19 +306,123 @@ class BookingView extends GetView<BookingController> {
                       Text(
                         "Hozircha ustalar topilmadi",
                         style: GoogleFonts.poppins(
-                          color: Colors.white60,
-                          fontSize: 15,
+                          color: Colors.white,
+                          fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                       SizedBox(height: 6),
                       Text(
-                        "Boshqa hududni yoki xizmatni tanlang",
+                        "Yaqin hududlardan ustalarni ko'rishingiz mumkin",
                         style: GoogleFonts.poppins(
-                          color: Colors.white30,
+                          color: Colors.white54,
                           fontSize: 12,
                         ),
+                        textAlign: TextAlign.center,
                       ),
+                      SizedBox(height: 24),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: card,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: gold.withValues(alpha: 0.3),
+                                  ),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              icon: Icon(
+                                Icons.location_on_rounded,
+                                size: 18,
+                                color: gold,
+                              ),
+                              label: Text(
+                                "Hududni o'zgartirish",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onPressed: () => Get.toNamed('/region'),
+                            ),
+                            SizedBox(width: 8),
+                            ElevatedButton.icon(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: card,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                  side: BorderSide(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                  ),
+                                ),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 12,
+                                ),
+                              ),
+                              icon: controller.isRefreshingBarbers.value
+                                  ? SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.refresh_rounded,
+                                      size: 18,
+                                      color: Colors.white,
+                                    ),
+                              label: Text(
+                                "Yangilash",
+                                style: GoogleFonts.poppins(fontSize: 13),
+                              ),
+                              onPressed: () => controller.refreshBarbers(),
+                            ),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 32),
+                      if (controller.suggestedBarbers.isNotEmpty) ...[
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            "⭐ Tavsiya etilgan ustalar",
+                            style: GoogleFonts.poppins(
+                              color: gold,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        ...controller.suggestedBarbers.map(
+                          (b) => Padding(
+                            padding: EdgeInsets.only(bottom: 12),
+                            child: _buildBarberCardWidget(
+                              b,
+                              controller.selectedBarber.value?['id'] == b['id'],
+                              b['isActive'] == true,
+                              card,
+                              gold,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ).animate().fadeIn();
@@ -332,211 +438,12 @@ class BookingView extends GetView<BookingController> {
 
                   return Padding(
                         padding: EdgeInsets.only(bottom: 12),
-                        child: GestureDetector(
-                          onTap: () => controller.selectBarber(b),
-                          child: AnimatedContainer(
-                            duration: Duration(milliseconds: 250),
-                            padding: EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              gradient: sel
-                                  ? LinearGradient(
-                                      colors: [
-                                        gold.withValues(alpha: 0.15),
-                                        gold.withValues(alpha: 0.05),
-                                      ],
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                    )
-                                  : null,
-                              color: sel ? null : card,
-                              borderRadius: BorderRadius.circular(18),
-                              border: Border.all(
-                                color: sel
-                                    ? gold
-                                    : Colors.white.withValues(alpha: 0.04),
-                                width: sel ? 1.5 : 1,
-                              ),
-                              boxShadow: sel
-                                  ? [
-                                      BoxShadow(
-                                        color: gold.withValues(alpha: 0.15),
-                                        blurRadius: 16,
-                                        offset: Offset(0, 4),
-                                      ),
-                                    ]
-                                  : [],
-                            ),
-                            child: Row(
-                              children: [
-                                // Avatar with active indicator
-                                Stack(
-                                  children: [
-                                    Container(
-                                      width: 56,
-                                      height: 56,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(
-                                          color: sel
-                                              ? gold
-                                              : Colors.white.withValues(
-                                                  alpha: 0.1,
-                                                ),
-                                          width: 2,
-                                        ),
-                                        image: DecorationImage(
-                                          image: ImageHelper.getBarberImage(
-                                            b['image']?.toString(),
-                                            b['id']?.toString() ?? 'unknown',
-                                          ),
-                                          fit: BoxFit.cover,
-                                        ),
-                                      ),
-                                    ),
-                                    if (isActive)
-                                      Positioned(
-                                        bottom: 0,
-                                        right: 0,
-                                        child: Container(
-                                          width: 16,
-                                          height: 16,
-                                          decoration: BoxDecoration(
-                                            color: Color(0xFF00E676),
-                                            shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: card,
-                                              width: 2.5,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                                SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Flexible(
-                                            child: Text(
-                                              b['name'] ?? 'Usta',
-                                              style: GoogleFonts.poppins(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.w700,
-                                                color: Colors.white,
-                                              ),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                          if (sel) ...[
-                                            SizedBox(width: 6),
-                                            Icon(
-                                              Icons.verified_rounded,
-                                              color: gold,
-                                              size: 16,
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                      SizedBox(height: 4),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.star_rounded,
-                                            color: Color(0xFFFFD700),
-                                            size: 14,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "${b['rating'] ?? 5.0}",
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white70,
-                                              fontSize: 13,
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                          SizedBox(width: 12),
-                                          Icon(
-                                            Icons.workspace_premium_rounded,
-                                            color: Colors.white30,
-                                            size: 14,
-                                          ),
-                                          SizedBox(width: 4),
-                                          Text(
-                                            "${b['experience'] ?? 1} yil",
-                                            style: GoogleFonts.poppins(
-                                              color: Colors.white54,
-                                              fontSize: 12,
-                                            ),
-                                          ),
-                                          if (b['location'] != null) ...[
-                                            SizedBox(width: 12),
-                                            Icon(
-                                              Icons.location_on_rounded,
-                                              color: Colors.white30,
-                                              size: 13,
-                                            ),
-                                            SizedBox(width: 3),
-                                            Flexible(
-                                              child: Text(
-                                                "${b['location']}",
-                                                style: GoogleFonts.poppins(
-                                                  color: Colors.white38,
-                                                  fontSize: 11,
-                                                ),
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ),
-                                          ],
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                // Checkmark
-                                AnimatedContainer(
-                                  duration: Duration(milliseconds: 200),
-                                  width: 28,
-                                  height: 28,
-                                  decoration: BoxDecoration(
-                                    gradient: sel
-                                        ? LinearGradient(
-                                            colors: [
-                                              gold,
-                                              gold.withValues(alpha: 0.7),
-                                            ],
-                                          )
-                                        : null,
-                                    color: sel
-                                        ? null
-                                        : Colors.white.withValues(alpha: 0.04),
-                                    shape: BoxShape.circle,
-                                    border: sel
-                                        ? null
-                                        : Border.all(
-                                            color: Colors.white.withValues(
-                                              alpha: 0.1,
-                                            ),
-                                          ),
-                                  ),
-                                  child: Icon(
-                                    sel
-                                        ? Icons.check_rounded
-                                        : Icons.add_rounded,
-                                    color: sel
-                                        ? Color(0xFF0F1120)
-                                        : Colors.white30,
-                                    size: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                        child: _buildBarberCardWidget(
+                          b,
+                          sel,
+                          isActive,
+                          card,
+                          gold,
                         ),
                       )
                       .animate()
@@ -950,6 +857,38 @@ class BookingView extends GetView<BookingController> {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Manual custom time input
+          Container(
+            margin: EdgeInsets.only(bottom: 16),
+            padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: card,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            child: TextField(
+              controller: controller.customTimeController,
+              style: GoogleFonts.poppins(color: Colors.white, fontSize: 15),
+              keyboardType: TextInputType.datetime,
+              maxLength: 5,
+              decoration: InputDecoration(
+                counterText: "",
+                hintText: "Masalan: 13:45 yozing...",
+                hintStyle: GoogleFonts.poppins(
+                  color: Colors.white24,
+                  fontSize: 13,
+                ),
+                border: InputBorder.none,
+                prefixIcon: Icon(
+                  Icons.keyboard_alt_rounded,
+                  color: gold,
+                  size: 20,
+                ),
+              ),
+              onChanged: controller.onCustomTimeChanged,
+            ),
+          ).animate().fadeIn(delay: 150.ms),
+
           // Quick select — nearest available time
           GestureDetector(
                 onTap: () => controller.selectNearestAvailableTime(),
@@ -1433,37 +1372,6 @@ class BookingView extends GetView<BookingController> {
                 ),
               ),
 
-              SizedBox(height: 12),
-
-              // 2. PAYME (Coming soon)
-              _buildComingSoonPayment(
-                "Payme",
-                "Payme orqali onlayn to'lov",
-                Icons.credit_score_rounded,
-                card,
-                gold,
-              ),
-              SizedBox(height: 12),
-
-              // 3. CLICK (Coming soon)
-              _buildComingSoonPayment(
-                "Click Up",
-                "Click orqali onlayn to'lov",
-                Icons.bolt_rounded,
-                card,
-                gold,
-              ),
-              SizedBox(height: 12),
-
-              // 4. UZUM PAY (Coming soon)
-              _buildComingSoonPayment(
-                "Uzum Pay",
-                "Uzum orqali muddatli to'lov",
-                Icons.local_mall_rounded,
-                card,
-                gold,
-              ),
-
               SizedBox(height: 16),
             ],
           ),
@@ -1472,73 +1380,190 @@ class BookingView extends GetView<BookingController> {
     );
   }
 
-  Widget _buildComingSoonPayment(
-    String name,
-    String desc,
-    IconData iconData,
+  Widget _buildBarberCardWidget(
+    Map<String, dynamic> b,
+    bool sel,
+    bool isActive,
     Color card,
     Color gold,
   ) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: card.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(iconData, color: Colors.white30, size: 18),
+    return GestureDetector(
+      onTap: () => controller.selectBarber(b),
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 250),
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: sel
+              ? LinearGradient(
+                  colors: [
+                    gold.withValues(alpha: 0.15),
+                    gold.withValues(alpha: 0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                )
+              : null,
+          color: sel ? null : card,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(
+            color: sel ? gold : Colors.white.withValues(alpha: 0.04),
+            width: sel ? 1.5 : 1,
           ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          boxShadow: sel
+              ? [
+                  BoxShadow(
+                    color: gold.withValues(alpha: 0.15),
+                    blurRadius: 16,
+                    offset: Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Row(
+          children: [
+            // Avatar with active indicator
+            Stack(
               children: [
-                Text(
-                  name,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white38,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: sel ? gold : Colors.white.withValues(alpha: 0.1),
+                      width: 2,
+                    ),
+                    image: DecorationImage(
+                      image: ImageHelper.getBarberImage(
+                        b['image']?.toString(),
+                        b['id']?.toString() ?? 'unknown',
+                      ),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
-                Text(
-                  desc,
-                  style: GoogleFonts.poppins(
-                    color: Colors.white24,
-                    fontSize: 12,
+                if (isActive)
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: BoxDecoration(
+                        color: Color(0xFF00E676),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: card, width: 2.5),
+                      ),
+                    ),
                   ),
-                ),
               ],
             ),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: gold.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child:
-                Text(
-                      "Tez kunda",
-                      style: GoogleFonts.poppins(
-                        color: gold,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
+            SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          b['name'] ?? 'Usta',
+                          style: GoogleFonts.poppins(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                    )
-                    .animate(onPlay: (c) => c.repeat())
-                    .shimmer(duration: 2000.ms, color: Colors.white),
-          ),
-        ],
+                      if (sel) ...[
+                        SizedBox(width: 6),
+                        Icon(Icons.verified_rounded, color: gold, size: 16),
+                      ],
+                    ],
+                  ),
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.star_rounded,
+                        color: Color(0xFFFFD700),
+                        size: 14,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        "${b['rating'] ?? 5.0}",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white70,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Icon(
+                        Icons.workspace_premium_rounded,
+                        color: Colors.white30,
+                        size: 14,
+                      ),
+                      SizedBox(width: 4),
+                      Text(
+                        "${b['experience'] ?? 1} yil",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white54,
+                          fontSize: 12,
+                        ),
+                      ),
+                      if (b['location'] != null) ...[
+                        SizedBox(width: 12),
+                        Icon(
+                          Icons.location_on_rounded,
+                          color: Colors.white30,
+                          size: 13,
+                        ),
+                        SizedBox(width: 3),
+                        Flexible(
+                          child: Text(
+                            "${b['location']}",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white38,
+                              fontSize: 11,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Checkmark
+            AnimatedContainer(
+              duration: Duration(milliseconds: 200),
+              width: 28,
+              height: 28,
+              decoration: BoxDecoration(
+                gradient: sel
+                    ? LinearGradient(
+                        colors: [gold, gold.withValues(alpha: 0.7)],
+                      )
+                    : null,
+                color: sel ? null : Colors.white.withValues(alpha: 0.04),
+                shape: BoxShape.circle,
+                border: sel
+                    ? null
+                    : Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: Icon(
+                sel ? Icons.check_rounded : Icons.add_rounded,
+                color: sel ? Color(0xFF0F1120) : Colors.white30,
+                size: 16,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -16,6 +16,16 @@ class BookingController extends GetxController {
   // Step 1: Barber
   final selectedBarber = Rxn<Map<String, dynamic>>();
   final barbers = <Map<String, dynamic>>[].obs;
+  final suggestedBarbers = <Map<String, dynamic>>[].obs;
+  final isRefreshingBarbers = false.obs;
+
+  void refreshBarbers() {
+    isRefreshingBarbers.value = true;
+    _fetchBarbers();
+    Future.delayed(Duration(milliseconds: 800), () {
+      isRefreshingBarbers.value = false;
+    });
+  }
 
   // Step 2: Date & Time
   final selectedDate = DateTime.now().obs;
@@ -23,6 +33,23 @@ class BookingController extends GetxController {
   final selectedTime = ''.obs;
   final allTimes = <String>[].obs;
   final availableTimes = <String>[].obs;
+  final customTimeController = TextEditingController();
+
+  void onCustomTimeChanged(String val) {
+    if (val.length == 5 && val.contains(':')) {
+      final parts = val.split(':');
+      final hh = int.tryParse(parts[0]);
+      final mm = int.tryParse(parts[1]);
+      if (hh != null &&
+          mm != null &&
+          hh >= 8 &&
+          hh <= 22 &&
+          mm >= 0 &&
+          mm <= 59) {
+        selectedTime.value = val;
+      }
+    }
+  }
 
   // Step 3: Payment
   final selectedPaymentMethod = 'cash'.obs;
@@ -118,12 +145,40 @@ class BookingController extends GetxController {
           }).toList();
           barbers.value = list;
 
-          if (list.isNotEmpty &&
-              (selectedBarber.value == null ||
-                  !list.any((b) => b['id'] == selectedBarber.value?['id']))) {
-            selectedBarber.value = list.first;
+          if (list.isEmpty) {
+            _fetchSuggestedBarbers(userGender);
+          } else {
+            suggestedBarbers.clear();
+            if (selectedBarber.value == null ||
+                !list.any((b) => b['id'] == selectedBarber.value?['id'])) {
+              selectedBarber.value = list.first;
+            }
           }
         });
+  }
+
+  void _fetchSuggestedBarbers(String gender) async {
+    try {
+      final snap = await _firestore
+          .collection('barbers')
+          .where('gender', isEqualTo: gender)
+          .where('isActive', isEqualTo: true)
+          .limit(5)
+          .get();
+
+      final list = snap.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
+
+      // Sort client side mimicking high rating
+      list.sort(
+        (a, b) =>
+            ((b['rating'] as num?) ?? 0).compareTo((a['rating'] as num?) ?? 0),
+      );
+      suggestedBarbers.value = list;
+    } catch (_) {}
   }
 
   void _updateAvailableTimes() {
