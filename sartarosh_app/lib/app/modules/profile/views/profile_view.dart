@@ -216,42 +216,7 @@ class ProfileView extends StatelessWidget {
                             idx++,
                             () => Get.toNamed('/my-bookings'),
                           ),
-                          _menuItem(
-                            Icons.storefront_rounded,
-                            "Sartarosh sifatida qo'shilish",
-                            idx++,
-                            () async {
-                              if (isBarberRole) {
-                                // Heal desync: Check if they actually still have a barber doc
-                                final uid = userService.currentUid;
-                                final docs = await FirebaseFirestore.instance
-                                    .collection('barbers')
-                                    .where('uid', isEqualTo: uid)
-                                    .get();
-                                if (docs.docs.isEmpty) {
-                                  // Auto-heal role to 'client'
-                                  userService.userRole.value = 'client';
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(uid)
-                                      .set({
-                                        'role': 'client',
-                                      }, SetOptions(merge: true));
-                                  Get.toNamed('/add-barber');
-                                } else {
-                                  Get.snackbar(
-                                    "Diqqat!",
-                                    "Siz allaqachon usta sifatida ro'yxatdan o'tgansiz.",
-                                    backgroundColor: Colors.orange,
-                                    colorText: Colors.white,
-                                    snackPosition: SnackPosition.TOP,
-                                  );
-                                }
-                              } else {
-                                Get.toNamed('/add-barber');
-                              }
-                            },
-                          ),
+
                           if (isBarberRole) ...[
                             _menuItem(
                               Icons.swap_horiz_rounded,
