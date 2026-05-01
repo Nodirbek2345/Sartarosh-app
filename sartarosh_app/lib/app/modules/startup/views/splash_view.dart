@@ -19,39 +19,54 @@ class SplashView extends GetView<SplashController> {
             children: [
               Spacer(flex: 3),
 
-              // Gold scissor icon
+              // Heartbeat barber pulse logo
               Container(
-                    padding: EdgeInsets.all(28),
+                    width: 160,
+                    height: 160,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.3),
-                        width: 2,
-                      ),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primary.withValues(alpha: 0.5),
+                          blurRadius: 40,
+                          spreadRadius: 8,
+                        ),
+                        BoxShadow(
+                          color: AppTheme.gold.withValues(alpha: 0.3),
+                          blurRadius: 60,
+                          spreadRadius: 2,
+                        ),
+                      ],
                     ),
-                    child: Container(
-                      padding: EdgeInsets.all(22),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: AppTheme.goldGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primary.withValues(alpha: 0.4),
-                            blurRadius: 30,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: Icon(
-                        Icons.content_cut_rounded,
-                        size: 48,
-                        color: Colors.white,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(80),
+                      child: Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Image.asset(
+                          'assets/images/barber_pulse.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   )
                   .animate()
                   .scale(duration: 800.ms, curve: Curves.easeOutBack)
-                  .fadeIn(),
+                  .fadeIn()
+                  .then()
+                  .scale(
+                    begin: Offset(1.0, 1.0),
+                    end: Offset(1.08, 1.08),
+                    duration: 700.ms,
+                    curve: Curves.easeInOut,
+                  )
+                  .then()
+                  .scale(
+                    begin: Offset(1.0, 1.0),
+                    end: Offset(0.93, 0.93),
+                    duration: 700.ms,
+                    curve: Curves.easeInOut,
+                  ),
 
               SizedBox(height: 40),
 
