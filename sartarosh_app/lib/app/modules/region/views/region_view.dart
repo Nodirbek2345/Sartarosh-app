@@ -161,7 +161,7 @@ class RegionView extends GetView<RegionController> {
                                   SizedBox(width: 12),
                                   Text(
                                     controller.isDetecting.value
-                                        ? "Aniqlanmoqda..."
+                                        ? "Joylashuv aniqlanmoqda..."
                                         : "📍 GPS orqali aniqlash",
                                     style: GoogleFonts.poppins(
                                       color: Colors.white,
@@ -174,56 +174,6 @@ class RegionView extends GetView<RegionController> {
                             ),
                           ),
                         ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.15),
-
-                        SizedBox(height: 16),
-
-                        // ─── MANUAL SELECTION BUTTON ───
-                        GestureDetector(
-                          onTap: () => controller.showRegionFallbackDialog(),
-                          child: AnimatedContainer(
-                            duration: 300.ms,
-                            width: double.infinity,
-                            padding: EdgeInsets.symmetric(vertical: 20),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: AppTheme.primary.withValues(alpha: 0.2),
-                                width: 1.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primary.withValues(
-                                    alpha: 0.05,
-                                  ),
-                                  blurRadius: 10,
-                                  offset: Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.location_city_rounded,
-                                  color: AppTheme.primary,
-                                  size: 22,
-                                ),
-                                SizedBox(width: 12),
-                                Text(
-                                  "Viloyatni qo'lda tanlash",
-                                  style: GoogleFonts.poppins(
-                                    color: AppTheme.primary,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ).animate().fadeIn(delay: 450.ms).slideY(begin: 0.15),
-
-                        SizedBox(height: 24),
 
                         // ─── INFO NOTE ───
                         Container(

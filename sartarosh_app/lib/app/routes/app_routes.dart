@@ -18,4 +18,7 @@ abstract class Routes {
   static const String region = '/region';
   static const String barberServices = '/barber-services';
   static const String notifications = '/notifications';
+  static const String clientAnalytics = '/client-analytics';
+  static const String adminAnalytics = '/admin-analytics';
+  static const String forceUpdate = '/force-update';
 }

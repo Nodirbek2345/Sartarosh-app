@@ -35,8 +35,14 @@ import '../modules/barber_services/bindings/barber_services_binding.dart';
 import '../modules/barber_services/views/barber_services_view.dart';
 import '../modules/notifications/bindings/notifications_binding.dart';
 import '../modules/notifications/views/notifications_view.dart';
+import '../modules/client_analytics/bindings/client_analytics_binding.dart';
+import '../modules/client_analytics/views/client_analytics_view.dart';
+import '../modules/admin_analytics/bindings/admin_analytics_binding.dart';
+import '../modules/admin_analytics/views/admin_analytics_view.dart';
 import '../../core/middleware/auth_middleware.dart';
 import '../../core/middleware/barber_middleware.dart';
+import '../modules/force_update/bindings/force_update_binding.dart';
+import '../modules/force_update/views/force_update_view.dart';
 
 class AppPages {
   static const String initial = Routes.splash;
@@ -161,6 +167,26 @@ class AppPages {
       name: Routes.notifications,
       page: () => NotificationsView(),
       binding: NotificationsBinding(),
+      transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.clientAnalytics,
+      page: () => ClientAnalyticsView(),
+      binding: ClientAnalyticsBinding(),
+      transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthMiddleware()],
+    ),
+    GetPage(
+      name: Routes.adminAnalytics,
+      page: () => AdminAnalyticsView(),
+      binding: AdminAnalyticsBinding(),
+      transition: Transition.fadeIn,
+      middlewares: [AuthMiddleware()], // Requires login
+    ),
+    GetPage(
+      name: Routes.forceUpdate,
+      page: () => ForceUpdateView(),
+      binding: ForceUpdateBinding(),
       transition: Transition.fadeIn,
     ),
   ];

@@ -17,6 +17,7 @@ class BarberDashboardController extends GetxController {
 
   final todayBookings = <Map<String, dynamic>>[].obs;
   final allBookings = <Map<String, dynamic>>[].obs; // Barcha kunlar uchun
+  final todayQueues = <Map<String, dynamic>>[].obs;
   final isActive = true.obs;
   final isLoading = true.obs;
   final queueLimit = 1.obs;
@@ -38,6 +39,7 @@ class BarberDashboardController extends GetxController {
   StreamSubscription? _bookingsSub;
   StreamSubscription? _allBookingsSub;
   StreamSubscription? _statusSub;
+  StreamSubscription? _queuesSub;
 
   // Cached barber document reference
   DocumentReference? _barberDocRef;
@@ -71,6 +73,7 @@ class BarberDashboardController extends GetxController {
     _listenTodayBookings();
     _listenAllBookings();
     _listenBarberStatus();
+    _listenQueues();
   }
 
   /// Cache the barber document reference using UID
@@ -119,23 +122,79 @@ class BarberDashboardController extends GetxController {
                 (total, b) => total + ((b['price'] as num?)?.toInt() ?? 0),
               );
 
-          // Queue system: current + next
-          final inProgress = list.where((b) => b['status'] == 'in-progress');
-          currentClient.value = inProgress.isNotEmpty ? inProgress.first : null;
-
-          final confirmedToday = list
-              .where((b) => b['status'] == 'confirmed')
-              .toList();
-          final pendingToday = list
-              .where((b) => b['status'] == 'pending')
-              .toList();
-          nextClient.value = confirmedToday.isNotEmpty
-              ? confirmedToday.first
-              : (pendingToday.isNotEmpty ? pendingToday.first : null);
+          // Queue system logic is now handled in _updateCombinedQueue()
+          _updateCombinedQueue();
 
           isLoading.value = false;
           _checkAutoTurnOff();
         });
+  }
+
+  void _listenQueues() {
+    if (_barberId.isEmpty) return;
+    _queuesSub = _firestore
+        .collection('queues')
+        .where('barberId', isEqualTo: _barberId)
+        .where('status', whereIn: ['waiting', 'in_progress'])
+        .snapshots()
+        .listen((snapshot) {
+          final list = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['docId'] = doc.id;
+            data['isQueue'] =
+                true; // Use this flag to distinguish from regular bookings
+            return data;
+          }).toList();
+
+          // Sort by creation time (queue position implicitly based on arrival)
+          list.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return aTime.compareTo(bTime);
+          });
+          todayQueues.value = list;
+          _updateCombinedQueue();
+        });
+  }
+
+  void _updateCombinedQueue() {
+    // Find one in-progress from EITHER bookings OR queues
+    final activeBooking = todayBookings.firstWhereOrNull(
+      (b) => b['status'] == 'in-progress',
+    );
+    final activeQueue = todayQueues.firstWhereOrNull(
+      (q) => q['status'] == 'in_progress',
+    );
+
+    if (activeBooking != null) {
+      currentClient.value = activeBooking;
+    } else if (activeQueue != null) {
+      currentClient.value = activeQueue;
+    } else {
+      currentClient.value = null;
+    }
+
+    // Find the next client. Prioritize confirmed booking with earliest time, then earliest waiting queue
+    final nextBooking = todayBookings
+        .where((b) => b['status'] == 'confirmed')
+        .toList();
+    final pendingBooking = todayBookings
+        .where((b) => b['status'] == 'pending')
+        .toList();
+
+    if (nextBooking.isNotEmpty) {
+      nextClient.value = nextBooking.first;
+    } else if (todayQueues.isNotEmpty &&
+        todayQueues.first['status'] == 'waiting') {
+      nextClient.value = todayQueues.first;
+    } else if (pendingBooking.isNotEmpty) {
+      nextClient.value = pendingBooking.first;
+    } else {
+      nextClient.value = null;
+    }
   }
 
   /// Barcha kunlar uchun bronlarni tinglash (Bronlar tab uchun)
@@ -482,6 +541,18 @@ class BarberDashboardController extends GetxController {
         'status': 'in-progress',
         'startedAt': FieldValue.serverTimestamp(),
       });
+
+      final clientUid = data['clientUid'] as String?;
+      if (clientUid != null && clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Sizning navbatingiz! 🔥',
+          'message': 'Usta sizining xizmatingizni boshladi.',
+          'type': 'your_turn',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       Get.snackbar(
         "Boshlandi",
         "Xizmat boshlandi",
@@ -518,6 +589,18 @@ class BarberDashboardController extends GetxController {
         'paymentStatus': 'paid',
         'completedAt': FieldValue.serverTimestamp(),
       });
+
+      final clientUid = snapshot.data()?['clientUid'] as String?;
+      if (clientUid != null && clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Xizmat yakunlandi ✅',
+          'message': 'Xizmatingiz yakunlandi. Tashrifingiz uchun rahmat!',
+          'type': 'service_completed',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       Get.snackbar(
         "Tugallandi",
         "Xizmat muvaffaqiyatli yakunlandi",
@@ -553,6 +636,19 @@ class BarberDashboardController extends GetxController {
         'status': 'no-show',
         'noShowAt': FieldValue.serverTimestamp(),
       });
+
+      final clientUid = snapshot.data()?['clientUid'] as String?;
+      if (clientUid != null && clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Kelmadi deb belgilandi ❌',
+          'message':
+              'Usta sizni tashrif buyurmadi deb belgiladi. Bu hisobingizga salbiy ta\'sir qilishi mumkin.',
+          'type': 'no_show',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       Get.snackbar(
         "Mijoz kelmadi",
         "Mijoz qatnashmaganligi tasdiqlandi",
@@ -566,6 +662,121 @@ class BarberDashboardController extends GetxController {
         backgroundColor: AppTheme.danger,
         colorText: Colors.white,
       );
+    }
+  }
+
+  // ============== QUEUE SYSTEM ACTIONS ==============
+
+  Future<void> startQueueClient(String docId) async {
+    try {
+      if (currentClient.value != null) {
+        Get.snackbar(
+          "Xatolik",
+          "Avval boshlangan mijozni yakunlang!",
+          backgroundColor: AppTheme.danger,
+          colorText: Colors.white,
+        );
+        return;
+      }
+      await _firestore.collection('queues').doc(docId).update({
+        'status': 'in_progress',
+        'startedAt': FieldValue.serverTimestamp(),
+      });
+
+      final queueDoc = await _firestore.collection('queues').doc(docId).get();
+      final clientUid = queueDoc.data()?['clientUid'] as String?;
+      if (clientUid != null && clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Sizning navbatingiz! 🔥',
+          'message': 'Usta sizning xizmatingizni boshladi.',
+          'type': 'your_turn',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "Boshlandi",
+        "Jonli navbat xizmati boshlandi",
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+      HapticFeedback.lightImpact();
+    } catch (e) {
+      Get.snackbar("Xato", "Navbatni boshlashda xatolik");
+    }
+  }
+
+  Future<void> completeQueueClient(String docId) async {
+    try {
+      await _firestore.collection('queues').doc(docId).update({
+        'status': 'completed',
+        'completedAt': FieldValue.serverTimestamp(),
+      });
+
+      // Update global earnings or stats manually if needed (queues earnings aren't in bookings listener)
+      final snap = await _firestore.collection('queues').doc(docId).get();
+      if (snap.exists) {
+        final data = snap.data()!;
+        final price = (data['price'] as num?)?.toInt() ?? 0;
+        todayEarnings.value += price;
+        weeklyEarnings.value += price;
+        monthlyEarnings.value += price;
+        completedCount.value++;
+
+        final clientUid = data['clientUid'] as String?;
+        if (clientUid != null && clientUid.isNotEmpty) {
+          await _firestore.collection('notifications').add({
+            'userId': clientUid,
+            'title': 'Xizmat yakunlandi ✅',
+            'message': 'Xizmatingiz yakunlandi. Tashrifingiz uchun rahmat!',
+            'type': 'service_completed',
+            'isRead': false,
+            'createdAt': FieldValue.serverTimestamp(),
+          });
+        }
+      }
+
+      Get.snackbar(
+        "Tugallandi",
+        "Mijozga xizmat ko'rsatildi",
+        backgroundColor: AppTheme.success,
+        colorText: Colors.white,
+      );
+      HapticFeedback.heavyImpact();
+    } catch (e) {
+      Get.snackbar("Xato", "Tugatishda xatolik");
+    }
+  }
+
+  Future<void> skipQueueClient(String docId) async {
+    try {
+      await _firestore.collection('queues').doc(docId).update({
+        'status': 'skipped',
+        'skippedAt': FieldValue.serverTimestamp(),
+      });
+
+      final queueDoc = await _firestore.collection('queues').doc(docId).get();
+      final clientUid = queueDoc.data()?['clientUid'] as String?;
+      if (clientUid != null && clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Navbat o\'tkazib yuborildi ⚠️',
+          'message':
+              'Usta sizning navbatingizni kelmaganligingiz sababli o\'tkazib yubordi.',
+          'type': 'no_show',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "O'tkazildi",
+        "Mijoz kelmagani sababli navbatdan o'tkazildi",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xato", "O'tkazishda xatolik");
     }
   }
 
@@ -876,6 +1087,7 @@ class BarberDashboardController extends GetxController {
     _bookingsSub?.cancel();
     _allBookingsSub?.cancel();
     _statusSub?.cancel();
+    _queuesSub?.cancel();
     super.onClose();
   }
 }

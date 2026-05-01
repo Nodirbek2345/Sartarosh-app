@@ -13,35 +13,68 @@ service cloud.firestore {
 
     match /users/{userId} {
       allow read: if isAuth();
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
+      allow create, update: if isOwner(userId);
       allow delete: if false;
     }
 
     match /barbers/{barberId} {
       allow read: if true; // Publicly accessible to read
-      allow create: if isAuth() && isOwner(request.resource.data.uid);
-      allow update: if isAuth() && isOwner(resource.data.uid);
+      allow create, update: if isAuth() && isOwner(request.resource.data.uid);
       allow delete: if false; // Soft delete via isActive flag
     }
 
     match /bookings/{bookingId} {
       // Either the client who booked or the barber receiving it
       allow read: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
-      allow create: if isAuth() && request.resource.data.clientUid == request.auth.uid;
-      allow update: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
+      
+      // Client creating a booking: must be pending
+      allow create: if isAuth() 
+                    && request.resource.data.clientUid == request.auth.uid 
+                    && request.resource.data.status == 'pending';
+                    
+      // Status transition validation
+      allow update: if isAuth() && (
+        // Client can only cancel their own pending booking
+        (request.auth.uid == resource.data.clientUid && request.resource.data.status == 'missed' && resource.data.status == 'pending') ||
+        // Barber handles accept/reject/progress/completion
+        (request.auth.uid == resource.data.barberUid)
+      );
+      
+      allow delete: if false; 
+    }
+
+    match /queues/{queueId} {
+      allow read: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
+      
+      // Client joining live queue
+      allow create: if isAuth() 
+                    && request.resource.data.clientUid == request.auth.uid 
+                    && request.resource.data.status == 'waiting';
+                    
+      allow update: if isAuth() && (
+        // Client can cancel
+        (request.auth.uid == resource.data.clientUid && request.resource.data.status == 'skipped') ||
+        // Barber controls queue status
+        (request.auth.uid == resource.data.barberUid)
+      );
+      
       allow delete: if false; 
     }
 
     match /services/{docId} {
       allow read: if true;
-      allow write: if false; // Admin only from Firebase Console
+      allow write: if false; 
+    }
+
+    match /platform_config/{docId} {
+      allow read: if true;
+      allow write: if false;
     }
 
     match /reviews/{reviewId} {
       allow read: if true;
       allow create: if isAuth();
-      allow update, delete: if false; // Reviews are immutable or handled by admin
+      allow update, delete: if false; 
     }
   }
 }

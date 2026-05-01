@@ -33,13 +33,13 @@ class RegionController extends GetxController {
       if (permission == LocationPermission.denied) {
         permission = await Geolocator.requestPermission();
         if (permission == LocationPermission.denied) {
-          _showError("Joylashuv ruxsati berilmadi");
+          _showGpsFailureModal("Joylashuv ruxsati berilmadi");
           isDetecting.value = false;
           return;
         }
       }
       if (permission == LocationPermission.deniedForever) {
-        _showError(
+        _showGpsFailureModal(
           "Joylashuv ruxsati butunlay rad etilgan. Sozlamalardan yoqing.",
         );
         isDetecting.value = false;
@@ -60,47 +60,23 @@ class RegionController extends GetxController {
         final regionKey = _matchRegion(place);
 
         if (regionKey.isEmpty) {
-          _showError(
-            "Kechirasiz, sizning hududingiz (${place.administrativeArea ?? 'boshqa'}) bazada topilmadi.",
-          );
+          _showGpsFailureModal("Sizning hududingiz bazada topilmadi.");
           isDetecting.value = false;
           return;
         }
 
         // Save region and navigate to home
         final userService = Get.find<UserService>();
-        userService.setRegionMode(regionKey);
-
-        final street = place.street ?? '';
-        final subLocality = place.subLocality ?? '';
-        final locality = place.locality ?? '';
-        final adminArea = place.administrativeArea ?? '';
-        final parts = [
-          street,
-          subLocality,
-          locality,
-          adminArea,
-        ].where((e) => e.isNotEmpty).toList();
-        final exactPlace = parts.join(', ');
-
-        Get.snackbar(
-          "📍 $regionKey",
-          exactPlace.isNotEmpty
-              ? exactPlace
-              : "$regionKey dagi ustalar ko'rsatilmoqda",
-          backgroundColor: AppTheme.primary,
-          colorText: Colors.white,
-          snackPosition: SnackPosition.BOTTOM,
-          duration: Duration(seconds: 3),
-        );
+        userService.setGpsMode(position.latitude, position.longitude);
+        userService.setRegion(regionKey);
 
         Get.offAllNamed('/home');
       } else {
-        _showError("Joylashuvni aniqlab bo'lmadi");
+        _showGpsFailureModal("Joylashuvni aniqlab bo'lmadi");
       }
     } catch (e) {
       debugPrint("GPS error: $e");
-      _showError("GPS xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.");
+      _showGpsFailureModal("GPS orqali joylashuvni aniqlashda xatolik.");
     } finally {
       isDetecting.value = false;
     }
@@ -176,13 +152,97 @@ class RegionController extends GetxController {
     return '';
   }
 
-  void _showError(String msg) {
-    Get.snackbar(
-      "Xatolik",
-      msg,
-      backgroundColor: AppTheme.danger,
-      colorText: Colors.white,
-      snackPosition: SnackPosition.BOTTOM,
+  void _showGpsFailureModal(String desc) {
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.location_off_rounded,
+                size: 48,
+                color: AppTheme.danger,
+              ),
+              SizedBox(height: 16),
+              Text(
+                "Joylashuv aniqlanmadi",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              SizedBox(height: 8),
+              Text(
+                desc,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: AppTheme.textMedium),
+              ),
+              SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  onPressed: () {
+                    Get.back();
+                    detectAndGo(); // Retry
+                  },
+                  child: Text(
+                    "Qayta urinib ko'rish",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  style: TextButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: BorderSide(
+                        color: AppTheme.primary.withValues(alpha: 0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                  ),
+                  onPressed: () {
+                    Get.back();
+                    showRegionFallbackDialog();
+                  },
+                  child: Text(
+                    "Viloyatni tanlash",
+                    style: TextStyle(
+                      color: AppTheme.primary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
     );
   }
 

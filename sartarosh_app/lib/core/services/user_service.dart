@@ -33,6 +33,13 @@ class UserService extends GetxService {
   bool get isAuthenticated =>
       FirebaseAuth.instance.currentUser != null && isLogged.value;
 
+  bool get hasLocation {
+    if (filterMode.value == 'GPS') {
+      return userLat.value != 0.0 && userLng.value != 0.0;
+    }
+    return selectedRegion.value.isNotEmpty;
+  }
+
   Future<UserService> init() async {
     _storage = const FlutterSecureStorage();
 
@@ -262,6 +269,15 @@ class UserService extends GetxService {
   void setRegion(String region) async {
     selectedRegion.value = region;
     await _storage.write(key: 'selected_region', value: region);
+
+    if (currentUid.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .set({'region': region}, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   /// Switch to GPS mode — clears region, stores coords
@@ -280,7 +296,7 @@ class UserService extends GetxService {
         await FirebaseFirestore.instance
             .collection('users')
             .doc(currentUid)
-            .set({'region': ''}, SetOptions(merge: true));
+            .set({'lat': lat, 'lng': lng}, SetOptions(merge: true));
       } catch (_) {}
     }
   }

@@ -1483,6 +1483,15 @@ class HomeView extends GetView<HomeController> {
                       },
                     ),
                     _menuItem(
+                      icon: Icons.account_balance_wallet_rounded,
+                      title: "Mening xarajatlarim",
+                      color: AppTheme.gold,
+                      onTap: () {
+                        Get.back();
+                        Get.toNamed('/client-analytics');
+                      },
+                    ),
+                    _menuItem(
                       icon: Icons.favorite_border_rounded,
                       title: "Sevimlilar",
                       onTap: () {
@@ -1527,6 +1536,18 @@ class HomeView extends GetView<HomeController> {
                       },
                     ),
                   ],
+
+                  // ─── ADMIN MENU ───
+                  Divider(color: AppTheme.background, height: 30),
+                  _menuItem(
+                    icon: Icons.trending_up_rounded,
+                    title: "Moliyaviy ko'rsatkichlar",
+                    color: AppTheme.gold,
+                    onTap: () {
+                      Get.back();
+                      Get.toNamed('/admin-analytics');
+                    },
+                  ),
 
                   Divider(color: AppTheme.background, height: 30),
 

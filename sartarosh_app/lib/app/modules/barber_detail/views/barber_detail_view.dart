@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/image_helper.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../controllers/barber_detail_controller.dart';
 
 class BarberDetailView extends StatelessWidget {
   const BarberDetailView({super.key});
@@ -79,19 +79,6 @@ class BarberDetailView extends StatelessWidget {
                         : Icons.favorite_border_rounded,
                     () => Get.find<UserService>().toggleFavorite(barber['id']),
                     color: isFav ? AppTheme.danger : AppTheme.textDark,
-                  );
-                }),
-              ),
-              // Share
-              Positioned(
-                top: 48,
-                right: 16,
-                child: _circleButton(Icons.share_rounded, () {
-                  SharePlus.instance.share(
-                    ShareParams(
-                      text:
-                          "Sartarosh ${barber['name'] ?? ''} bilan tanishing!\nManzil: ${barber['address'] ?? 'Toshkent'}\n\nHozir Sartarosh ilovasi orqali bron qiling!",
-                    ),
                   );
                 }),
               ),
@@ -186,13 +173,19 @@ class BarberDetailView extends StatelessWidget {
                       ),
                       SizedBox(width: 4),
                       Expanded(
-                        child: Text(
-                          barber['address'] ?? "Toshkent",
-                          style: GoogleFonts.poppins(
-                            color: AppTheme.textMedium,
-                            fontSize: 13,
-                          ),
-                        ),
+                        child: Obx(() {
+                          final controller = Get.find<BarberDetailController>();
+                          final dist = controller.distanceText.value;
+                          final address = barber['address'] ?? "Toshkent";
+
+                          return Text(
+                            dist.isNotEmpty ? "$address • $dist" : address,
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textMedium,
+                              fontSize: 13,
+                            ),
+                          );
+                        }),
                       ),
                       SizedBox(width: 16),
                       Icon(Icons.star_rounded, size: 15, color: AppTheme.gold),
@@ -238,18 +231,9 @@ class BarberDetailView extends StatelessWidget {
                       _actionButton(
                         Icons.directions_rounded,
                         "Yo'nalish",
-                        () => _launch(
-                          "https://maps.google.com/?q=${Uri.encodeComponent(barber['address'] ?? 'Toshkent')}",
-                        ),
+                        () =>
+                            Get.find<BarberDetailController>().openDirections(),
                       ),
-                      _actionButton(Icons.share_rounded, "Ulashish", () {
-                        SharePlus.instance.share(
-                          ShareParams(
-                            text:
-                                "Sartarosh ${barber['name'] ?? ''} bilan tanishing!\nManzil: ${barber['address'] ?? 'Toshkent'}\n\nHozir Sartarosh ilovasi orqali bron qiling!",
-                          ),
-                        );
-                      }),
                     ],
                   ).animate().fadeIn(delay: 300.ms),
 
@@ -315,13 +299,11 @@ class BarberDetailView extends StatelessWidget {
                             return;
                           }
                           if (barberIsActive) {
-                            Get.toNamed(
-                              '/booking',
-                              arguments: {
-                                'barber': barber,
-                                'service': s['name'] ?? 'Soch olish',
-                                'price': price,
-                              },
+                            _showBookingOptions(
+                              context,
+                              s['name'] ?? 'Soch olish',
+                              price,
+                              duration,
                             );
                           } else {
                             Get.snackbar(
@@ -484,14 +466,11 @@ class BarberDetailView extends StatelessWidget {
                       return;
                     }
                     if (ctaActive) {
-                      Get.toNamed(
-                        '/booking',
-                        arguments: {
-                          'barber': barber,
-                          'service':
-                              barber['services']?[0]?['name'] ?? 'Soch olish',
-                          'price': barber['services']?[0]?['price'] ?? 30000,
-                        },
+                      _showBookingOptions(
+                        Get.context!,
+                        barber['services']?[0]?['name'] ?? 'Soch olish',
+                        barber['services']?[0]?['price'] ?? 30000,
+                        30,
                       );
                     } else {
                       Get.snackbar(
@@ -632,6 +611,186 @@ class BarberDetailView extends StatelessWidget {
     );
   }
 
+  void _showBookingOptions(
+    BuildContext context,
+    String serviceName,
+    int price,
+    int duration,
+  ) {
+    final BarberDetailController controller = Get.find();
+    final barber = controller.barber;
+
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: AppTheme.background,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Xizmat qabul qilish turi",
+              style: GoogleFonts.playfairDisplay(
+                color: AppTheme.textDark,
+                fontSize: 22,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "Bron qilish yoki jonli navbatga yozilishni tanlang.",
+              style: GoogleFonts.poppins(
+                color: AppTheme.textMedium,
+                fontSize: 14,
+              ),
+            ),
+            SizedBox(height: 24),
+
+            // Bron qilish Option
+            GestureDetector(
+              onTap: () {
+                Get.back(); // close bottom sheet
+                Get.toNamed(
+                  '/booking',
+                  arguments: {
+                    'barber': barber,
+                    'service': serviceName,
+                    'price': price,
+                    'duration': duration,
+                  },
+                );
+              },
+              child: Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.calendar_today_rounded,
+                        color: AppTheme.primary,
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Bron qilish (Vaqt tanlash)",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textDark,
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            "O'zingizga qulay kun va vaqtni band qiling",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textMedium,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ).animate().slideY(begin: 0.2).fadeIn(),
+
+            SizedBox(height: 16),
+
+            // Jonli Navbat Option
+            GestureDetector(
+              onTap: () => controller.joinQueue(serviceName, price, duration),
+              child: Obx(
+                () => Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    gradient: AppTheme.goldGradient,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppTheme.primary.withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: controller.isJoiningQueue.value
+                      ? Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        )
+                      : Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.2),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.people_alt_rounded,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Jonli navbatga yozilish",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  Text(
+                                    "Hozirgi navbat oxiriga qo'shilish",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.9,
+                                      ),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                ),
+              ),
+            ).animate().slideY(begin: 0.2, delay: 100.ms).fadeIn(),
+            SizedBox(height: 24),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
   Widget _buildPortfolio(Map<String, dynamic> barber) {
     final List portfolio = barber['portfolio'] ?? [];
     if (portfolio.isEmpty) return SizedBox.shrink();
@@ -681,4 +840,3 @@ class BarberDetailView extends StatelessWidget {
     ).animate().fadeIn(delay: 350.ms);
   }
 }
-

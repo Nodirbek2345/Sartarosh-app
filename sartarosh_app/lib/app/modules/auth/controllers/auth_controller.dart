@@ -291,8 +291,8 @@ class AuthController extends GetxController {
             snackPosition: SnackPosition.BOTTOM,
           );
 
-          // Returning user → skip welcome, go straight to home
-          Get.offAllNamed('/home');
+          // Returning user → check location or go straight to home
+          goToHome();
         } else {
           // Brand new user → go through onboarding (role + gender selection)
           Get.snackbar(
@@ -337,7 +337,12 @@ class AuthController extends GetxController {
   }
 
   void goToHome() {
-    Get.offAllNamed('/home');
+    final userService = Get.find<UserService>();
+    if (!userService.hasLocation) {
+      Get.offAllNamed('/region');
+    } else {
+      Get.offAllNamed('/home');
+    }
   }
 
   @override

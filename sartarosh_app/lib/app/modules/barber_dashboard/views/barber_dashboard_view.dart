@@ -656,7 +656,7 @@ class _DashboardTab extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Hozir: ${current['client'] ?? 'Mijoz'} — ${current['time'] ?? ''}",
+                        "Hozir: ${current['client'] ?? 'Mijoz'} ${current['isQueue'] == true ? '(Jonli navbat)' : '— ${current['time'] ?? ''}'}",
                         style: GoogleFonts.poppins(
                           color: Colors.white,
                           fontWeight: FontWeight.w600,
@@ -666,6 +666,36 @@ class _DashboardTab extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (current['isQueue'] == true) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () =>
+                            controller.completeQueueClient(current['docId']),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "✓ Tugatish",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.success,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
                 const SizedBox(height: 8),
               ],
               if (next != null) ...[
@@ -679,7 +709,7 @@ class _DashboardTab extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        "Navbatdagi: ${next['client'] ?? 'Mijoz'} — ${next['time'] ?? ''}",
+                        "Navbatdagi: ${next['client'] ?? 'Mijoz'} ${next['isQueue'] == true ? '(Jonli navbat)' : '— ${next['time'] ?? ''}'}",
                         style: GoogleFonts.poppins(
                           color: Colors.white70,
                           fontWeight: FontWeight.w500,
@@ -689,6 +719,57 @@ class _DashboardTab extends StatelessWidget {
                     ),
                   ],
                 ),
+                if (next['isQueue'] == true) ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      GestureDetector(
+                        onTap: () => controller.skipQueueClient(next['docId']),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "O'tkazish",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => controller.startQueueClient(next['docId']),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            "🔥 Boshlash",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.primary,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ],
           ),
