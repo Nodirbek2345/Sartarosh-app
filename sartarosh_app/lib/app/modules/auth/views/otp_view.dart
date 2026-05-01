@@ -59,31 +59,39 @@ class OtpView extends GetView<AuthController> {
 
                           // Logo replacing vector graphics with user provided image
                           Container(
-                            width: 140,
-                            height: 140,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppTheme.primary.withValues(
-                                    alpha: 0.3,
-                                  ),
-                                  blurRadius: 40,
-                                  spreadRadius: 5,
+                                width: 160,
+                                height: 160,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.white,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppTheme.primary.withValues(
+                                        alpha: 0.5,
+                                      ),
+                                      blurRadius: 50,
+                                      spreadRadius: 8,
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(70),
-                              child: Image.asset(
-                                'assets/images/barber_3d.png',
-                                fit: BoxFit.cover,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(80),
+                                  child: Image.asset(
+                                    'assets/images/barber_pulse.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              )
+                              .animate(
+                                onPlay: (controller) =>
+                                    controller.repeat(reverse: true),
+                              )
+                              .scale(
+                                begin: const Offset(0.95, 0.95),
+                                end: const Offset(1.05, 1.05),
+                                duration: 800.ms,
+                                curve: Curves.easeInOutCubic,
                               ),
-                            ),
-                          ).animate().scale(
-                            duration: 800.ms,
-                            curve: Curves.easeOutBack,
-                          ),
 
                           SizedBox(height: 32),
 
