@@ -18,20 +18,33 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
     final currentTab = 0.obs;
     final pageController = PageController();
 
-    return Scaffold(
-      backgroundColor: AppTheme.background,
-      body: PageView(
-        controller: pageController,
-        physics: const NeverScrollableScrollPhysics(),
-        onPageChanged: (i) => currentTab.value = i,
-        children: [
-          _DashboardTab(controller: controller),
-          _BarberBookingsTab(controller: controller),
-          _BarberProfileTab(controller: controller),
-        ],
-      ),
-      bottomNavigationBar: Obx(
-        () => _buildBottomNav(currentTab, pageController),
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          if (currentTab.value == 0) {
+            Get.offAllNamed('/home');
+          } else {
+            pageController.jumpToPage(0);
+            currentTab.value = 0;
+          }
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        body: PageView(
+          controller: pageController,
+          physics: const NeverScrollableScrollPhysics(),
+          onPageChanged: (i) => currentTab.value = i,
+          children: [
+            _DashboardTab(controller: controller),
+            _BarberBookingsTab(controller: controller),
+            _BarberProfileTab(controller: controller),
+          ],
+        ),
+        bottomNavigationBar: Obx(
+          () => _buildBottomNav(currentTab, pageController),
+        ),
       ),
     );
   }
