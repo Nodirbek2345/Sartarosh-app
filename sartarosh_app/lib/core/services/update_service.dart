@@ -52,7 +52,7 @@ class UpdateService extends GetxService {
           _isUpdateAvailable(currentVersion, latestVersion)) {
         _showUpdateDialog(
           latestVersion: latestVersion,
-          isRequired: false, // UI da Force rejimida turgan bo'lishi mumkin
+          isRequired: true, // Force update for the new version
           updateUrl: updateUrl,
           releaseNotes: releaseNotes,
         );
