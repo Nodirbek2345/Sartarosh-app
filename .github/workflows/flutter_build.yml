@@ -34,6 +34,10 @@ jobs:
         working-directory: ./sartarosh_app
         run: flutter pub get
 
+      - name: Generate Launcher Icons
+        working-directory: ./sartarosh_app
+        run: dart run flutter_launcher_icons
+
       - name: Build APK (Release)
         working-directory: ./sartarosh_app
         run: flutter build apk --release --obfuscate --split-debug-info=./build/app/outputs/symbols --no-tree-shake-icons
