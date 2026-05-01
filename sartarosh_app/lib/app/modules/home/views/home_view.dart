@@ -147,7 +147,7 @@ class HomeView extends GetView<HomeController> {
                 final region = userService.selectedRegion.value;
                 final isGps = mode == 'GPS';
                 final displayText = isGps
-                    ? "GPS · 5km"
+                    ? "GPS · 20km"
                     : (region.isNotEmpty ? region : "Viloyat tanlang");
                 return Row(
                   children: [

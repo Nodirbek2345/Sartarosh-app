@@ -244,7 +244,7 @@ class HomeController extends GetxController {
             if (bLat == 0.0 && bLng == 0.0) return false;
             final dist = _distanceKm(myLat, myLng, bLat, bLng);
             b['_distanceKm'] = dist; // inject distance for UI
-            return dist <= 5.0;
+            return dist <= 20.0;
           }).toList();
           // Sort by distance (nearest first)
           list.sort(
@@ -269,13 +269,40 @@ class HomeController extends GetxController {
   // DYNAMIC CATEGORIES
   // ═══════════════════════════════════════════════════════
   void _computeAvailableCategories(List<Map<String, dynamic>> barbers) {
-    final Set<String> foundCats = {};
+    // Pro modification: Pre-populate categories based on targetGender
+    // This ensures categories are ALWAYS visible even if 0 barbers are found nearby.
+    final targetGender = Get.find<UserService>().targetGender.value;
+    final Set<String> defaultCats = {};
+
+    if (targetGender == 'female') {
+      defaultCats.addAll([
+        'Soch turmak',
+        "Bo'yash",
+        'Makiyaj',
+        'Manikyur',
+        'Soch olish',
+        'Kompleks',
+      ]);
+    } else {
+      defaultCats.addAll([
+        'Soch olish',
+        'Soqol olish',
+        'Kompleks',
+        'Styling',
+        'Bosh yuvish',
+        'Bolalar',
+      ]);
+    }
+
+    // Also include any dynamic categories the barbers might have added manually
     for (final b in barbers) {
       final services = b['services'] as List<dynamic>? ?? [];
       for (final s in services) {
         if (s is Map && s.containsKey('category')) {
           final cat = s['category'].toString().trim();
-          if (cat.isNotEmpty) foundCats.add(cat);
+          if (cat.isNotEmpty && cat.toLowerCase() != 'barchasi') {
+            defaultCats.add(cat);
+          }
         }
       }
     }
@@ -299,7 +326,7 @@ class HomeController extends GetxController {
       {'icon': Icons.grid_view_rounded, 'name': 'Barchasi'},
     ];
 
-    for (final c in foundCats) {
+    for (final c in defaultCats.toList().reversed) {
       final lower = c.toLowerCase();
       IconData icon = Icons.category_rounded;
       for (final entry in categoryIcons.entries) {
@@ -308,7 +335,8 @@ class HomeController extends GetxController {
           break;
         }
       }
-      list.add({'icon': icon, 'name': c});
+      // Insert right after 'Barchasi' so default categories are at the front
+      list.insert(1, {'icon': icon, 'name': c});
     }
 
     availableCategories.value = list;
