@@ -296,8 +296,9 @@ class BarberDashboardController extends GetxController {
   }
 
   Future<void> _checkAutoTurnOff() async {
+    int activeQueueCount = todayQueues.length;
     if (isActive.value &&
-        todayClientsCount.value >= queueLimit.value &&
+        activeQueueCount >= queueLimit.value &&
         queueLimit.value > 0) {
       isActive.value = false;
       if (_barberDocRef != null) {
@@ -307,6 +308,17 @@ class BarberDashboardController extends GetxController {
   }
 
   Future<void> toggleActiveStatus() async {
+    // If trying to turn ON, but active queue is already full, show a warning and prevent it.
+    if (!isActive.value && todayQueues.length >= queueLimit.value) {
+      Get.snackbar(
+        "Navbat to'la",
+        "Sizda navbat limiti to'lgan. Limitni oshiring yoki ishlarni yakunlang.",
+        backgroundColor: AppTheme.danger,
+        colorText: Colors.white,
+      );
+      return;
+    }
+
     if (_barberDocRef != null) {
       await _barberDocRef!.update({'isActive': !isActive.value});
     } else {
