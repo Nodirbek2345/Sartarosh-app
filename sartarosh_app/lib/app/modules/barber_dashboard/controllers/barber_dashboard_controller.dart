@@ -10,6 +10,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/services/update_service.dart';
 import 'package:flutter/material.dart';
 
 class BarberDashboardController extends GetxController {
@@ -53,6 +54,12 @@ class BarberDashboardController extends GetxController {
   void onInit() {
     super.onInit();
     _initAndListen();
+  }
+
+  @override
+  void onReady() {
+    super.onReady();
+    Get.find<UpdateService>().checkUpdate();
   }
 
   Future<void> _initAndListen() async {
