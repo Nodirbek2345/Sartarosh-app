@@ -41,6 +41,10 @@ jobs:
           VERSION=$(grep 'version:' pubspec.yaml | head -1 | awk '{print $2}' | cut -d'+' -f1)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Write update manifest (app checks this only after release is published)
+        run: |
+          printf '%s\n' "{\"version\":\"${{ steps.version.outputs.version }}\"}" > update_manifest.json
+
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
@@ -56,6 +60,8 @@ jobs:
             - Premium Haptic Feedback (vibratsiya vositalari) joriy etildi
             - SARTAROSH logosi uchun Shimmer jilo qo'shildi
             - "Mening bronlarim" menyusiga Pull-to-refresh tortib yangilash mexanizmi qo'shildi
-          files: build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            update_manifest.json
           draft: false
           prerelease: false

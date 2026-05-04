@@ -55,11 +55,17 @@ jobs:
           VERSION=$(grep '^version: ' pubspec.yaml | cut -d ' ' -f 2 | cut -d '+' -f 1)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
+      - name: Write update manifest (clients read this only after release exists)
+        run: |
+          printf '%s\n' "{\"version\":\"${{ steps.extract_version.outputs.VERSION }}\"}" > update_manifest.json
+
       - name: Create Release and Upload APK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: latest-release-${{ github.run_number }}
           name: Sartarosh App Release ${{ github.run_number }}
           body: "Versiya: ${{ steps.extract_version.outputs.VERSION }}"
-          files: sartarosh_app/build/app/outputs/flutter-apk/app-release.apk
+          files: |
+            sartarosh_app/build/app/outputs/flutter-apk/app-release.apk
+            update_manifest.json
           token: ${{ secrets.GITHUB_TOKEN }}

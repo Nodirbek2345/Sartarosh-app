@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -634,10 +634,107 @@ class HomeView extends GetView<HomeController> {
     });
   }
 
+  /// Erkaklar / Ayollar — bir xil filtrlash, faqat aniq ajratilgan tanlov.
+  Widget _buildGenderAudienceRow() {
+    const maleAccent = Color(0xFFD4A853);
+    const femaleAccent = Color(0xFFD63384);
+    return Obx(() {
+      final g = Get.find<UserService>().targetGender.value;
+      return Row(
+        children: [
+          Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => controller.setAudienceGender('male'),
+                borderRadius: BorderRadius.circular(14),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: g == 'male' ? maleAccent.withValues(alpha: 0.15) : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: g == 'male' ? maleAccent : AppTheme.textLight.withValues(alpha: 0.35),
+                      width: g == 'male' ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.face_rounded,
+                        size: 20,
+                        color: g == 'male' ? const Color(0xFFB8912E) : AppTheme.textMedium,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Erkaklar',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: g == 'male' ? const Color(0xFF1A1A2E) : AppTheme.textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => controller.setAudienceGender('female'),
+                borderRadius: BorderRadius.circular(14),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 220),
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  decoration: BoxDecoration(
+                    color: g == 'female'
+                        ? femaleAccent.withValues(alpha: 0.12)
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: g == 'female'
+                          ? femaleAccent
+                          : AppTheme.textLight.withValues(alpha: 0.35),
+                      width: g == 'female' ? 2 : 1,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.face_retouching_natural_rounded,
+                        size: 20,
+                        color: g == 'female' ? femaleAccent : AppTheme.textMedium,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Ayollar',
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: g == 'female' ? const Color(0xFF1A1A2E) : AppTheme.textMedium,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
   // ─── CATEGORIES ───
   Widget _buildCategories() {
     return Obx(() {
-      final gender = Get.find<UserService>().targetGender.value;
       final categories = controller.availableCategories;
 
       // Agar kategoriya hisoblanmagan yoki mos ustalar yo'q bo'lsa
@@ -658,7 +755,9 @@ class HomeView extends GetView<HomeController> {
                 color: AppTheme.textDark,
               ),
             ),
-            SizedBox(height: 16),
+            SizedBox(height: 12),
+            _buildGenderAudienceRow(),
+            SizedBox(height: 14),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               physics: BouncingScrollPhysics(),
@@ -677,11 +776,8 @@ class HomeView extends GetView<HomeController> {
                           vertical: 14,
                         ),
                         decoration: BoxDecoration(
-                          color: isFirst
-                              ? (gender == 'female'
-                                    ? AppTheme.accent
-                                    : AppTheme.darkBg)
-                              : Colors.white,
+                          gradient: isFirst ? AppTheme.goldGradient : null,
+                          color: isFirst ? null : Colors.white,
                           borderRadius: BorderRadius.circular(16),
                           border: isFirst
                               ? null
@@ -693,11 +789,9 @@ class HomeView extends GetView<HomeController> {
                           boxShadow: isFirst
                               ? [
                                   BoxShadow(
-                                    color:
-                                        (gender == 'female'
-                                                ? AppTheme.accent
-                                                : AppTheme.darkBg)
-                                            .withValues(alpha: 0.2),
+                                    color: AppTheme.primary.withValues(
+                                      alpha: 0.25,
+                                    ),
                                     blurRadius: 10,
                                     offset: Offset(0, 4),
                                   ),

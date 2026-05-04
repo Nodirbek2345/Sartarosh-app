@@ -1,4 +1,4 @@
-﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'dart:async';
 import 'dart:math';
 import 'package:get/get.dart';
@@ -23,6 +23,7 @@ class HomeController extends GetxController {
   // Stream subscriptions for proper cleanup
   final List<StreamSubscription> _subscriptions = [];
   StreamSubscription? _barberSub;
+  StreamSubscription? _servicesSub;
 
   @override
   void onInit() {
@@ -40,10 +41,11 @@ class HomeController extends GetxController {
   }
 
   void _fetchServices() {
-    final targetGender = Get.find<UserService>().targetGender.value;
-    final sub = _firestore.collection('services').snapshots().listen((
+    _servicesSub?.cancel();
+    _servicesSub = _firestore.collection('services').snapshots().listen((
       snapshot,
     ) {
+      final tg = Get.find<UserService>().targetGender.value;
       rxServices.value = snapshot.docs
           .map((doc) {
             final data = doc.data();
@@ -56,11 +58,20 @@ class HomeController extends GetxController {
           })
           .where((s) {
             final g = s['gender'] as String;
-            return g == targetGender || g == 'all';
+            return g == tg || g == 'all';
           })
           .toList();
     });
-    _subscriptions.add(sub);
+  }
+
+  /// Erkaklar / Ayollar almashtirganda baza so'rovlari ham yangilanadi.
+  void setAudienceGender(String gender) {
+    if (gender != 'male' && gender != 'female') return;
+    final userService = Get.find<UserService>();
+    if (userService.targetGender.value == gender) return;
+    userService.setTargetGender(gender);
+    _fetchServices();
+    refreshBarbers();
   }
 
   static IconData getCategoryIcon(String category) {
@@ -440,6 +451,7 @@ class HomeController extends GetxController {
   @override
   void onClose() {
     _barberSub?.cancel();
+    _servicesSub?.cancel();
     for (final sub in _subscriptions) {
       sub.cancel();
     }

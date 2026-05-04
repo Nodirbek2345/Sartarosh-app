@@ -1,4 +1,6 @@
-﻿import 'package:flutter/material.dart';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -24,22 +26,24 @@ class UpdateService extends GetxService {
   void checkUpdate() async {
     try {
       final dio = Dio();
-      // Ochiq Github User Content orqali pubspec ni to'g'ridan-to'g'ri tekshiramiz.
-      // Bu API limit (60/soat) cheklovini to'liq chetlab o'tadi!
+      // Versiyani faqat muvaffaqiyatli CI build + GitHub Release dan keyin
+      // yuklangan `update_manifest.json` orqali olamiz — pubspec masterda
+      // push bilan darhol o'zgaradi, APK esa keyinroq tayyor bo'ladi.
       final response = await dio.get(
-        'https://raw.githubusercontent.com/Nodirbek2345/Sartarosh-app/refs/heads/master/sartarosh_app/pubspec.yaml',
+        'https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/update_manifest.json',
+        options: Options(
+          responseType: ResponseType.plain,
+          validateStatus: (s) => s != null && s < 500,
+        ),
       );
 
-      final content = response.data?.toString() ?? '';
+      if (response.statusCode != 200 || response.data == null) return;
 
-      // "version: 3.3.2+224" -> "3.3.2" niamiz
-      final versionMatch = RegExp(
-        r'version:\s*([0-9]+\.[0-9]+\.[0-9]+)',
-      ).firstMatch(content);
+      final map = jsonDecode(response.data as String);
+      if (map is! Map<String, dynamic>) return;
 
-      if (versionMatch == null) return;
-
-      final latestVersion = versionMatch.group(1);
+      final latestVersion = map['version']?.toString().trim();
+      if (latestVersion == null || latestVersion.isEmpty) return;
 
       // Har doim eng so'nggi reliz uchun ochiq APK manzili
       final updateUrl =
