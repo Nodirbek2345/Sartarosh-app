@@ -427,9 +427,26 @@ class HomeController extends GetxController {
     }
   }
 
-  void switchToRegion(String region) {
+  void switchToRegion([String? region]) {
     final userService = Get.find<UserService>();
-    userService.setRegionMode(region);
+
+    // Agar region berilmasa, avval saqlangan regionni ishlatamiz
+    final effectiveRegion = region ?? userService.selectedRegion.value;
+
+    // Agar hech qanday region saqlanmagan bo'lsa, region sahifasiga yo'naltiramiz
+    if (effectiveRegion.isEmpty) {
+      Get.toNamed('/region');
+      return;
+    }
+
+    // Allaqachon shu region da bo'lsa, faqat refresh qilamiz
+    if (userService.filterMode.value == 'REGION' &&
+        userService.selectedRegion.value == effectiveRegion) {
+      refreshBarbers();
+      return;
+    }
+
+    userService.setRegionMode(effectiveRegion);
     _cancelBarberSubscriptions();
     _fetchBarbers();
   }

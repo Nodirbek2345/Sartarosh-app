@@ -412,7 +412,8 @@ class HomeView extends GetView<HomeController> {
               // Region Button
               Expanded(
                 child: GestureDetector(
-                  onTap: () => Get.toNamed('/region'),
+                  onTap: () => controller.switchToRegion(),
+                  onLongPress: () => Get.toNamed('/region'),
                   child: AnimatedContainer(
                     duration: Duration(milliseconds: 300),
                     curve: Curves.easeOutCubic,

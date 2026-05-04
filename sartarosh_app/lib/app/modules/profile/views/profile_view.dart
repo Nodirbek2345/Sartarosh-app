@@ -251,6 +251,13 @@ class ProfileView extends StatelessWidget {
                                 }
                               },
                             ),
+                          ] else ...[
+                            _menuItem(
+                              Icons.storefront_rounded,
+                              "Sartarosh sifatida qo'shilish",
+                              idx++,
+                              () => Get.toNamed('/add-barber'),
+                            ),
                           ],
                           _menuItem(
                             Icons.settings_rounded,

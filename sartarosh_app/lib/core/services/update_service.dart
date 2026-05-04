@@ -52,8 +52,7 @@ class UpdateService extends GetxService {
       final releaseNotes =
           'Ilovaning yangi ($latestVersion) versiyasi mavjud! Xatolar tuzatildi va tezlik oshirildi. Iltimos, darhol yangilang.';
 
-      if (latestVersion != null &&
-          _isUpdateAvailable(currentVersion, latestVersion)) {
+      if (_isUpdateAvailable(currentVersion, latestVersion)) {
         _showUpdateDialog(
           latestVersion: latestVersion,
           isRequired: true, // Force update for the new version

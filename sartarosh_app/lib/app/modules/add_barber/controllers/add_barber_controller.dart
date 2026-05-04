@@ -103,44 +103,31 @@ class AddBarberController extends GetxController {
     try {
       isLoadingServices.value = true;
 
-      // Auto-seed and Auto-patch: ensure all default services exist AND have the correct gender tag
-      for (final def in _defaultServices) {
-        final defName = def['name']!;
-        try {
-          final query = await _firestore
-              .collection('services')
-              .where('name', isEqualTo: defName)
-              .get();
-
-          if (query.docs.isEmpty) {
-            // Missing? Add it
-            await _firestore.collection('services').add(def);
-          } else {
-            // Exists? Ensure it has the correct gender field
-            for (var doc in query.docs) {
-              if (doc.data()['gender'] != def['gender']) {
-                await doc.reference.update({'gender': def['gender']});
-              }
-            }
-          }
-        } catch (e) {
-          debugPrint("Failed to seed/patch service $defName: $e");
-        }
-      }
-
-      // Re-fetch after seeding/patching
+      // Faqatgina o'qiymiz, yozishga Firebase qoidalari ruxsat bermaydi (allow write: if false)
       final freshSnap = await _firestore.collection('services').get();
 
-      // Cache all raw services
       _allRawServices.clear();
-      for (final doc in freshSnap.docs) {
-        _allRawServices.add(doc.data());
+
+      if (freshSnap.docs.isNotEmpty) {
+        for (final doc in freshSnap.docs) {
+          _allRawServices.add(doc.data());
+        }
+      } else {
+        // Fallback to local default services agar baza bo'sh bo'lsa
+        for (final def in _defaultServices) {
+          _allRawServices.add(def);
+        }
       }
 
       // Initial filter based on current `gender.value`
       _filterServices();
     } catch (e) {
       debugPrint("Error fetching global services: $e");
+      // Xatolik bo'lsa ham fallback services ni ishlatish
+      if (_allRawServices.isEmpty) {
+        _allRawServices.addAll(_defaultServices);
+        _filterServices();
+      }
     } finally {
       isLoadingServices.value = false;
     }
@@ -540,4 +527,3 @@ class AddBarberController extends GetxController {
     super.onClose();
   }
 }
-

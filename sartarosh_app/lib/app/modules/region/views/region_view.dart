@@ -208,6 +208,45 @@ class RegionView extends GetView<RegionController> {
                             ],
                           ),
                         ).animate().fadeIn(delay: 500.ms),
+
+                        SizedBox(height: 24),
+
+                        // ─── MANUAL DIRECTORY BUTTON ───
+                        TextButton(
+                          onPressed: () =>
+                              controller.showRegionFallbackDialog(),
+                          style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(
+                              vertical: 16,
+                              horizontal: 24,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              side: BorderSide(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                width: 1.5,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.location_city_rounded,
+                                color: AppTheme.primary,
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                "Viloyatni qo'lda tanlash",
+                                style: GoogleFonts.poppins(
+                                  color: AppTheme.primary,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ).animate().fadeIn(delay: 600.ms),
                       ],
                     ),
                   ),
