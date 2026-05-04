@@ -134,9 +134,50 @@ service cloud.firestore {
                           || (existingData().status == 'in-progress' && incomingData().status == 'completed')
                         )
                       )
+                      ||
+                      // Mijoz: tarixdan yashirish (faqat clientDeleted)
+                      (existingData().clientUid == request.auth.uid
+                        && incomingData().status == existingData().status
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientDeleted'])
+                        && incomingData().clientDeleted == true)
+                      ||
+                      // Mijoz: yakunlangan bronni baholagach (faqat isRated + ratedAt)
+                      (existingData().clientUid == request.auth.uid
+                        && existingData().status == 'completed'
+                        && incomingData().status == 'completed'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRated', 'ratedAt'])
+                        && incomingData().isRated == true)
                     );
                     
       allow delete: if false; // Bronni o'chirish mumkin emas
+    }
+
+    // Vaqt slotini atomik band qilish (mijoz bron yaratganda)
+    match /booking_time_locks/{lockId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['barberId', 'barberUid', 'date', 'time', 'bookingId', 'clientUid'])
+        && request.resource.data.barberId is string
+        && request.resource.data.bookingId is string
+        && request.resource.data.clientUid is string
+        && request.resource.data.date is string
+        && request.resource.data.date.size() == 10
+        && request.resource.data.time is string
+        && request.resource.data.time.size() == 5;
+      allow delete: if isSignedIn() && (
+        resource.data.clientUid == request.auth.uid
+        || (resource.data.keys().hasAny(['barberUid'])
+            && resource.data.barberUid is string
+            && resource.data.barberUid.size() > 0
+            && resource.data.barberUid == request.auth.uid)
+        || (
+          resource.data.barberId is string
+          && exists(/databases/$(database)/documents/barbers/$(resource.data.barberId))
+          && get(/databases/$(database)/documents/barbers/$(resource.data.barberId)).data.uid == request.auth.uid
+        )
+      );
+      allow update: if false;
     }
     
     // ═══════════════════════════════════════════════════════
@@ -158,7 +199,10 @@ service cloud.firestore {
                     && incomingData().keys().hasAll(['clientUid', 'barberId', 'rating'])
                     && incomingData().rating is number
                     && incomingData().rating >= 1
-                    && incomingData().rating <= 5;
+                    && incomingData().rating <= 5
+                    && (!incomingData().keys().hasAny(['bookingId']) || incomingData().bookingId is string)
+                    && (!incomingData().keys().hasAny(['comment']) 
+                        || (incomingData().comment is string && incomingData().comment.size() <= 800));
       
       allow update, delete: if false;
     }

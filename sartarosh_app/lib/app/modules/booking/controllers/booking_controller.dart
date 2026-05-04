@@ -1,14 +1,20 @@
-﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:async';
+import 'dart:math' as math;
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/input_sanitizer.dart';
+import '../../../../core/utils/booking_slot_lock.dart';
 
 class BookingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+
+  /// Profil / xizmatdan kelgan usta — filtrdan tashqarida bo'lsa ham ro'yxatda qoladi
+  Map<String, dynamic>? _argumentBarber;
 
   // Step management
   final currentStep = 0.obs;
@@ -55,6 +61,7 @@ class BookingController extends GetxController {
   final selectedPaymentMethod = 'cash'.obs;
 
   StreamSubscription<QuerySnapshot>? _bookingsSub;
+  StreamSubscription<QuerySnapshot<Map<String, dynamic>>>? _barbersSub;
 
   // Step 3: Service info (passed from arguments)
   String serviceName = 'Soch olish';
@@ -66,21 +73,30 @@ class BookingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    final args = Get.arguments;
+    if (args != null && args['barber'] != null && args['barber'] is Map) {
+      _argumentBarber = Map<String, dynamic>.from(
+        args['barber'] as Map<String, dynamic>,
+      );
+      selectedBarber.value = _argumentBarber;
+    }
     _fetchBarbers();
 
-    final args = Get.arguments;
     if (args != null) {
-      if (args['barber'] != null) {
-        selectedBarber.value = args['barber'];
-      }
       if (args['service'] != null) {
         serviceName = InputSanitizer.sanitizeText(args['service']);
       }
       if (args['price'] != null) {
-        servicePrice = args['price'];
+        final p = args['price'];
+        servicePrice = p is int
+            ? p
+            : (p is num ? p.toInt() : int.tryParse('$p') ?? servicePrice);
       }
       if (args['duration'] != null) {
-        _serviceDuration = args['duration'];
+        final d = args['duration'];
+        _serviceDuration = d is int
+            ? d
+            : (d is num ? d.toInt() : int.tryParse('$d') ?? _serviceDuration);
       }
     }
 
@@ -95,25 +111,37 @@ class BookingController extends GetxController {
 
   int get serviceDurationMinutes => _serviceDuration;
 
-  void _generateTimeSlots() {
-    // Use barber's working hours if available, else default 09:00–21:00
-    int startHour = 9;
-    int endHour = 21;
+  ({int openMin, int closeMin}) _workingDayBoundsMinutes() {
+    var openMin = 9 * 60;
+    var closeMin = 21 * 60;
     try {
       final wh = selectedBarber.value?['workingHours'];
       if (wh != null) {
         final open = wh['open'] as String? ?? '09:00';
         final close = wh['close'] as String? ?? '21:00';
-        startHour = int.parse(open.split(':')[0]);
-        endHour = int.parse(close.split(':')[0]);
+        final op = open.split(':');
+        final cl = close.split(':');
+        final oh = int.parse(op[0].trim());
+        final om = op.length > 1 ? int.parse(op[1].trim()) : 0;
+        final ch = int.parse(cl[0].trim());
+        final cm = cl.length > 1 ? int.parse(cl[1].trim()) : 0;
+        openMin = oh * 60 + om;
+        closeMin = ch * 60 + cm;
       }
     } catch (_) {}
+    if (closeMin <= openMin) closeMin = openMin + 8 * 60;
+    return (openMin: openMin, closeMin: closeMin);
+  }
 
-    List<String> slots = [];
-    for (int h = startHour; h < endHour; h++) {
-      String hr = h.toString().padLeft(2, '0');
-      slots.add('$hr:00');
-      slots.add('$hr:30');
+  void _generateTimeSlots() {
+    final b = _workingDayBoundsMinutes();
+    final slots = <String>[];
+    for (var m = b.openMin; m < b.closeMin; m += 30) {
+      final h = m ~/ 60;
+      final mm = m % 60;
+      slots.add(
+        '${h.toString().padLeft(2, '0')}:${mm.toString().padLeft(2, '0')}',
+      );
     }
     allTimes.value = slots;
   }
@@ -121,63 +149,177 @@ class BookingController extends GetxController {
   @override
   void onClose() {
     _bookingsSub?.cancel();
+    _barbersSub?.cancel();
+    customTimeController.dispose();
     super.onClose();
   }
 
-  void _fetchBarbers() {
-    final userService = Get.find<UserService>();
-    final userGender = userService.targetGender.value;
-    final targetRegion = userService.selectedRegion.value;
+  static double _degToRad(double deg) => deg * (math.pi / 180);
 
-    _firestore
-        .collection('barbers')
-        .where('gender', isEqualTo: userGender)
-        .where(
-          'location',
-          isEqualTo: targetRegion,
-        ) // SECURITY: Strictly scope by GPS region
-        .snapshots()
-        .listen((snapshot) {
-          final list = snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          }).toList();
-          barbers.value = list;
-
-          if (list.isEmpty) {
-            _fetchSuggestedBarbers(userGender);
-          } else {
-            suggestedBarbers.clear();
-            if (selectedBarber.value == null ||
-                !list.any((b) => b['id'] == selectedBarber.value?['id'])) {
-              selectedBarber.value = list.first;
-            }
-          }
-        });
+  static double _distanceKm(
+    double lat1,
+    double lng1,
+    double lat2,
+    double lng2,
+  ) {
+    const r = 6371.0;
+    final dLat = _degToRad(lat2 - lat1);
+    final dLng = _degToRad(lng2 - lng1);
+    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_degToRad(lat1)) *
+            math.cos(_degToRad(lat2)) *
+            math.sin(dLng / 2) *
+            math.sin(dLng / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return r * c;
   }
 
-  void _fetchSuggestedBarbers(String gender) async {
-    try {
-      final snap = await _firestore
-          .collection('barbers')
-          .where('gender', isEqualTo: gender)
-          .where('isActive', isEqualTo: true)
-          .limit(5)
-          .get();
+  void _fetchBarbers() {
+    _barbersSub?.cancel();
+    final userService = Get.find<UserService>();
+    final userGender = userService.targetGender.value;
+    final mode = userService.filterMode.value;
+    final targetRegion = userService.selectedRegion.value;
 
-      final list = snap.docs.map((doc) {
+    Query<Map<String, dynamic>> query = _firestore
+        .collection('barbers')
+        .where('gender', isEqualTo: userGender);
+
+    if (mode == 'REGION') {
+      if (targetRegion.isEmpty) {
+        barbers.value = [];
+        suggestedBarbers.clear();
+        return;
+      }
+      query = query.where('location', isEqualTo: targetRegion);
+    }
+
+    _barbersSub = query.snapshots().listen((snapshot) {
+      var list = snapshot.docs.map((doc) {
         final data = doc.data();
         data['id'] = doc.id;
         return data;
       }).toList();
 
-      // Sort client side mimicking high rating
-      list.sort(
-        (a, b) =>
-            ((b['rating'] as num?) ?? 0).compareTo((a['rating'] as num?) ?? 0),
-      );
-      suggestedBarbers.value = list;
+      final hasGps =
+          userService.userLat.value != 0.0 && userService.userLng.value != 0.0;
+
+      if (mode == 'GPS') {
+        if (!hasGps) {
+          list = [];
+        } else {
+          final myLat = userService.userLat.value;
+          final myLng = userService.userLng.value;
+          list = list.where((b) {
+            final bLat = (b['lat'] as num?)?.toDouble() ?? 0.0;
+            final bLng = (b['lng'] as num?)?.toDouble() ?? 0.0;
+            if (bLat == 0.0 && bLng == 0.0) return false;
+            return _distanceKm(myLat, myLng, bLat, bLng) <= 20.0;
+          }).toList();
+          list.sort((a, b) {
+            final da = _distanceKm(
+              myLat,
+              myLng,
+              (a['lat'] as num?)?.toDouble() ?? 0,
+              (a['lng'] as num?)?.toDouble() ?? 0,
+            );
+            final db = _distanceKm(
+              myLat,
+              myLng,
+              (b['lat'] as num?)?.toDouble() ?? 0,
+              (b['lng'] as num?)?.toDouble() ?? 0,
+            );
+            return da.compareTo(db);
+          });
+        }
+      }
+
+      final pinned = _argumentBarber;
+      if (pinned != null) {
+        final pid = pinned['id']?.toString();
+        if (pid != null &&
+            pid.isNotEmpty &&
+            !list.any((e) => e['id']?.toString() == pid)) {
+          list = [Map<String, dynamic>.from(pinned), ...list];
+        }
+      }
+
+      barbers.value = list;
+
+      if (list.isEmpty) {
+        _fetchSuggestedBarbers(userService);
+      } else {
+        suggestedBarbers.clear();
+        final selId = selectedBarber.value?['id']?.toString();
+        if (selectedBarber.value == null ||
+            (selId != null &&
+                !list.any((b) => b['id']?.toString() == selId))) {
+          selectedBarber.value = list.first;
+        }
+      }
+    });
+  }
+
+  void _fetchSuggestedBarbers(UserService userService) async {
+    try {
+      final gender = userService.targetGender.value;
+      final mode = userService.filterMode.value;
+      final region = userService.selectedRegion.value;
+      final hasGps =
+          userService.userLat.value != 0.0 && userService.userLng.value != 0.0;
+
+      final snap = await _firestore
+          .collection('barbers')
+          .where('gender', isEqualTo: gender)
+          .limit(40)
+          .get();
+
+      var list = snap.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).where((b) => b['isActive'] != false).toList();
+
+      if (mode == 'REGION' && region.isNotEmpty) {
+        list = list
+            .where((b) => (b['location']?.toString() ?? '') == region)
+            .toList();
+      } else if (mode == 'GPS' && hasGps) {
+        final myLat = userService.userLat.value;
+        final myLng = userService.userLng.value;
+        list = list.where((b) {
+          final bLat = (b['lat'] as num?)?.toDouble() ?? 0.0;
+          final bLng = (b['lng'] as num?)?.toDouble() ?? 0.0;
+          if (bLat == 0.0 && bLng == 0.0) return false;
+          return _distanceKm(myLat, myLng, bLat, bLng) <= 25.0;
+        }).toList();
+      }
+
+      list.sort((a, b) {
+        final ra = (a['rating'] as num?)?.toDouble() ?? 0;
+        final rb = (b['rating'] as num?)?.toDouble() ?? 0;
+        if (rb.compareTo(ra) != 0) return rb.compareTo(ra);
+        if (mode == 'GPS' && hasGps) {
+          final myLat = userService.userLat.value;
+          final myLng = userService.userLng.value;
+          final da = _distanceKm(
+            myLat,
+            myLng,
+            (a['lat'] as num?)?.toDouble() ?? 0,
+            (a['lng'] as num?)?.toDouble() ?? 0,
+          );
+          final db = _distanceKm(
+            myLat,
+            myLng,
+            (b['lat'] as num?)?.toDouble() ?? 0,
+            (b['lng'] as num?)?.toDouble() ?? 0,
+          );
+          return da.compareTo(db);
+        }
+        return 0;
+      });
+
+      suggestedBarbers.value = list.take(8).toList();
     } catch (_) {}
   }
 
@@ -202,8 +344,11 @@ class BookingController extends GetxController {
 
           for (var doc in bookingsSnap.docs) {
             final data = doc.data();
-            final t = data['time'] as String;
-            final dur = data['durationMinutes'] ?? 30; // fallbacks
+            final t = data['time']?.toString() ?? '';
+            if (t.length < 4) continue;
+            final dur = (data['durationMinutes'] is num)
+                ? (data['durationMinutes'] as num).toInt()
+                : int.tryParse('${data['durationMinutes'] ?? 30}') ?? 30;
 
             try {
               DateTime baseTime = DateFormat('HH:mm').parse(t);
@@ -269,8 +414,68 @@ class BookingController extends GetxController {
   }
 
   void nextStep() {
+    if (currentStep.value == 0 && selectedBarber.value == null) {
+      Get.snackbar(
+        "Usta tanlang",
+        "Davom etish uchun ro'yxatdan ustani tanlang.",
+        backgroundColor: AppTheme.danger,
+        colorText: Colors.white,
+      );
+      return;
+    }
     if (currentStep.value < 2) {
       currentStep.value++;
+    }
+  }
+
+  /// GPS yo'q bo'lganda (bron sahifasida) joylashuvni bir martalik olish
+  Future<void> enableGpsForBooking() async {
+    try {
+      var permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          Get.snackbar(
+            "Ruxsat yo'q",
+            "Yaqin ustalarni ko'rish uchun joylashuv ruxsatini bering.",
+            backgroundColor: AppTheme.danger,
+            colorText: Colors.white,
+          );
+          return;
+        }
+      }
+      if (permission == LocationPermission.deniedForever) {
+        Get.snackbar(
+          "GPS bloklangan",
+          "Sozlamalardan ilova uchun joylashuvni yoqing.",
+          backgroundColor: AppTheme.danger,
+          colorText: Colors.white,
+        );
+        return;
+      }
+
+      final position = await Geolocator.getCurrentPosition(
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
+      );
+
+      final userService = Get.find<UserService>();
+      userService.setGpsMode(position.latitude, position.longitude);
+      refreshBarbers();
+      Get.snackbar(
+        "GPS yoqildi",
+        "Endi yaqin ustalarni ko'rasiz.",
+        backgroundColor: AppTheme.success,
+        colorText: Colors.white,
+      );
+    } catch (_) {
+      Get.snackbar(
+        "Xatolik",
+        "Joylashuvni aniqlab bo'lmadi. Internet va GPSni tekshiring.",
+        backgroundColor: AppTheme.danger,
+        colorText: Colors.white,
+      );
     }
   }
 
@@ -482,32 +687,53 @@ class BookingController extends GetxController {
         return;
       }
 
-      // === SERVER-SIDE DOUBLE BOOKING GUARD (Transaction) ===
+      // === Atomik slot + bron (faqat transaction.get) ===
       final barberId = selectedBarber.value?['id'] ?? '';
       final timeVal = selectedTime.value;
+      if (barberId.isEmpty) {
+        Get.snackbar(
+          "Xatolik",
+          "Usta tanlanmagan",
+          backgroundColor: AppTheme.danger,
+          colorText: Colors.white,
+        );
+        isSubmitting.value = false;
+        return;
+      }
+
+      final lockRef = BookingSlotLock.ref(_firestore, barberId, dateStr, timeVal);
+      final barberRef = _firestore.collection('barbers').doc(barberId);
+      final priceForDb = servicePrice < 1 ? 1 : servicePrice;
 
       await _firestore.runTransaction((transaction) async {
-        // Re-check for overlapping bookings inside the transaction
-        final conflictQuery = await _firestore
-            .collection('bookings')
-            .where('barberId', isEqualTo: barberId)
-            .where('date', isEqualTo: dateStr)
-            .where('time', isEqualTo: timeVal)
-            .where('status', whereIn: ['confirmed', 'pending', 'in-progress'])
-            .get();
-
-        if (conflictQuery.docs.isNotEmpty) {
+        final lockSnap = await transaction.get(lockRef);
+        if (lockSnap.exists) {
           throw Exception('TIME_SLOT_TAKEN');
         }
 
-        // Get barber UID for Firestore rules enforcement
-        final barberDoc = await _firestore
-            .collection('barbers')
-            .doc(barberId)
-            .get();
-        final barberUid = barberDoc.data()?['uid'] ?? '';
+        final barberSnap = await transaction.get(barberRef);
+        if (!barberSnap.exists) {
+          throw Exception('BARBER_NOT_FOUND');
+        }
+        final barberUid = barberSnap.data()?['uid'] as String? ?? '';
+        final barberGender =
+            barberSnap.data()?['gender']?.toString().toLowerCase() ?? 'male';
+        final clientGender =
+            Get.find<UserService>().targetGender.value.toLowerCase();
+        if (barberGender != 'all' && barberGender != clientGender) {
+          throw Exception('GENDER_MISMATCH');
+        }
 
         final newDocRef = _firestore.collection('bookings').doc();
+        transaction.set(lockRef, {
+          'barberId': barberId,
+          'barberUid': barberUid,
+          'date': dateStr,
+          'time': timeVal,
+          'bookingId': newDocRef.id,
+          'clientUid': uid,
+        });
+
         transaction.set(newDocRef, {
           'clientUid': uid,
           'client': InputSanitizer.sanitizeText(userService.name.value),
@@ -516,7 +742,7 @@ class BookingController extends GetxController {
           'barberId': barberId,
           'barberUid': barberUid,
           'service': InputSanitizer.sanitizeText(serviceName),
-          'price': servicePrice,
+          'price': priceForDb,
           'durationMinutes': serviceDurationMinutes,
           'date': dateStr,
           'time': timeVal,
@@ -556,9 +782,14 @@ class BookingController extends GetxController {
       await Future.delayed(Duration(seconds: 1));
       Get.offAllNamed('/home');
     } catch (e) {
-      final msg = e.toString().contains('TIME_SLOT_TAKEN')
+      final es = e.toString();
+      final msg = es.contains('TIME_SLOT_TAKEN')
           ? "Bu vaqt allaqachon band. Boshqa vaqt tanlang."
-          : "Bron qilishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
+          : es.contains('BARBER_NOT_FOUND')
+              ? "Usta ma'lumotlari topilmadi. Sahifani yangilang."
+              : es.contains('GENDER_MISMATCH')
+                  ? "Tanlangan usta siz tanlagan bo'lim (erkaklar/ayollar) uchun mos emas."
+                  : "Bron qilishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
       Get.snackbar(
         "Xatolik",
         msg,

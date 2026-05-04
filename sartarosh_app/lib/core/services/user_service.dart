@@ -14,6 +14,8 @@ class UserService extends GetxService {
   final favoriteBarberIds = <String>[].obs;
   final isBarberMode = false.obs;
   final targetGender = 'male'.obs;
+  /// Welcome'dagi yo'nalish: male_classic | female_beauty (tavsiya / analitika)
+  final audienceProfile = ''.obs;
   final selectedRegion = ''.obs;
   final uid = ''.obs;
   final userRole = 'client'.obs;
@@ -60,6 +62,8 @@ class UserService extends GetxService {
 
     isBarberMode.value = (await _storage.read(key: 'is_barber_mode')) == 'true';
     targetGender.value = await _storage.read(key: 'target_gender') ?? 'male';
+    audienceProfile.value =
+        await _storage.read(key: 'audience_profile') ?? '';
     selectedRegion.value = await _storage.read(key: 'selected_region') ?? '';
     userRole.value = await _storage.read(key: 'user_role') ?? 'client';
     uid.value = await _storage.read(key: 'user_uid') ?? '';
@@ -119,6 +123,15 @@ class UserService extends GetxService {
             await _storage.write(
               key: 'target_gender',
               value: serverTargetGender,
+            );
+          }
+          final serverAudience =
+              data['audienceProfile'] as String? ?? '';
+          if (serverAudience.isNotEmpty) {
+            audienceProfile.value = serverAudience;
+            await _storage.write(
+              key: 'audience_profile',
+              value: serverAudience,
             );
           }
 
@@ -266,6 +279,48 @@ class UserService extends GetxService {
     }
   }
 
+  /// "Erkaklar va bolalar" — yaqin sartarosh / barbershop oqimi
+  Future<void> applyWelcomeMaleAudience() async {
+    targetGender.value = 'male';
+    audienceProfile.value = 'male_classic';
+    await _storage.write(key: 'target_gender', value: 'male');
+    await _storage.write(key: 'audience_profile', value: 'male_classic');
+    final uidToUpdate = currentUid;
+    if (uidToUpdate.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uidToUpdate)
+            .set({
+              'targetGender': 'male',
+              'audienceProfile': 'male_classic',
+              'exploreHint': 'nearby_barbers',
+            }, SetOptions(merge: true));
+      } catch (_) {}
+    }
+  }
+
+  /// "Ayollar va qizlar" — salon / go'zallik kategoriyalari ustuvor
+  Future<void> applyWelcomeFemaleAudience() async {
+    targetGender.value = 'female';
+    audienceProfile.value = 'female_beauty';
+    await _storage.write(key: 'target_gender', value: 'female');
+    await _storage.write(key: 'audience_profile', value: 'female_beauty');
+    final uidToUpdate = currentUid;
+    if (uidToUpdate.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uidToUpdate)
+            .set({
+              'targetGender': 'female',
+              'audienceProfile': 'female_beauty',
+              'exploreHint': 'salon_categories_priority',
+            }, SetOptions(merge: true));
+      } catch (_) {}
+    }
+  }
+
   void setRegion(String region) async {
     selectedRegion.value = region;
     await _storage.write(key: 'selected_region', value: region);
@@ -387,6 +442,7 @@ class UserService extends GetxService {
     avatarBase64.value = '';
     photoUrl.value = '';
     targetGender.value = 'male';
+    audienceProfile.value = '';
     selectedRegion.value = '';
     filterMode.value = 'REGION';
     userLat.value = 0.0;

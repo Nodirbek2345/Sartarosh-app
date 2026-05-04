@@ -1,4 +1,4 @@
-﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
@@ -11,6 +11,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
+import '../../../../core/utils/booking_slot_lock.dart';
 import 'package:flutter/material.dart';
 
 class BarberDashboardController extends GetxController {
@@ -407,6 +408,10 @@ class BarberDashboardController extends GetxController {
       for (var doc in overlaps.docs) {
         if (doc.id != docId) {
           await doc.reference.update({'status': 'cancelled'});
+          await BookingSlotLock.releaseFromBookingData(
+            _firestore,
+            doc.data(),
+          );
         }
       }
 
@@ -459,6 +464,11 @@ class BarberDashboardController extends GetxController {
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'cancelled',
       });
+
+      await BookingSlotLock.releaseFromBookingData(
+        _firestore,
+        snapshot.data()!,
+      );
 
       final clientUid = snapshot.data()!['clientUid'] ?? '';
       final date = snapshot.data()!['date'] ?? '';
@@ -609,6 +619,11 @@ class BarberDashboardController extends GetxController {
         'completedAt': FieldValue.serverTimestamp(),
       });
 
+      await BookingSlotLock.releaseFromBookingData(
+        _firestore,
+        snapshot.data()!,
+      );
+
       final clientUid = snapshot.data()?['clientUid'] as String?;
       if (clientUid != null && clientUid.isNotEmpty) {
         await _firestore.collection('notifications').add({
@@ -655,6 +670,11 @@ class BarberDashboardController extends GetxController {
         'status': 'no-show',
         'noShowAt': FieldValue.serverTimestamp(),
       });
+
+      await BookingSlotLock.releaseFromBookingData(
+        _firestore,
+        snapshot.data()!,
+      );
 
       final clientUid = snapshot.data()?['clientUid'] as String?;
       if (clientUid != null && clientUid.isNotEmpty) {

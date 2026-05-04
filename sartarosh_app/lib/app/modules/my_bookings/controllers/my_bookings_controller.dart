@@ -1,10 +1,11 @@
-﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'dart:async';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/services/user_service.dart';
+import '../../../../core/utils/booking_slot_lock.dart';
 
 class MyBookingsController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -154,6 +155,9 @@ class MyBookingsController extends GetxController {
 
   Future<void> cancelBooking(String id, String dateStr, String timeStr) async {
     try {
+      final bookingSnap = await _firestore.collection('bookings').doc(id).get();
+      final before = bookingSnap.data();
+
       String newStatus = 'cancelled';
       try {
         final bookingTime = DateFormat(
@@ -170,6 +174,10 @@ class MyBookingsController extends GetxController {
         'status': newStatus,
         'cancelledAt': FieldValue.serverTimestamp(),
       });
+
+      if (before != null) {
+        await BookingSlotLock.releaseFromBookingData(_firestore, before);
+      }
 
       // Send notification to barber
       try {

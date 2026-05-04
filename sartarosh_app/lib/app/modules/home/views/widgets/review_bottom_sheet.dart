@@ -1,9 +1,10 @@
-﻿import 'package:sartarosh_app/core/theme/app_theme.dart';
+import 'package:sartarosh_app/core/theme/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ReviewBottomSheet extends StatefulWidget {
   final Map<String, dynamic> booking;
@@ -25,46 +26,45 @@ class _ReviewBottomSheetState extends State<ReviewBottomSheet> {
     });
 
     try {
-      final bookingId = widget.booking['id'];
-      final barberId = widget.booking['barberId'];
+      final bookingId = widget.booking['id'] as String?;
+      final barberId = widget.booking['barberId'] as String?;
       final barberName =
           widget.booking['barberName'] ?? widget.booking['barber'];
 
-      // 1. Update Booking
-      await FirebaseFirestore.instance
-          .collection('bookings')
-          .doc(bookingId)
-          .update({
-            'isRated': true,
-            'rating': _rating,
-            'reviewText': _commentController.text.trim(),
-            'ratedAt': FieldValue.serverTimestamp(),
-          });
-
-      // 2. Update Barber's aggregate stats (optional but recommended)
-      if (barberId != null) {
-        final barberRef = FirebaseFirestore.instance
-            .collection('barbers')
-            .doc(barberId);
-
-        await FirebaseFirestore.instance.runTransaction((transaction) async {
-          final snapshot = await transaction.get(barberRef);
-          if (snapshot.exists) {
-            final data = snapshot.data()!;
-            final currentTotalReviews = data['totalReviews'] ?? 0;
-            final currentAverage = (data['averageRating'] ?? 5.0).toDouble();
-
-            final newTotal = currentTotalReviews + 1;
-            final newAverage =
-                ((currentAverage * currentTotalReviews) + _rating) / newTotal;
-
-            transaction.update(barberRef, {
-              'totalReviews': newTotal,
-              'averageRating': newAverage,
-            });
-          }
-        });
+      if (bookingId == null ||
+          bookingId.isEmpty ||
+          barberId == null ||
+          barberId.isEmpty) {
+        Get.snackbar("Xatolik", "Bron ma'lumotlari to'liq emas");
+        return;
       }
+
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid == null || uid.isEmpty) {
+        Get.snackbar("Xatolik", "Tizimga kiring");
+        return;
+      }
+
+      final comment = _commentController.text.trim();
+      final fs = FirebaseFirestore.instance;
+      final batch = fs.batch();
+
+      final reviewRef = fs.collection('reviews').doc();
+      batch.set(reviewRef, {
+        'clientUid': uid,
+        'barberId': barberId,
+        'rating': _rating,
+        if (comment.isNotEmpty) 'comment': comment,
+        'bookingId': bookingId,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      batch.update(fs.collection('bookings').doc(bookingId), {
+        'isRated': true,
+        'ratedAt': FieldValue.serverTimestamp(),
+      });
+
+      await batch.commit();
 
       Get.back(); // close modal
       Get.snackbar(

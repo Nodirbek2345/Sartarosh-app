@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../controllers/booking_controller.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/image_helper.dart';
 
 class BookingView extends GetView<BookingController> {
@@ -312,14 +313,53 @@ class BookingView extends GetView<BookingController> {
                         ),
                       ),
                       SizedBox(height: 6),
-                      Text(
-                        "Yaqin hududlardan ustalarni ko'rishingiz mumkin",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white54,
-                          fontSize: 12,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
+                      Obx(() {
+                        final us = Get.find<UserService>();
+                        final needGps = us.filterMode.value == 'GPS' &&
+                            (us.userLat.value == 0.0 ||
+                                us.userLng.value == 0.0);
+                        return Column(
+                          children: [
+                            Text(
+                              needGps
+                                  ? "Yaqin ustalarni ko'rish uchun GPS joylashuvi kerak."
+                                  : "Viloyatni tanlang yoki hududni yangilang.",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white54,
+                                fontSize: 12,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            if (needGps) ...[
+                              SizedBox(height: 14),
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: gold,
+                                  foregroundColor: Color(0xFF0F1120),
+                                  elevation: 0,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: EdgeInsets.symmetric(
+                                    horizontal: 20,
+                                    vertical: 12,
+                                  ),
+                                ),
+                                icon: Icon(Icons.gps_fixed_rounded, size: 20),
+                                label: Text(
+                                  "Joylashuvni yoqish (GPS)",
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                                onPressed: () =>
+                                    controller.enableGpsForBooking(),
+                              ),
+                            ],
+                          ],
+                        );
+                      }),
                       SizedBox(height: 24),
                       SingleChildScrollView(
                         scrollDirection: Axis.horizontal,

@@ -2,79 +2,277 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Auth helpers
-    function isAuth() {
+    // ═══════════════════════════════════════════════════════
+    // UMUMIY FUNKSIYALAR
+    // ═══════════════════════════════════════════════════════
+    
+    function isSignedIn() {
       return request.auth != null;
     }
     
+    function incomingData() {
+      return request.resource.data;
+    }
+    
+    function existingData() {
+      return resource.data;
+    }
+    
     function isOwner(uid) {
-      return isAuth() && request.auth.uid == uid;
+      return request.auth.uid == uid;
+    }
+    
+    // Admin tekshiruvi (Firebase Auth custom claims orqali)
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.admin == true;
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 1. FOYDALANUVCHILAR (Users)
+    // ═══════════════════════════════════════════════════════
     match /users/{userId} {
-      allow read: if isAuth();
-      allow create, update: if isOwner(userId);
+      allow read: if isSignedIn() && isOwner(userId);
+      
+      allow create: if isSignedIn() && isOwner(userId)
+                    && incomingData().keys().hasAll(['name'])
+                    && incomingData().name is string
+                    && incomingData().name.size() > 0
+                    && incomingData().name.size() <= 100;
+      
+      // Role ni o'zgartirish taqiqlangan (faqat merge allowed)
+      allow update: if isSignedIn() && isOwner(userId)
+                    && (!incomingData().keys().hasAny(['role']) || incomingData().role == existingData().role);
+      
       allow delete: if false;
     }
-
-    match /barbers/{barberId} {
-      allow read: if true; // Publicly accessible to read
-      allow create, update: if isAuth() && isOwner(request.resource.data.uid);
-      allow delete: if false; // Soft delete via isActive flag
-    }
-
-    match /bookings/{bookingId} {
-      // Either the client who booked or the barber receiving it
-      allow read: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
-      
-      // Client creating a booking: must be pending
-      allow create: if isAuth() 
-                    && request.resource.data.clientUid == request.auth.uid 
-                    && request.resource.data.status == 'pending';
-                    
-      // Status transition validation
-      allow update: if isAuth() && (
-        // Client can only cancel their own pending booking
-        (request.auth.uid == resource.data.clientUid && request.resource.data.status == 'missed' && resource.data.status == 'pending') ||
-        // Barber handles accept/reject/progress/completion
-        (request.auth.uid == resource.data.barberUid)
-      );
-      
-      allow delete: if false; 
-    }
-
-    match /queues/{queueId} {
-      allow read: if isAuth() && (resource.data.clientUid == request.auth.uid || resource.data.barberUid == request.auth.uid);
-      
-      // Client joining live queue
-      allow create: if isAuth() 
-                    && request.resource.data.clientUid == request.auth.uid 
-                    && request.resource.data.status == 'waiting';
-                    
-      allow update: if isAuth() && (
-        // Client can cancel
-        (request.auth.uid == resource.data.clientUid && request.resource.data.status == 'skipped') ||
-        // Barber controls queue status
-        (request.auth.uid == resource.data.barberUid)
-      );
-      
-      allow delete: if false; 
-    }
-
-    match /services/{docId} {
+    
+    // ═══════════════════════════════════════════════════════
+    // 2. SARTAROSHLAR (Barbers)
+    // ═══════════════════════════════════════════════════════
+    match /barbers/{barberDocId} {
+      // Hamma o'qiy oladi (public profil)
       allow read: if true;
-      allow write: if false; 
+      
+      allow create: if isSignedIn() 
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().keys().hasAll(['uid', 'name', 'services'])
+                    && incomingData().name is string
+                    && incomingData().name.size() > 0
+                    && incomingData().name.size() <= 100;
+      
+      // Faqat o'z profilini tahrirlash, uid o'zgartirish mumkin emas
+      // rating va reviewCount faqat server orqali o'zgartiriladi
+      allow update: if isSignedIn() 
+                    && existingData().uid == request.auth.uid 
+                    && incomingData().uid == existingData().uid
+                    && (!incomingData().keys().hasAny(['rating']) || incomingData().rating == existingData().rating)
+                    && (!incomingData().keys().hasAny(['reviewCount']) || incomingData().reviewCount == existingData().reviewCount);
+                    
+      allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
     }
 
-    match /platform_config/{docId} {
+    // ═══════════════════════════════════════════════════════
+    // 3. XIZMATLAR (Services) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
+    match /services/{serviceId} {
       allow read: if true;
       allow write: if false;
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 4. BRONLAR (Bookings) — STRICT STATE MACHINE
+    // ═══════════════════════════════════════════════════════
+    match /bookings/{bookingId} {
+      // SCOPED READ: faqat o'z bronlarini yoki o'ziga tegishli bronlarni o'qish
+      allow read: if isSignedIn() 
+                  && (existingData().clientUid == request.auth.uid 
+                      || existingData().barberUid == request.auth.uid);
+      
+      // Client creates booking (pending status — barber confirms)
+      allow create: if isSignedIn() 
+                    && incomingData().clientUid == request.auth.uid
+                    && incomingData().keys().hasAll(['clientUid', 'barberUid', 'barberId', 'service', 'status', 'date', 'time', 'price'])
+                    && incomingData().status in ['pending', 'confirmed']
+                    && incomingData().service is string
+                    && incomingData().service.size() > 0
+                    && incomingData().price is number
+                    && incomingData().price > 0
+                    && incomingData().date is string
+                    && incomingData().date.size() == 10
+                    && incomingData().time is string
+                    && incomingData().time.size() == 5;
+      
+      // Strict state machine transitions
+      allow update: if isSignedIn() 
+                    // clientUid, barberId, barberUid o'zgartirish mumkin emas
+                    && incomingData().clientUid == existingData().clientUid
+                    && incomingData().barberId == existingData().barberId
+                    && incomingData().barberUid == existingData().barberUid
+                    // Narxni o'zgartirish mumkin emas
+                    && (!incomingData().keys().hasAny(['price']) || incomingData().price == existingData().price)
+                    && incomingData().status in ['pending', 'confirmed', 'cancelled', 'completed', 'in-progress', 'no-show', 'penalty']
+                    && (
+                      // CLIENT ACTIONS: cancel own booking (pending/confirmed → cancelled/penalty)
+                      (existingData().clientUid == request.auth.uid 
+                        && incomingData().status in ['cancelled', 'penalty']
+                        && existingData().status in ['pending', 'confirmed'])
+                      ||
+                      // BARBER ACTIONS: manage assigned bookings
+                      (existingData().barberUid == request.auth.uid
+                        && (
+                          // pending → confirmed
+                          (existingData().status == 'pending' && incomingData().status == 'confirmed')
+                          // pending → cancelled  
+                          || (existingData().status == 'pending' && incomingData().status == 'cancelled')
+                          // confirmed → in-progress
+                          || (existingData().status == 'confirmed' && incomingData().status == 'in-progress')
+                          // confirmed → cancelled
+                          || (existingData().status == 'confirmed' && incomingData().status == 'cancelled')
+                          // confirmed → no-show
+                          || (existingData().status == 'confirmed' && incomingData().status == 'no-show')
+                          // in-progress → completed
+                          || (existingData().status == 'in-progress' && incomingData().status == 'completed')
+                        )
+                      )
+                      ||
+                      // Mijoz: tarixdan yashirish (faqat clientDeleted)
+                      (existingData().clientUid == request.auth.uid
+                        && incomingData().status == existingData().status
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['clientDeleted'])
+                        && incomingData().clientDeleted == true)
+                      ||
+                      // Mijoz: yakunlangan bronni baholagach (faqat isRated + ratedAt)
+                      (existingData().clientUid == request.auth.uid
+                        && existingData().status == 'completed'
+                        && incomingData().status == 'completed'
+                        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRated', 'ratedAt'])
+                        && incomingData().isRated == true)
+                    );
+                    
+      allow delete: if false; // Bronni o'chirish mumkin emas
+    }
+
+    // Vaqt slotini atomik band qilish (mijoz bron yaratganda)
+    match /booking_time_locks/{lockId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.clientUid == request.auth.uid
+        && request.resource.data.keys().hasAll(['barberId', 'barberUid', 'date', 'time', 'bookingId', 'clientUid'])
+        && request.resource.data.barberId is string
+        && request.resource.data.bookingId is string
+        && request.resource.data.clientUid is string
+        && request.resource.data.date is string
+        && request.resource.data.date.size() == 10
+        && request.resource.data.time is string
+        && request.resource.data.time.size() == 5;
+      allow delete: if isSignedIn() && (
+        resource.data.clientUid == request.auth.uid
+        || (resource.data.keys().hasAny(['barberUid'])
+            && resource.data.barberUid is string
+            && resource.data.barberUid.size() > 0
+            && resource.data.barberUid == request.auth.uid)
+        || (
+          resource.data.barberId is string
+          && exists(/databases/$(database)/documents/barbers/$(resource.data.barberId))
+          && get(/databases/$(database)/documents/barbers/$(resource.data.barberId)).data.uid == request.auth.uid
+        )
+      );
+      allow update: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 5. FILIALLAR (Branches) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
+    match /branches/{branchId} {
+      allow read: if true;
+      allow write: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 6. SHARHLAR (Reviews)
+    // ═══════════════════════════════════════════════════════
     match /reviews/{reviewId} {
       allow read: if true;
-      allow create: if isAuth();
-      allow update, delete: if false; 
+      
+      allow create: if isSignedIn()
+                    && incomingData().clientUid == request.auth.uid
+                    && incomingData().keys().hasAll(['clientUid', 'barberId', 'rating'])
+                    && incomingData().rating is number
+                    && incomingData().rating >= 1
+                    && incomingData().rating <= 5
+                    && (!incomingData().keys().hasAny(['bookingId']) || incomingData().bookingId is string)
+                    && (!incomingData().keys().hasAny(['comment']) 
+                        || (incomingData().comment is string && incomingData().comment.size() <= 800));
+      
+      allow update, delete: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 7. SOZLAMALAR (Settings) — Faqat o'qish
+    // ═══════════════════════════════════════════════════════
+    match /settings/{settingId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+    
+    // ═══════════════════════════════════════════════════════
+    // 8. QOLLAB-QUVVATLASH (Support)
+    // ═══════════════════════════════════════════════════════
+    match /support/{ticketId} {
+      allow read: if isSignedIn() 
+                  && existingData().uid == request.auth.uid;
+      
+      allow create: if isSignedIn()
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().keys().hasAll(['uid', 'message'])
+                    && incomingData().message is string
+                    && incomingData().message.size() > 0
+                    && incomingData().message.size() <= 2000;
+      
+      allow update, delete: if false;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 9. BILDARISHNOMALAR VA QURILMALAR (Notifications & Tokens)
+    // ═══════════════════════════════════════════════════════
+    match /notifications/{notifId} {
+      // Faqat o'ziga tegishli xabarlarni o'qish
+      allow read: if isSignedIn() && existingData().userId == request.auth.uid;
+      
+      // Xabar yaratish (shuningdek transaction orqali boshqaga xabar yuborish ham ruxsat etiladi
+      // chunki bron tasdiqlanganda mijoz sartaroshga xabar yaratadi)
+      allow create: if isSignedIn() 
+                    && incomingData().keys().hasAll(['userId', 'title', 'message', 'type', 'isRead'])
+                    && incomingData().title is string && incomingData().title.size() <= 100
+                    && incomingData().message is string && incomingData().message.size() <= 500;
+                    
+      // Faqat o'qilganlik (isRead) holatini o'zgartirish ruxsat etiladi
+      allow update: if isSignedIn() 
+                    && existingData().userId == request.auth.uid
+                    && incomingData().userId == existingData().userId
+                    && incomingData().title == existingData().title
+                    && incomingData().message == existingData().message
+                    && incomingData().type == existingData().type;
+                    
+      allow delete: if isSignedIn() && existingData().userId == request.auth.uid;
+    }
+    
+    match /device_tokens/{tokenId} {
+      allow read: if isSignedIn() && existingData().uid == request.auth.uid;
+      allow create: if isSignedIn() 
+                    && incomingData().uid == request.auth.uid
+                    && incomingData().token is string;
+      allow update: if isSignedIn() 
+                    && existingData().uid == request.auth.uid
+                    && incomingData().uid == existingData().uid;
+      allow delete: if isSignedIn() && existingData().uid == request.auth.uid;
+    }
+
+    // ═══════════════════════════════════════════════════════
+    // 10. BOSHQA HAMMA NARSA — CATCH-ALL DENY
+    // ═══════════════════════════════════════════════════════
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

@@ -64,16 +64,6 @@ class HomeController extends GetxController {
     });
   }
 
-  /// Erkaklar / Ayollar almashtirganda baza so'rovlari ham yangilanadi.
-  void setAudienceGender(String gender) {
-    if (gender != 'male' && gender != 'female') return;
-    final userService = Get.find<UserService>();
-    if (userService.targetGender.value == gender) return;
-    userService.setTargetGender(gender);
-    _fetchServices();
-    refreshBarbers();
-  }
-
   static IconData getCategoryIcon(String category) {
     switch (category.toLowerCase()) {
       case 'soch olish':
@@ -359,6 +349,14 @@ class HomeController extends GetxController {
   final isLocating = false.obs;
 
   Future<void> switchToGps() async {
+    final userService = Get.find<UserService>();
+    if (userService.filterMode.value == 'GPS' &&
+        userService.userLat.value != 0.0 &&
+        userService.userLng.value != 0.0) {
+      refreshBarbers();
+      return;
+    }
+
     isLocating.value = true;
     try {
       LocationPermission permission = await Geolocator.checkPermission();
@@ -404,14 +402,13 @@ class HomeController extends GetxController {
         return;
       }
 
-      final userService = Get.find<UserService>();
       userService.setGpsMode(position.latitude, position.longitude);
       _cancelBarberSubscriptions();
       _fetchBarbers();
 
       Get.snackbar(
         "📍 GPS faol",
-        "5 km radiusdagi ustalar ko'rsatilmoqda",
+        "20 km radiusdagi yaqin ustalar ko'rsatilmoqda",
         backgroundColor: AppTheme.success,
         colorText: Colors.white,
         snackPosition: SnackPosition.BOTTOM,

@@ -140,6 +140,7 @@ class WelcomeView extends GetView<AuthController> {
 
   // ─── STEP 2: GENDER SELECTION ───
   Widget _buildGenderSelection() {
+    final userService = Get.find<UserService>();
     return Column(
       children: [
         Spacer(flex: 2),
@@ -186,8 +187,12 @@ class WelcomeView extends GetView<AuthController> {
               child: _genderCard(
                 icon: Icons.male_rounded,
                 label: "Erkaklar va\nBolalar uchun",
-                gender: 'male',
                 color: Color(0xFF4A90D9),
+                onTap: () {
+                  userService.applyWelcomeMaleAudience().then(
+                    (_) => controller.goToHome(),
+                  );
+                },
               ),
             ),
             SizedBox(width: 16),
@@ -195,8 +200,12 @@ class WelcomeView extends GetView<AuthController> {
               child: _genderCard(
                 icon: Icons.female_rounded,
                 label: "Ayollar va\nQizlar uchun",
-                gender: 'female',
                 color: Color(0xFFE8729A),
+                onTap: () {
+                  userService.applyWelcomeFemaleAudience().then(
+                    (_) => controller.goToHome(),
+                  );
+                },
               ),
             ),
           ],
@@ -284,14 +293,11 @@ class WelcomeView extends GetView<AuthController> {
   Widget _genderCard({
     required IconData icon,
     required String label,
-    required String gender,
     required Color color,
+    required VoidCallback onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        Get.find<UserService>().setTargetGender(gender);
-        controller.goToHome();
-      },
+      onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(vertical: 24, horizontal: 12),
         decoration: BoxDecoration(
