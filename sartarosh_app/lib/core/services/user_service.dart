@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:get/get.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/utils/input_sanitizer.dart';
@@ -14,6 +15,7 @@ class UserService extends GetxService {
   final favoriteBarberIds = <String>[].obs;
   final isBarberMode = false.obs;
   final targetGender = 'male'.obs;
+
   /// Welcome'dagi yo'nalish: male_classic | female_beauty (tavsiya / analitika)
   final audienceProfile = ''.obs;
   final selectedRegion = ''.obs;
@@ -26,6 +28,7 @@ class UserService extends GetxService {
   final userLng = 0.0.obs;
 
   late FlutterSecureStorage _storage;
+  late SharedPreferences _prefs;
 
   String get currentUid {
     final firebaseUser = FirebaseAuth.instance.currentUser;
@@ -44,6 +47,7 @@ class UserService extends GetxService {
 
   Future<UserService> init() async {
     _storage = const FlutterSecureStorage();
+    _prefs = await SharedPreferences.getInstance();
 
     name.value = await _storage.read(key: 'user_name') ?? "Mijoz";
     phone.value = await _storage.read(key: 'user_phone') ?? "+998 -- --- -- --";
@@ -62,16 +66,15 @@ class UserService extends GetxService {
 
     isBarberMode.value = (await _storage.read(key: 'is_barber_mode')) == 'true';
     targetGender.value = await _storage.read(key: 'target_gender') ?? 'male';
-    audienceProfile.value =
-        await _storage.read(key: 'audience_profile') ?? '';
-    selectedRegion.value = await _storage.read(key: 'selected_region') ?? '';
+    audienceProfile.value = await _storage.read(key: 'audience_profile') ?? '';
     userRole.value = await _storage.read(key: 'user_role') ?? 'client';
     uid.value = await _storage.read(key: 'user_uid') ?? '';
-    filterMode.value = await _storage.read(key: 'filter_mode') ?? 'REGION';
-    final storedLat = await _storage.read(key: 'user_lat');
-    final storedLng = await _storage.read(key: 'user_lng');
-    if (storedLat != null) userLat.value = double.tryParse(storedLat) ?? 0.0;
-    if (storedLng != null) userLng.value = double.tryParse(storedLng) ?? 0.0;
+
+    // GPS & Region persistence via SharedPreferences (Faster, reliable)
+    filterMode.value = _prefs.getString('filter_mode') ?? 'REGION';
+    selectedRegion.value = _prefs.getString('selected_region') ?? '';
+    userLat.value = _prefs.getDouble('user_lat') ?? 0.0;
+    userLng.value = _prefs.getDouble('user_lng') ?? 0.0;
 
     // Sync with Firebase Auth
     final firebaseUser = FirebaseAuth.instance.currentUser;
@@ -125,8 +128,7 @@ class UserService extends GetxService {
               value: serverTargetGender,
             );
           }
-          final serverAudience =
-              data['audienceProfile'] as String? ?? '';
+          final serverAudience = data['audienceProfile'] as String? ?? '';
           if (serverAudience.isNotEmpty) {
             audienceProfile.value = serverAudience;
             await _storage.write(
@@ -323,7 +325,7 @@ class UserService extends GetxService {
 
   void setRegion(String region) async {
     selectedRegion.value = region;
-    await _storage.write(key: 'selected_region', value: region);
+    await _prefs.setString('selected_region', region);
 
     if (currentUid.isNotEmpty) {
       try {
@@ -341,10 +343,11 @@ class UserService extends GetxService {
     userLat.value = lat;
     userLng.value = lng;
     selectedRegion.value = '';
-    await _storage.write(key: 'filter_mode', value: 'GPS');
-    await _storage.write(key: 'user_lat', value: lat.toString());
-    await _storage.write(key: 'user_lng', value: lng.toString());
-    await _storage.write(key: 'selected_region', value: '');
+
+    await _prefs.setString('filter_mode', 'GPS');
+    await _prefs.setDouble('user_lat', lat);
+    await _prefs.setDouble('user_lng', lng);
+    await _prefs.setString('selected_region', '');
 
     if (currentUid.isNotEmpty) {
       try {
@@ -362,10 +365,11 @@ class UserService extends GetxService {
     selectedRegion.value = region;
     userLat.value = 0.0;
     userLng.value = 0.0;
-    await _storage.write(key: 'filter_mode', value: 'REGION');
-    await _storage.write(key: 'selected_region', value: region);
-    await _storage.write(key: 'user_lat', value: '0.0');
-    await _storage.write(key: 'user_lng', value: '0.0');
+
+    await _prefs.setString('filter_mode', 'REGION');
+    await _prefs.setString('selected_region', region);
+    await _prefs.setDouble('user_lat', 0.0);
+    await _prefs.setDouble('user_lng', 0.0);
 
     if (currentUid.isNotEmpty) {
       try {
@@ -443,6 +447,13 @@ class UserService extends GetxService {
     photoUrl.value = '';
     targetGender.value = 'male';
     audienceProfile.value = '';
+
+    // Clear SharedPreferences for location
+    await _prefs.remove('filter_mode');
+    await _prefs.remove('selected_region');
+    await _prefs.remove('user_lat');
+    await _prefs.remove('user_lng');
+
     selectedRegion.value = '';
     filterMode.value = 'REGION';
     userLat.value = 0.0;

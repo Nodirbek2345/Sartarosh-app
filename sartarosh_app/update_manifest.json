@@ -1,6 +1,6 @@
 {
-    "version": "3.4.8+242",
-    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.4.8/app-release.apk",
-    "releaseNotes": "1. 'Sartarosh sifatida qo'shilish' xatosi bartaraf etildi (xizmatlar ro'yxati Serverdan kelmaganda offline ro'yxat ishga tushadi).\n2. Viloyat tanlash tizimi yaxshilandi (qo'lda kiritish tugmasi qo'shildi).\n3. Surxondaryo viloyati va boshqa viloyatlar tanlovi PRO qilib sozlandi.",
+    "version": "3.4.9+243",
+    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.4.9/app-release.apk",
+    "releaseNotes": "1. GPS va Viloyat sozlamalari endi to'g'ri saqlanib qoladi (App restart qilinganda state defaultga qaytmaydi).\n2. Location State SharedPreferences orqali optimallashtirildi.",
     "forceUpdate": false
 }
