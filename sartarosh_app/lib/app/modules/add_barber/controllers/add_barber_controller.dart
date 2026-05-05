@@ -30,6 +30,7 @@ class AddBarberController extends GetxController {
     "bo'yash": 0xe15a,
     'manikyur': 0xe6e1,
     'bolalar': 0xe091,
+    "to'y": 0xf06bb,
   };
 
   final openTime = "09:00".obs;
@@ -89,6 +90,8 @@ class AddBarberController extends GetxController {
     {'name': 'Styling', 'category': 'Styling', 'gender': 'male'},
     {'name': 'Bosh yuvish', 'category': 'Bosh yuvish', 'gender': 'male'},
     {'name': 'Bolalar soch olish', 'category': 'Bolalar', 'gender': 'male'},
+    {'name': "To'y soch turmak", 'category': "To'y marasim", 'gender': 'male'},
+    {'name': "To'y kompleks", 'category': "To'y marasim", 'gender': 'male'},
 
     // ─── AYOLLAR (female) ───
     {'name': 'Soch turmaklash', 'category': 'Soch turmak', 'gender': 'female'},
@@ -97,6 +100,13 @@ class AddBarberController extends GetxController {
     {'name': 'Manikyur', 'category': 'Manikyur', 'gender': 'female'},
     {'name': 'Soch kesish', 'category': 'Soch olish', 'gender': 'female'},
     {'name': 'Kompleks xizmat', 'category': 'Kompleks', 'gender': 'female'},
+    {'name': "To'y makiyaji", 'category': "To'y marasim", 'gender': 'female'},
+    {
+      'name': "To'y soch turmak",
+      'category': "To'y marasim",
+      'gender': 'female',
+    },
+    {'name': "To'y kompleks", 'category': "To'y marasim", 'gender': 'female'},
   ];
 
   Future<void> _fetchGlobalServices() async {

@@ -283,6 +283,7 @@ class HomeController extends GetxController {
         'Manikyur',
         'Soch olish',
         'Kompleks',
+        "To'y marasim",
       ]);
     } else {
       defaultCats.addAll([
@@ -292,6 +293,7 @@ class HomeController extends GetxController {
         'Styling',
         'Bosh yuvish',
         'Bolalar',
+        "To'y marasim",
       ]);
     }
 
@@ -321,6 +323,8 @@ class HomeController extends GetxController {
       "bo'yash": Icons.color_lens_rounded,
       'manikyur': Icons.back_hand_rounded,
       'maxsus': Icons.star_border_rounded,
+      "to'y marasim": Icons.celebration_rounded,
+      "to'y": Icons.celebration_rounded,
     };
 
     final list = <Map<String, dynamic>>[

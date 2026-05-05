@@ -1,6 +1,6 @@
 {
-    "version": "3.4.9+243",
-    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.4.9/app-release.apk",
-    "releaseNotes": "1. GPS va Viloyat sozlamalari endi to'g'ri saqlanib qoladi (App restart qilinganda state defaultga qaytmaydi).\n2. Location State SharedPreferences orqali optimallashtirildi.",
+    "version": "3.5.0+244",
+    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.5.0/app-release.apk",
+    "releaseNotes": "1. Profil menyusida 'Usta rejimi' tugmasi yuqoriga ko'chirildi.\n2. To'y marasim uchun sartarosh/salonchi qidirish imkoniyati qo'shildi (erkak va ayollar uchun).\n3. Yangi xizmatlar: To'y makiyaji, To'y soch turmak, To'y kompleks.",
     "forceUpdate": false
 }

@@ -210,13 +210,7 @@ class ProfileView extends StatelessWidget {
                       int idx = 0;
                       return Column(
                         children: [
-                          _menuItem(
-                            Icons.calendar_month_rounded,
-                            "Mening bronlarim",
-                            idx++,
-                            () => Get.toNamed('/my-bookings'),
-                          ),
-
+                          // PRO: Usta rejimi BIRINCHI o'rinda
                           if (isBarberRole) ...[
                             _menuItem(
                               Icons.swap_horiz_rounded,
@@ -259,6 +253,14 @@ class ProfileView extends StatelessWidget {
                               () => Get.toNamed('/add-barber'),
                             ),
                           ],
+
+                          _menuItem(
+                            Icons.calendar_month_rounded,
+                            "Mening bronlarim",
+                            idx++,
+                            () => Get.toNamed('/my-bookings'),
+                          ),
+
                           _menuItem(
                             Icons.settings_rounded,
                             "Sozlamalar",

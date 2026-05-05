@@ -26,6 +26,7 @@ class BarberServicesController extends GetxController {
     "bo'yash": 0xe15a,
     'manikyur': 0xe6e1,
     'bolalar': 0xe091,
+    "to'y": 0xf06bb,
   };
 
   @override
@@ -177,4 +178,3 @@ class BarberServicesController extends GetxController {
     }
   }
 }
-
