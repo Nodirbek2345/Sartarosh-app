@@ -210,8 +210,42 @@ class ProfileView extends StatelessWidget {
                       int idx = 0;
                       return Column(
                         children: [
-                          // "Sartarosh sifatida qo'shilish" faqat barber bo'lmaganlar uchun
-                          if (!isBarberRole) ...[
+                          // PRO: Usta rejimi BIRINCHI o'rinda
+                          if (isBarberRole) ...[
+                            _menuItem(
+                              Icons.swap_horiz_rounded,
+                              "Usta rejimiga o'tish",
+                              idx++,
+                              () async {
+                                // Validate if doc still exists
+                                final uid = userService.currentUid;
+                                final docs = await FirebaseFirestore.instance
+                                    .collection('barbers')
+                                    .where('uid', isEqualTo: uid)
+                                    .get();
+                                if (docs.docs.isEmpty) {
+                                  Get.snackbar(
+                                    "Kechirasiz",
+                                    "Sizning usta profilingiz tizimda mavjud emas yoki o'chirilgan.",
+                                    backgroundColor: AppTheme.danger,
+                                    colorText: Colors.white,
+                                    snackPosition: SnackPosition.TOP,
+                                  );
+                                  // Auto-heal role to 'client'
+                                  userService.userRole.value = 'client';
+                                  await FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(uid)
+                                      .set({
+                                        'role': 'client',
+                                      }, SetOptions(merge: true));
+                                } else {
+                                  userService.toggleBarberMode();
+                                  Get.offAllNamed('/home');
+                                }
+                              },
+                            ),
+                          ] else ...[
                             _menuItem(
                               Icons.storefront_rounded,
                               "Sartarosh sifatida qo'shilish",
