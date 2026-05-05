@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import '../controllers/home_controller.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -1264,6 +1265,7 @@ class HomeView extends GetView<HomeController> {
 
   // ─── BOTTOM NAV ───
   Widget _buildBottomNav() {
+    final userService = Get.find<UserService>();
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -1278,36 +1280,66 @@ class HomeView extends GetView<HomeController> {
       child: SafeArea(
         child: SizedBox(
           height: 72,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _navItem(Icons.home_rounded, "Asosiy", true),
-              _navItem(
-                Icons.search_rounded,
-                "Qidirish",
-                false,
-                onTap: () => Get.toNamed('/services'),
-              ),
-              _navItem(
-                Icons.calendar_month_rounded,
-                "Bronlar",
-                false,
-                onTap: () => Get.toNamed('/my-bookings'),
-              ),
-              _navItem(
-                Icons.favorite_rounded,
-                "Sevimlilar",
-                false,
-                onTap: () => Get.toNamed('/favorites'),
-              ),
-              _navItem(
-                Icons.person_rounded,
-                "Profil",
-                false,
-                onTap: () => Get.toNamed('/profile'),
-              ),
-            ],
-          ),
+          child: Obx(() {
+            final isBarberRole = userService.userRole.value == 'barber';
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _navItem(Icons.home_rounded, "Asosiy", true),
+                _navItem(
+                  Icons.search_rounded,
+                  "Qidirish",
+                  false,
+                  onTap: () => Get.toNamed('/services'),
+                ),
+                // PRO: Barber users see "Usta rejimi", others see "Bronlar"
+                if (isBarberRole)
+                  _navItem(
+                    Icons.swap_horiz_rounded,
+                    "Usta rejimi",
+                    false,
+                    onTap: () async {
+                      final uid = userService.currentUid;
+                      final docs = await FirebaseFirestore.instance
+                          .collection('barbers')
+                          .where('uid', isEqualTo: uid)
+                          .get();
+                      if (docs.docs.isEmpty) {
+                        Get.snackbar(
+                          "Kechirasiz",
+                          "Sizning usta profilingiz tizimda mavjud emas.",
+                          backgroundColor: AppTheme.danger,
+                          colorText: Colors.white,
+                          snackPosition: SnackPosition.TOP,
+                        );
+                      } else {
+                        userService.toggleBarberMode();
+                        Get.offAllNamed('/home');
+                      }
+                    },
+                  )
+                else
+                  _navItem(
+                    Icons.calendar_month_rounded,
+                    "Bronlar",
+                    false,
+                    onTap: () => Get.toNamed('/my-bookings'),
+                  ),
+                _navItem(
+                  Icons.favorite_rounded,
+                  "Sevimlilar",
+                  false,
+                  onTap: () => Get.toNamed('/favorites'),
+                ),
+                _navItem(
+                  Icons.person_rounded,
+                  "Profil",
+                  false,
+                  onTap: () => Get.toNamed('/profile'),
+                ),
+              ],
+            );
+          }),
         ),
       ),
     );
