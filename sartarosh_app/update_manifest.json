@@ -1,6 +1,6 @@
 {
-    "version": "3.6.0+245",
-    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.6.0/app-release.apk",
-    "releaseNotes": "1. Toza navigatsiya: Pastki menyu yangilandi va Navbat (Queue) sahifasi qo'shildi.\n2. Profil: Mijozlar va Ustalar uchun profil sahifasi tozalandi.\n3. Usta rejimi to'g'ridan-to'g'ri 'Bronlar' o'rnida ustalar uchun ochiladi.",
+    "version": "3.7.0+246",
+    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.7.0/app-release.apk",
+    "releaseNotes": "1. Toza navigatsiya va Yangilangan Bronlar: Mijoz va Usta rejimi qulay bir ekran. \n2. Mijozlar va Ustalar uchun profil sahifasi tozalandi.\n3. Usta rejimi to'g'ridan-to'g'ri 'Bronlar' o'rnida ustalar uchun ochiladi va logikasi optimallashtirildi.",
     "forceUpdate": false
 }

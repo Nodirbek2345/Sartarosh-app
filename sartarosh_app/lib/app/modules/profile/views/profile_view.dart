@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
@@ -239,9 +240,12 @@ class ProfileView extends StatelessWidget {
                                       .set({
                                         'role': 'client',
                                       }, SetOptions(merge: true));
-                                } else {
-                                  userService.toggleBarberMode();
-                                  Get.offAllNamed('/home');
+                                  userService.isBarberMode.value = true;
+                                  await const FlutterSecureStorage().write(
+                                    key: 'is_barber_mode',
+                                    value: 'true',
+                                  );
+                                  Get.offNamed('/my-bookings');
                                 }
                               },
                             ),

@@ -29,6 +29,9 @@ class MyBookingsController extends GetxController {
   void onInit() {
     super.onInit();
     _fetchBookings();
+    if (Get.find<UserService>().userRole.value == 'barber') {
+      _listenBarberBookings();
+    }
   }
 
   void _fetchBookings() {
@@ -246,6 +249,215 @@ class MyBookingsController extends GetxController {
     });
   }
 
+  // ---- BARBER STATE ----
+  bool get isBarberMode => Get.find<UserService>().isBarberMode.value;
+  final barberActiveBookings = <Map<String, dynamic>>[].obs;
+  StreamSubscription? _barberBookingsSub;
+
+  void _listenBarberBookings() {
+    final userService = Get.find<UserService>();
+    final uid = userService.currentUid;
+    if (uid.isEmpty) return;
+
+    // Usta statusidagi bronlarni olish
+    _barberBookingsSub?.cancel();
+    _barberBookingsSub = _firestore
+        .collection('bookings')
+        .where('barberId', isEqualTo: uid)
+        .snapshots()
+        .listen((snap) {
+          final docs = snap.docs.map((d) {
+            final data = d.data();
+            data['id'] = d.id; // docId
+            return data;
+          }).toList();
+
+          docs.sort((a, b) {
+            final dateA = '${a['date'] ?? ''} ${a['time'] ?? ''}';
+            final dateB = '${b['date'] ?? ''} ${b['time'] ?? ''}';
+            return dateB.compareTo(dateA); // Eng oxirgilari boshida
+          });
+
+          barberActiveBookings.value = docs.where((b) {
+            final s = b['status'];
+            return s == 'pending' || s == 'confirmed' || s == 'in-progress';
+          }).toList();
+        });
+  }
+
+  // ============== STATE MACHINE HELPERS ==============
+  static const _allowedTransitions = {
+    'pending': ['confirmed', 'cancelled'],
+    'confirmed': ['in-progress', 'cancelled', 'no-show'],
+    'in-progress': ['completed'],
+  };
+
+  bool _canTransition(String from, String to) {
+    return _allowedTransitions[from]?.contains(to) ?? false;
+  }
+
+  Future<void> acceptBooking(String docId) async {
+    try {
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      final data = snapshot.data()!;
+      if (!_canTransition(data['status'] ?? '', 'confirmed')) {
+        Get.snackbar(
+          "Xatolik",
+          "Holatini o'zgartirish mumkin emas",
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+        return;
+      }
+      // Smart Accept: Auto-reject overlapping bookings
+      final overlaps = await _firestore
+          .collection('bookings')
+          .where('barberId', isEqualTo: Get.find<UserService>().currentUid)
+          .where('date', isEqualTo: data['date'])
+          .where('time', isEqualTo: data['time'])
+          .where('status', isEqualTo: 'pending')
+          .get();
+
+      for (var doc in overlaps.docs) {
+        if (doc.id != docId) {
+          await doc.reference.update({'status': 'cancelled'});
+          await BookingSlotLock.releaseFromBookingData(_firestore, doc.data());
+        }
+      }
+
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'confirmed',
+      });
+      final clientUid = data['clientUid'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Bron tasdiqlandi!',
+          'message': 'Usta broningizni tasdiqladi.',
+          'type': 'booking_confirmed',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "Zo'r",
+        "Bron qabul qilindi",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xato", "Xatolik yuz berdi");
+    }
+  }
+
+  Future<void> rejectBooking(String docId) async {
+    try {
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'cancelled'))
+        return;
+
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'cancelled',
+      });
+      await BookingSlotLock.releaseFromBookingData(
+        _firestore,
+        snapshot.data()!,
+      );
+      final clientUid = snapshot.data()!['clientUid'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Bron bekor qilindi',
+          'message': 'Usta bronni bekor qildi.',
+          'type': 'booking_cancelled',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "Rad etildi",
+        "Bron rad etildi",
+        backgroundColor: Colors.orange,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xato", "Xatolik yuz berdi");
+    }
+  }
+
+  Future<void> startClient(String docId) async {
+    try {
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'in-progress'))
+        return;
+
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'in-progress',
+        'startedAt': FieldValue.serverTimestamp(),
+      });
+      final clientUid = snapshot.data()!['clientUid'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Sizning navbatingiz! 🔥',
+          'message': 'Xizmatingiz boshlandi.',
+          'type': 'your_turn',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "Boshlandi",
+        "Xizmat boshlandi",
+        backgroundColor: Colors.blue,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xato", "Xatolik yuz berdi");
+    }
+  }
+
+  Future<void> completeClient(String docId) async {
+    try {
+      final snapshot = await _firestore.collection('bookings').doc(docId).get();
+      if (!snapshot.exists) return;
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'completed'))
+        return;
+
+      await _firestore.collection('bookings').doc(docId).update({
+        'status': 'completed',
+        'paymentStatus': 'paid',
+        'completedAt': FieldValue.serverTimestamp(),
+      });
+      await BookingSlotLock.releaseFromBookingData(
+        _firestore,
+        snapshot.data()!,
+      );
+      final clientUid = snapshot.data()!['clientUid'] ?? '';
+      if (clientUid.isNotEmpty) {
+        await _firestore.collection('notifications').add({
+          'userId': clientUid,
+          'title': 'Xizmat yakunlandi ✅',
+          'message': 'Rahmat!',
+          'type': 'service_completed',
+          'isRead': false,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
+      Get.snackbar(
+        "Tugallandi",
+        "Xizmat yakunlandi",
+        backgroundColor: Colors.green,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar("Xato", "Xatolik yuz berdi");
+    }
+  }
+
   Future<void> deleteHistoryItem(String id) async {
     try {
       await _firestore.collection('bookings').doc(id).update({
@@ -265,6 +477,7 @@ class MyBookingsController extends GetxController {
   @override
   void onClose() {
     _bookingsSub?.cancel();
+    _barberBookingsSub?.cancel();
     for (var sub in _queueSubs.values) {
       sub.cancel();
     }
