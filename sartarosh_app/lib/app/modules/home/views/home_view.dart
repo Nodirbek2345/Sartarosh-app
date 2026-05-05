@@ -1282,12 +1282,6 @@ class HomeView extends GetView<HomeController> {
                 onTap: () => Get.toNamed('/my-bookings'),
               ),
               _navItem(
-                Icons.queue_rounded,
-                "Navbat",
-                false,
-                onTap: () => Get.toNamed('/navbat'),
-              ),
-              _navItem(
                 Icons.person_rounded,
                 "Profil",
                 false,

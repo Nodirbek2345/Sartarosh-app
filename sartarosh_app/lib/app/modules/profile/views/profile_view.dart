@@ -6,7 +6,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
@@ -213,55 +212,7 @@ class ProfileView extends StatelessWidget {
                       return Column(
                         children: [
                           // PRO: Usta rejimi BIRINCHI o'rinda
-                          if (isBarberRole) ...[
-                            _menuItem(
-                              Icons.swap_horiz_rounded,
-                              "Usta rejimiga o'tish",
-                              idx++,
-                              () async {
-                                // Validate if doc still exists
-                                final uid = userService.currentUid;
-                                final docs = await FirebaseFirestore.instance
-                                    .collection('barbers')
-                                    .where('uid', isEqualTo: uid)
-                                    .get();
-                                if (docs.docs.isEmpty) {
-                                  Get.snackbar(
-                                    "Kechirasiz",
-                                    "Sizning usta profilingiz tizimda mavjud emas yoki o'chirilgan.",
-                                    backgroundColor: AppTheme.danger,
-                                    colorText: Colors.white,
-                                    snackPosition: SnackPosition.TOP,
-                                  );
-                                  // Auto-heal role to 'client'
-                                  userService.userRole.value = 'client';
-                                  await FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(uid)
-                                      .set({
-                                        'role': 'client',
-                                      }, SetOptions(merge: true));
-                                } else {
-                                  // ✅ PRO: Set barber mode ON and go to Bronlar
-                                  userService.isBarberMode.value = true;
-                                  await const FlutterSecureStorage().write(
-                                    key: 'is_barber_mode',
-                                    value: 'true',
-                                  );
-                                  Get.snackbar(
-                                    "Usta rejimi",
-                                    "Siz endi usta rejimiga o'tdingiz ✂️",
-                                    backgroundColor: AppTheme.gold,
-                                    colorText: Colors.white,
-                                    snackPosition: SnackPosition.TOP,
-                                    duration: const Duration(seconds: 2),
-                                  );
-                                  HapticFeedback.mediumImpact();
-                                  Get.offNamed('/my-bookings');
-                                }
-                              },
-                            ),
-                          ] else ...[
+                          if (!isBarberRole) ...[
                             _menuItem(
                               Icons.storefront_rounded,
                               "Sartarosh sifatida qo'shilish",
