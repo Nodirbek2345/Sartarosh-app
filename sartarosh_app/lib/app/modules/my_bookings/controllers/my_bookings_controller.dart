@@ -386,16 +386,18 @@ class MyBookingsController extends GetxController {
   void incrementLimit() {
     if (queueLimit.value < 99) {
       queueLimit.value++;
-      if (_barberDocRef != null)
+      if (_barberDocRef != null) {
         _barberDocRef!.update({'queueLimit': queueLimit.value});
+      }
     }
   }
 
   void decrementLimit() {
     if (queueLimit.value > 1) {
       queueLimit.value--;
-      if (_barberDocRef != null)
+      if (_barberDocRef != null) {
         _barberDocRef!.update({'queueLimit': queueLimit.value});
+      }
     }
   }
 

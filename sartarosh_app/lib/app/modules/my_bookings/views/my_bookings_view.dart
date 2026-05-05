@@ -131,7 +131,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
               Obx(
                 () => Switch(
                   value: controller.isActive.value,
-                  activeColor: AppTheme.primary,
+                  activeTrackColor: AppTheme.primary.withValues(alpha: 0.5),
                   onChanged: (val) => controller.toggleActiveStatus(),
                 ),
               ),
