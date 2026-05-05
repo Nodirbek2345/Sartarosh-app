@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
@@ -240,11 +241,22 @@ class ProfileView extends StatelessWidget {
                                       .set({
                                         'role': 'client',
                                       }, SetOptions(merge: true));
+                                } else {
+                                  // ✅ PRO: Set barber mode ON and go to Bronlar
                                   userService.isBarberMode.value = true;
                                   await const FlutterSecureStorage().write(
                                     key: 'is_barber_mode',
                                     value: 'true',
                                   );
+                                  Get.snackbar(
+                                    "Usta rejimi",
+                                    "Siz endi usta rejimiga o'tdingiz ✂️",
+                                    backgroundColor: AppTheme.gold,
+                                    colorText: Colors.white,
+                                    snackPosition: SnackPosition.TOP,
+                                    duration: const Duration(seconds: 2),
+                                  );
+                                  HapticFeedback.mediumImpact();
                                   Get.offNamed('/my-bookings');
                                 }
                               },

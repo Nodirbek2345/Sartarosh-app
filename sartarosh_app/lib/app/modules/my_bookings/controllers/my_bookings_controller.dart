@@ -355,8 +355,9 @@ class MyBookingsController extends GetxController {
     try {
       final snapshot = await _firestore.collection('bookings').doc(docId).get();
       if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'cancelled'))
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'cancelled')) {
         return;
+      }
 
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'cancelled',
@@ -391,8 +392,9 @@ class MyBookingsController extends GetxController {
     try {
       final snapshot = await _firestore.collection('bookings').doc(docId).get();
       if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'in-progress'))
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'in-progress')) {
         return;
+      }
 
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'in-progress',
@@ -424,8 +426,9 @@ class MyBookingsController extends GetxController {
     try {
       final snapshot = await _firestore.collection('bookings').doc(docId).get();
       if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'completed'))
+      if (!_canTransition(snapshot.data()!['status'] ?? '', 'completed')) {
         return;
+      }
 
       await _firestore.collection('bookings').doc(docId).update({
         'status': 'completed',
