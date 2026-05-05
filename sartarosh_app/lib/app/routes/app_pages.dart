@@ -43,6 +43,8 @@ import '../../core/middleware/auth_middleware.dart';
 import '../../core/middleware/barber_middleware.dart';
 import '../modules/force_update/bindings/force_update_binding.dart';
 import '../modules/force_update/views/force_update_view.dart';
+import '../modules/navbat/bindings/navbat_binding.dart';
+import '../modules/navbat/views/navbat_view.dart';
 
 class AppPages {
   static const String initial = Routes.splash;
@@ -188,6 +190,13 @@ class AppPages {
       page: () => ForceUpdateView(),
       binding: ForceUpdateBinding(),
       transition: Transition.fadeIn,
+    ),
+    GetPage(
+      name: Routes.navbat,
+      page: () => NavbatView(),
+      binding: NavbatBinding(),
+      transition: Transition.fadeIn,
+      middlewares: [AuthMiddleware()],
     ),
   ];
 }

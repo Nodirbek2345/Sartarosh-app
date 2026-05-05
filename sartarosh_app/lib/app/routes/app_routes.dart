@@ -21,4 +21,5 @@ abstract class Routes {
   static const String clientAnalytics = '/client-analytics';
   static const String adminAnalytics = '/admin-analytics';
   static const String forceUpdate = '/force-update';
+  static const String navbat = '/navbat';
 }

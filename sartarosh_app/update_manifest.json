@@ -1,6 +1,6 @@
 {
-    "version": "3.5.0+244",
-    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.5.0/app-release.apk",
-    "releaseNotes": "1. Profil menyusida 'Usta rejimi' tugmasi yuqoriga ko'chirildi.\n2. To'y marasim uchun sartarosh/salonchi qidirish imkoniyati qo'shildi (erkak va ayollar uchun).\n3. Yangi xizmatlar: To'y makiyaji, To'y soch turmak, To'y kompleks.",
+    "version": "3.6.0+245",
+    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.6.0/app-release.apk",
+    "releaseNotes": "1. Toza navigatsiya: Pastki menyu yangilandi va Navbat (Queue) sahifasi qo'shildi.\n2. Profil: Mijozlar va Ustalar uchun profil sahifasi tozalandi.\n3. Usta rejimi to'g'ridan-to'g'ri 'Bronlar' o'rnida ustalar uchun ochiladi.",
     "forceUpdate": false
 }
