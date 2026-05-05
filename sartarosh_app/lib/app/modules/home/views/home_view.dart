@@ -1277,7 +1277,7 @@ class HomeView extends GetView<HomeController> {
               ),
               _navItem(
                 Icons.calendar_month_rounded,
-                "Bronlar",
+                "Navbat",
                 false,
                 onTap: () => Get.toNamed('/my-bookings'),
               ),

@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/my_bookings_controller.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/user_service.dart';
 
 class MyBookingsView extends GetView<MyBookingsController> {
   const MyBookingsView({super.key});
@@ -17,7 +16,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
         backgroundColor: AppTheme.background,
         appBar: AppBar(
           title: Text(
-            "Bronlar",
+            "Navbat",
             style: GoogleFonts.playfairDisplay(
               color: AppTheme.textDark,
               fontWeight: FontWeight.bold,
@@ -29,31 +28,15 @@ class MyBookingsView extends GetView<MyBookingsController> {
           centerTitle: true,
           // Hide back button because it's a bottom nav tab!
           automaticallyImplyLeading: false,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(110),
-            child: Column(
-              children: [
-                _buildRoleSwitch(),
-                TabBar(
-                  labelColor: AppTheme.primary,
-                  unselectedLabelColor: AppTheme.textMedium,
-                  indicatorColor: AppTheme.primary,
-                  indicatorWeight: 3,
-                  labelStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                  ),
-                  unselectedLabelStyle: GoogleFonts.poppins(
-                    fontWeight: FontWeight.w500,
-                    fontSize: 15,
-                  ),
-                  tabs: const [
-                    Tab(text: "Faollar"),
-                    Tab(text: "Tarix"),
-                  ],
-                ),
-              ],
-            ),
+          bottom: TabBar(
+            labelColor: AppTheme.primary,
+            unselectedLabelColor: AppTheme.textMedium,
+            indicatorColor: AppTheme.primary,
+            indicatorWeight: 3,
+            tabs: [
+              Tab(text: "Faollar"),
+              Tab(text: "Tarix"),
+            ],
           ),
         ),
         body: Obx(() {
@@ -76,315 +59,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
             );
           }
 
-          if (controller.isBarberMode) {
-            return _buildBarberLists();
-          }
-
           return TabBarView(children: [_buildActiveList(), _buildPastList()]);
         }),
-      ),
-    );
-  }
-
-  Widget _buildRoleSwitch() {
-    final userService = Get.find<UserService>();
-    return Obx(() {
-      if (!controller.hasBarberProfile.value) return const SizedBox();
-      final isBarberMode = userService.isBarberMode.value;
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    userService.isBarberMode.value = false;
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: !isBarberMode
-                          ? AppTheme.primary
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: !isBarberMode
-                          ? [
-                              BoxShadow(
-                                color: AppTheme.primary.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [],
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Mening bronlarim",
-                        style: GoogleFonts.poppins(
-                          color: !isBarberMode
-                              ? Colors.white
-                              : AppTheme.textMedium,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    userService.isBarberMode.value = true;
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    decoration: BoxDecoration(
-                      color: isBarberMode ? AppTheme.gold : Colors.transparent,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: isBarberMode
-                          ? [
-                              BoxShadow(
-                                color: AppTheme.gold.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ]
-                          : [],
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.storefront_rounded,
-                            size: 16,
-                            color: isBarberMode
-                                ? Colors.white
-                                : AppTheme.textMedium,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "Usta rejimi",
-                            style: GoogleFonts.poppins(
-                              color: isBarberMode
-                                  ? Colors.white
-                                  : AppTheme.textMedium,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  Widget _buildBarberLists() {
-    return Obx(() {
-      final items = controller.barberActiveBookings;
-      if (items.isEmpty) {
-        return _buildEmptyState(
-          icon: Icons.event_available_rounded,
-          title: "Mijozlar yo'q",
-          subtitle: "Hozircha faol bronlar mavjud emas",
-        );
-      }
-
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        physics: const BouncingScrollPhysics(),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final b = items[index];
-          return _buildBarberBookingCard(
-            b,
-          ).animate().fadeIn(delay: (index * 80).ms).slideY(begin: 0.05);
-        },
-      );
-    });
-  }
-
-  Widget _buildBarberBookingCard(Map<String, dynamic> b) {
-    final status = b['status'] ?? 'pending';
-    final clientName = b['client'] ?? 'Mijoz';
-    final service = b['service'] ?? 'Xizmat';
-    final date = b['date'] ?? '';
-    final time = b['time'] ?? '';
-    final docId = b['id'] ?? '';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: _statusColor(status).withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: AppTheme.primary.withValues(alpha: 0.1),
-                child: Icon(Icons.person_rounded, color: AppTheme.primary),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      clientName,
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      service,
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.textMedium,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: _statusColor(status).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  _statusLabel(status),
-                  style: GoogleFonts.poppins(
-                    color: _statusColor(status),
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.calendar_month, size: 14, color: AppTheme.textMedium),
-              const SizedBox(width: 4),
-              Text(
-                date,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textMedium,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.access_time, size: 14, color: AppTheme.textMedium),
-              const SizedBox(width: 4),
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textMedium,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (status == 'pending')
-            Row(
-              children: [
-                Expanded(
-                  child: _actionBtn(
-                    "Rad etish",
-                    Colors.red,
-                    () => controller.rejectBooking(docId),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _actionBtn(
-                    "Qabul qilish",
-                    Colors.green,
-                    () => controller.acceptBooking(docId),
-                  ),
-                ),
-              ],
-            ),
-          if (status == 'confirmed')
-            Row(
-              children: [
-                Expanded(
-                  child: _actionBtn(
-                    "Boshlash",
-                    Colors.blue,
-                    () => controller.startClient(docId),
-                  ),
-                ),
-              ],
-            ),
-          if (status == 'in-progress')
-            Row(
-              children: [
-                Expanded(
-                  child: _actionBtn(
-                    "Tugatish",
-                    AppTheme.success,
-                    () => controller.completeClient(docId),
-                  ),
-                ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _actionBtn(String label, Color color, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Center(
-          child: Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
       ),
     );
   }

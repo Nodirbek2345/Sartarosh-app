@@ -232,7 +232,11 @@ class ProfileView extends StatelessWidget {
                                   duration: const Duration(seconds: 2),
                                 );
                                 HapticFeedback.mediumImpact();
-                                Get.offNamed('/my-bookings');
+                                final uid = userService.currentUid;
+                                Get.toNamed(
+                                  '/barber-dashboard',
+                                  arguments: {'barber_uid': uid},
+                                );
                               },
                             ),
                           ] else ...[

@@ -1,6 +1,7 @@
 {
-    "version": "3.8.1+248",
-    "url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/download/v3.8.1/app-release.apk",
-    "releaseNotes": "1. 📱 Hotfix: Usta rejimiga o'tish tugmasi tiklandi (Bronlar ichida aniq ko'rinadi).\n2. Bug fix qo'shildi, lokal holatlarda button yo'qolishi bartaraf etildi.",
-    "forceUpdate": false
+    "latest_version": "3.8.2",
+    "build_number": 249,
+    "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
+    "release_notes": "Sartarosh 3.8.2: Navbat sahifasi oldingi holatiga qaytarildi, barcha mijoz bronlari qulaylashtirildi. 🏆",
+    "force_update": false
 }
