@@ -1268,7 +1268,7 @@ class HomeView extends GetView<HomeController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _navItem(Icons.dashboard_rounded, "Dashboard", true),
+              _navItem(Icons.dashboard_rounded, "Asosiy", true),
               _navItem(
                 Icons.search_rounded,
                 "Qidirish",
@@ -1277,7 +1277,7 @@ class HomeView extends GetView<HomeController> {
               ),
               _navItem(
                 Icons.calendar_month_rounded,
-                "Navbat",
+                "Bron",
                 false,
                 onTap: () => Get.toNamed('/my-bookings'),
               ),

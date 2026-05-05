@@ -5,7 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
@@ -182,15 +182,7 @@ class ProfileView extends StatelessWidget {
                             0,
                             () => _showManageServices(),
                           ),
-                          _menuItem(
-                            Icons.swap_horiz_rounded,
-                            "Mijoz rejimiga o'tish",
-                            1,
-                            () {
-                              userService.toggleBarberMode();
-                              Get.offAllNamed('/home');
-                            },
-                          ),
+                          // "Mijoz rejimiga o'tish" REMOVED
                           _menuItem(
                             Icons.settings_rounded,
                             "Sozlamalar",
@@ -212,33 +204,7 @@ class ProfileView extends StatelessWidget {
                       return Column(
                         children: [
                           if (userService.userRole.value == 'barber') ...[
-                            _menuItem(
-                              Icons.swap_horiz_rounded,
-                              "Usta rejimiga o'tish",
-                              idx++,
-                              () async {
-                                // ✅ PRO: Set barber mode ON and go to Bronlar
-                                userService.isBarberMode.value = true;
-                                await const FlutterSecureStorage().write(
-                                  key: 'is_barber_mode',
-                                  value: 'true',
-                                );
-                                Get.snackbar(
-                                  "Usta rejimi",
-                                  "Siz endi usta rejimiga o'tdingiz ✂️",
-                                  backgroundColor: AppTheme.gold,
-                                  colorText: Colors.white,
-                                  snackPosition: SnackPosition.TOP,
-                                  duration: const Duration(seconds: 2),
-                                );
-                                HapticFeedback.mediumImpact();
-                                final uid = userService.currentUid;
-                                Get.toNamed(
-                                  '/barber-dashboard',
-                                  arguments: {'barber_uid': uid},
-                                );
-                              },
-                            ),
+                            // "Usta rejimiga o'tish" REMOVED
                           ] else ...[
                             _menuItem(
                               Icons.storefront_rounded,

@@ -23,6 +23,17 @@ class MyBookingsController extends GetxController {
   // Real source of truth for UI toggle
   final hasBarberProfile = false.obs;
 
+  // Barber states
+  bool get isBarberMode => Get.find<UserService>().isBarberMode.value;
+  void toggleBarberMode(bool val) {
+    Get.find<UserService>().isBarberMode.value = val;
+  }
+
+  final barberPending = <Map<String, dynamic>>[].obs;
+  final barberConfirmed = <Map<String, dynamic>>[].obs;
+  final barberInProgress = <Map<String, dynamic>>[].obs;
+  final barberCompleted = <Map<String, dynamic>>[].obs;
+
   StreamSubscription? _bookingsSub;
 
   // Track queue subscriptions per barber/date pair
@@ -44,7 +55,11 @@ class MyBookingsController extends GetxController {
         .get();
     if (docs.docs.isNotEmpty) {
       hasBarberProfile.value = true;
+      _barberDocRef = docs.docs.first.reference;
+
       _listenBarberBookings();
+      _listenBarberStatus();
+      _listenQueues();
     }
   }
 
@@ -263,10 +278,128 @@ class MyBookingsController extends GetxController {
     });
   }
 
-  // ---- BARBER STATE ----
-  bool get isBarberMode => Get.find<UserService>().isBarberMode.value;
-  final barberActiveBookings = <Map<String, dynamic>>[].obs;
+  // ============== BARBER STATUS & QUEUE CONTROLS ==============
+  final isActive = true.obs;
+  final queueLimit = 1.obs;
+  final currentClient = Rxn<Map<String, dynamic>>();
+  final nextClient = Rxn<Map<String, dynamic>>();
+  DocumentReference? _barberDocRef;
   StreamSubscription? _barberBookingsSub;
+  StreamSubscription? _statusSub;
+  StreamSubscription? _queuesSub;
+  final todayQueues = <Map<String, dynamic>>[].obs;
+
+  void _listenBarberStatus() {
+    if (_barberDocRef == null) return;
+    _statusSub = _barberDocRef!.snapshots().listen((snap) {
+      if (snap.exists) {
+        final data = snap.data() as Map<String, dynamic>?;
+        if (data != null) {
+          isActive.value = data['isActive'] ?? true;
+          queueLimit.value = data['queueLimit'] ?? 1;
+        }
+      }
+    });
+  }
+
+  void _listenQueues() {
+    final uid = Get.find<UserService>().currentUid;
+    if (uid.isEmpty) return;
+
+    _queuesSub = _firestore
+        .collection('queues')
+        .where('barberId', isEqualTo: uid)
+        .where('status', whereIn: ['waiting', 'in_progress'])
+        .snapshots()
+        .listen((snapshot) {
+          final list = snapshot.docs.map((doc) {
+            final data = doc.data();
+            data['docId'] = doc.id;
+            data['id'] = doc.id;
+            data['isQueue'] = true;
+            return data;
+          }).toList();
+
+          list.sort((a, b) {
+            final aTime = a['createdAt'] as Timestamp?;
+            final bTime = b['createdAt'] as Timestamp?;
+            if (aTime == null && bTime == null) return 0;
+            if (aTime == null) return 1;
+            if (bTime == null) return -1;
+            return aTime.compareTo(bTime);
+          });
+          todayQueues.value = list;
+          _updateCombinedQueue();
+        });
+  }
+
+  void _updateCombinedQueue() {
+    final activeBooking = barberInProgress.isNotEmpty
+        ? barberInProgress.first
+        : null;
+    final activeQueue = todayQueues.firstWhereOrNull(
+      (q) => q['status'] == 'in_progress',
+    );
+
+    if (activeBooking != null) {
+      currentClient.value = activeBooking;
+    } else if (activeQueue != null) {
+      currentClient.value = activeQueue;
+    } else {
+      currentClient.value = null;
+    }
+
+    final nextBooking = barberConfirmed.isNotEmpty
+        ? barberConfirmed.first
+        : null;
+    final pendingBooking = barberPending.isNotEmpty
+        ? barberPending.first
+        : null;
+
+    if (nextBooking != null) {
+      nextClient.value = nextBooking;
+    } else if (todayQueues.isNotEmpty &&
+        todayQueues.first['status'] == 'waiting') {
+      nextClient.value = todayQueues.first;
+    } else if (pendingBooking != null) {
+      nextClient.value = pendingBooking;
+    } else {
+      nextClient.value = null;
+    }
+  }
+
+  Future<void> toggleActiveStatus() async {
+    if (!isActive.value && todayQueues.length >= queueLimit.value) {
+      Get.snackbar(
+        "Navbat to'la",
+        "Sizda navbat limiti to'lgan. Limitni oshiring yoki ishlarni yakunlang.",
+        backgroundColor: AppTheme.danger,
+        colorText: Colors.white,
+      );
+      return;
+    }
+    if (_barberDocRef != null) {
+      await _barberDocRef!.update({'isActive': !isActive.value});
+    }
+  }
+
+  void incrementLimit() {
+    if (queueLimit.value < 99) {
+      queueLimit.value++;
+      if (_barberDocRef != null)
+        _barberDocRef!.update({'queueLimit': queueLimit.value});
+    }
+  }
+
+  void decrementLimit() {
+    if (queueLimit.value > 1) {
+      queueLimit.value--;
+      if (_barberDocRef != null)
+        _barberDocRef!.update({'queueLimit': queueLimit.value});
+    }
+  }
+
+  // ---- BARBER STATE ----
 
   void _listenBarberBookings() {
     final userService = Get.find<UserService>();
@@ -289,13 +422,23 @@ class MyBookingsController extends GetxController {
           docs.sort((a, b) {
             final dateA = '${a['date'] ?? ''} ${a['time'] ?? ''}';
             final dateB = '${b['date'] ?? ''} ${b['time'] ?? ''}';
-            return dateB.compareTo(dateA); // Eng oxirgilari boshida
+            return dateB.compareTo(dateA);
           });
 
-          barberActiveBookings.value = docs.where((b) {
-            final s = b['status'];
-            return s == 'pending' || s == 'confirmed' || s == 'in-progress';
-          }).toList();
+          barberPending.value = docs
+              .where((b) => b['status'] == 'pending')
+              .toList();
+          barberConfirmed.value = docs
+              .where((b) => b['status'] == 'confirmed')
+              .toList();
+          barberInProgress.value = docs
+              .where((b) => b['status'] == 'in-progress')
+              .toList();
+          barberCompleted.value = docs
+              .where((b) => b['status'] == 'completed')
+              .toList();
+
+          _updateCombinedQueue();
         });
   }
 
@@ -495,6 +638,8 @@ class MyBookingsController extends GetxController {
   void onClose() {
     _bookingsSub?.cancel();
     _barberBookingsSub?.cancel();
+    _statusSub?.cancel();
+    _queuesSub?.cancel();
     for (var sub in _queueSubs.values) {
       sub.cancel();
     }
