@@ -20,6 +20,9 @@ class MyBookingsController extends GetxController {
   // Total waiting for same barber/date
   final queueTotals = <String, int>{}.obs;
 
+  // Real source of truth for UI toggle
+  final hasBarberProfile = false.obs;
+
   StreamSubscription? _bookingsSub;
 
   // Track queue subscriptions per barber/date pair
@@ -29,7 +32,18 @@ class MyBookingsController extends GetxController {
   void onInit() {
     super.onInit();
     _fetchBookings();
-    if (Get.find<UserService>().userRole.value == 'barber') {
+    _checkIfBarber();
+  }
+
+  Future<void> _checkIfBarber() async {
+    final uid = Get.find<UserService>().currentUid;
+    if (uid.isEmpty) return;
+    final docs = await _firestore
+        .collection('barbers')
+        .where('uid', isEqualTo: uid)
+        .get();
+    if (docs.docs.isNotEmpty) {
+      hasBarberProfile.value = true;
       _listenBarberBookings();
     }
   }

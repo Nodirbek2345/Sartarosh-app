@@ -89,7 +89,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
   Widget _buildRoleSwitch() {
     final userService = Get.find<UserService>();
     return Obx(() {
-      if (userService.userRole.value != 'barber') return const SizedBox();
+      if (!controller.hasBarberProfile.value) return const SizedBox();
       final isBarberMode = userService.isBarberMode.value;
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -157,14 +157,27 @@ class MyBookingsView extends GetView<MyBookingsController> {
                           : [],
                     ),
                     child: Center(
-                      child: Text(
-                        "Mijozlar bronlari",
-                        style: GoogleFonts.poppins(
-                          color: isBarberMode
-                              ? Colors.white
-                              : AppTheme.textMedium,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.storefront_rounded,
+                            size: 16,
+                            color: isBarberMode
+                                ? Colors.white
+                                : AppTheme.textMedium,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "Usta rejimi",
+                            style: GoogleFonts.poppins(
+                              color: isBarberMode
+                                  ? Colors.white
+                                  : AppTheme.textMedium,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
