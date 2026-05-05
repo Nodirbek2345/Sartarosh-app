@@ -43,57 +43,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
                       color: AppTheme.primary,
                     ),
                     onPressed: () {
-                      if (!isBarber) {
-                        Get.dialog(
-                          AlertDialog(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            title: Text(
-                              "Usta rejimi",
-                              style: GoogleFonts.playfairDisplay(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            content: Text(
-                              "Usta rejimiga o'tmoqchimisiz?",
-                              style: GoogleFonts.poppins(),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Get.back(),
-                                child: Text(
-                                  "Yo'q",
-                                  style: GoogleFonts.poppins(
-                                    color: AppTheme.textMedium,
-                                  ),
-                                ),
-                              ),
-                              ElevatedButton(
-                                onPressed: () {
-                                  Get.back();
-                                  userService.toggleBarberMode();
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppTheme.primary,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                ),
-                                child: Text(
-                                  "Ha, o'tish",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      } else {
-                        // Switch back to client mode instantly
-                        userService.toggleBarberMode();
-                      }
+                      // 🔥 PRO: Direct toggle — no popup
+                      userService.toggleBarberMode();
                     },
                   );
                 }
@@ -234,9 +185,9 @@ class MyBookingsView extends GetView<MyBookingsController> {
       final items = controller.activeBookings;
       if (items.isEmpty) {
         return _buildEmptyState(
-          icon: Icons.event_available_rounded,
-          title: "Hozircha faol bron yo'q",
-          subtitle: "Yangi bron yaratish uchun bosh sahifaga o'ting",
+          icon: Icons.calendar_today_rounded,
+          title: "📭 Hozircha faol bronlar yo'q",
+          subtitle: "Bosh sahifadan sartarosh tanlab bron qiling",
         );
       }
 
@@ -759,8 +710,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
       if (items.isEmpty) {
         return _buildEmptyState(
           icon: Icons.history_rounded,
-          title: "Bronlar tarixi bo'sh",
-          subtitle: "Tugatilgan bronlar bu yerda ko'rinadi",
+          title: "📭 Hozircha tugallangan bronlar yo'q",
+          subtitle: "Mijozlar bilan ishlaganingizda bu yer to'ldiriladi",
         );
       }
 
@@ -1097,7 +1048,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
     return _buildBarberList(
       controller.barberPending,
       "Kutilayotgan bronlar yo'q",
-      Icons.access_time,
+      Icons.hourglass_empty_rounded,
+      subtitle: "Yangi bron kelganda bu yerda ko'rinadi",
     );
   }
 
@@ -1105,15 +1057,17 @@ class MyBookingsView extends GetView<MyBookingsController> {
     return _buildBarberList(
       controller.barberConfirmed,
       "Tasdiqlangan bronlar yo'q",
-      Icons.check_circle_outline,
+      Icons.check_circle_outline_rounded,
+      subtitle: "Tasdiqlangan mijozlar bu yerda ko'rinadi",
     );
   }
 
   Widget _buildBarberInProgressList() {
     return _buildBarberList(
       controller.barberInProgress,
-      "Jarayondagi mijozlar yo'q",
-      Icons.content_cut,
+      "Hozircha jarayondagi mijoz yo'q",
+      Icons.content_cut_rounded,
+      subtitle: "Mijozga xizmat boshlaganda bu yer to'ldiriladi",
     );
   }
 
@@ -1121,21 +1075,23 @@ class MyBookingsView extends GetView<MyBookingsController> {
     return _buildBarberList(
       controller.barberCompleted,
       "Tugallangan bronlar yo'q",
-      Icons.done_all,
+      Icons.done_all_rounded,
+      subtitle: "Mijozlar bilan ishlaganingizda bu yer to'ldiriladi",
     );
   }
 
   Widget _buildBarberList(
     RxList<Map<String, dynamic>> items,
     String emptyMsg,
-    IconData icon,
-  ) {
+    IconData icon, {
+    String subtitle = "Ushbu ro'yxatda hozircha bronlar yo'q",
+  }) {
     return Obx(() {
       if (items.isEmpty) {
         return _buildEmptyState(
           icon: icon,
           title: emptyMsg,
-          subtitle: "Ushbu ro'yxatda hozircha bronlar yo'q",
+          subtitle: subtitle,
         );
       }
 
