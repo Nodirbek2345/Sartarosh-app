@@ -255,13 +255,6 @@ class ProfileView extends StatelessWidget {
                           ],
 
                           _menuItem(
-                            Icons.calendar_month_rounded,
-                            "Mening bronlarim",
-                            idx++,
-                            () => Get.toNamed('/my-bookings'),
-                          ),
-
-                          _menuItem(
                             Icons.settings_rounded,
                             "Sozlamalar",
                             idx++,
