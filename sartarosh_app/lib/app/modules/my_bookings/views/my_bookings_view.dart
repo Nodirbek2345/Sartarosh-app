@@ -110,69 +110,360 @@ class MyBookingsView extends GetView<MyBookingsController> {
   }
 
   // ═══════════════════════════════════════════
-  // BARBER DASHBOARD TOP CONTROLS
+  // 🔥 PRO BARBER DASHBOARD TOP SECTION
   // ═══════════════════════════════════════════
   Widget _buildBarberTopSection() {
-    return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Ish holati:",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
+    return Column(
+      children: [
+        // ── Stats Cards ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Obx(
+            () => Column(
+              children: [
+                Row(
+                  children: [
+                    _statCard(
+                      Icons.people_rounded,
+                      "Mijozlar",
+                      "${controller.todayClientsCount.value}",
+                      AppTheme.primary,
+                    ),
+                    const SizedBox(width: 10),
+                    _statCard(
+                      Icons.check_circle_rounded,
+                      "Bajarildi",
+                      "${controller.completedCount.value}",
+                      AppTheme.success,
+                    ),
+                    const SizedBox(width: 10),
+                    _statCard(
+                      Icons.monetization_on_rounded,
+                      "Bugun",
+                      "${controller.todayEarnings.value}",
+                      AppTheme.gold,
+                    ),
+                  ],
                 ),
-              ),
-              Obx(
-                () => Switch(
-                  value: controller.isActive.value,
-                  activeTrackColor: AppTheme.primary.withValues(alpha: 0.5),
-                  onChanged: (val) => controller.toggleActiveStatus(),
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _statCard(
+                      Icons.account_balance_wallet_rounded,
+                      "Bu hafta",
+                      "${controller.weeklyEarnings.value}",
+                      const Color(0xFF5E60CE),
+                    ),
+                    const SizedBox(width: 10),
+                    _statCard(
+                      Icons.savings_rounded,
+                      "Bu oy",
+                      "${controller.monthlyEarnings.value}",
+                      const Color(0xFF6930C3),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Mijoz limiti:",
-                style: GoogleFonts.poppins(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 15,
+        ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05),
+
+        // ── Queue Limit & Status ──
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
                 ),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.remove_circle_outline),
-                    color: AppTheme.primary,
-                    onPressed: controller.decrementLimit,
+              ],
+            ),
+            child: Column(
+              children: [
+                // Queue Limit
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Qabul limiti",
+                            style: GoogleFonts.playfairDisplay(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textDark,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Maksimal mijozlar",
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppTheme.textMedium,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey.shade200),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove,
+                                size: 18,
+                                color: AppTheme.textMedium,
+                              ),
+                              onPressed: controller.decrementLimit,
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                            Obx(
+                              () => Text(
+                                "${controller.queueLimit.value}",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.gold,
+                                ),
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.add,
+                                size: 18,
+                                color: AppTheme.textMedium,
+                              ),
+                              onPressed: controller.incrementLimit,
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  Obx(
-                    () => Text(
-                      "${controller.queueLimit.value}",
-                      style: GoogleFonts.poppins(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                ),
+
+                // Divider
+                Container(color: const Color(0xFFFAF6F0), height: 1),
+
+                // Active Status
+                Obx(() {
+                  final isActive = controller.isActive.value;
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: isActive
+                          ? AppTheme.success.withValues(alpha: 0.05)
+                          : AppTheme.danger.withValues(alpha: 0.05),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(20),
+                        bottomRight: Radius.circular(20),
                       ),
                     ),
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? AppTheme.success
+                                : AppTheme.danger,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isActive
+                                    ? "Siz hozir ishdasiz"
+                                    : "Siz hozir ishda emassiz",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.textDark,
+                                ),
+                              ),
+                              Text(
+                                isActive
+                                    ? "Yangi navbatlarni qabul qilasiz"
+                                    : "Sizga yangi navbatlar kelmaydi",
+                                style: GoogleFonts.poppins(
+                                  fontSize: 12,
+                                  color: AppTheme.textMedium,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        GestureDetector(
+                          onTap: controller.toggleActiveStatus,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isActive
+                                  ? AppTheme.danger
+                                  : AppTheme.success,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isActive ? "Ishni to'xtatish" : "Ishni boshlash",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ),
+        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.03),
+
+        // ── Navbat Section ──
+        Obx(() {
+          final current = controller.currentClient.value;
+          final next = controller.nextClient.value;
+          if (current == null && next == null) return const SizedBox();
+          return Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                gradient: AppTheme.goldGradient,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "📋 Navbat",
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.add_circle_outline),
-                    color: AppTheme.primary,
-                    onPressed: controller.incrementLimit,
-                  ),
+                  const SizedBox(height: 12),
+                  if (current != null)
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.person_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            "Navbatdagi: ${current['client'] ?? 'Mijoz'} — ${current['time'] ?? ''}",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  if (next != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule_rounded,
+                          color: Colors.white.withValues(alpha: 0.8),
+                          size: 18,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Keyingi: ${next['client'] ?? 'Mijoz'} — ${next['time'] ?? ''}",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
-            ],
-          ),
-        ],
+            ),
+          ).animate().fadeIn(delay: 280.ms).slideY(begin: 0.03);
+        }),
+
+        const SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _statCard(IconData icon, String label, String value, Color color) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: [
+            BoxShadow(
+              color: color.withValues(alpha: 0.1),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: color, size: 22),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: GoogleFonts.poppins(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textDark,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 10,
+                color: AppTheme.textMedium,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

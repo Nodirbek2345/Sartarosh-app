@@ -34,6 +34,13 @@ class MyBookingsController extends GetxController {
   final barberInProgress = <Map<String, dynamic>>[].obs;
   final barberCompleted = <Map<String, dynamic>>[].obs;
 
+  // Dashboard Stats
+  final todayClientsCount = 0.obs;
+  final completedCount = 0.obs;
+  final todayEarnings = 0.obs;
+  final weeklyEarnings = 0.obs;
+  final monthlyEarnings = 0.obs;
+
   StreamSubscription? _bookingsSub;
 
   // Track queue subscriptions per barber/date pair
@@ -439,6 +446,48 @@ class MyBookingsController extends GetxController {
           barberCompleted.value = docs
               .where((b) => b['status'] == 'completed')
               .toList();
+
+          // ── 🔥 Stats Computation ──
+          final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
+          final now = DateTime.now();
+          final weekStart = now.subtract(Duration(days: now.weekday - 1));
+          final monthStart = DateTime(now.year, now.month, 1);
+
+          final todayDocs = docs.where((b) => b['date'] == today).toList();
+          todayClientsCount.value = todayDocs.length;
+          completedCount.value = todayDocs
+              .where((b) => b['status'] == 'completed')
+              .length;
+          todayEarnings.value = todayDocs
+              .where((b) => b['status'] == 'completed')
+              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
+
+          final completedDocs = docs
+              .where((b) => b['status'] == 'completed')
+              .toList();
+          weeklyEarnings.value = completedDocs
+              .where((b) {
+                try {
+                  final d = DateTime.parse(b['date'] ?? '');
+                  return d.isAfter(weekStart.subtract(const Duration(days: 1)));
+                } catch (_) {
+                  return false;
+                }
+              })
+              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
+
+          monthlyEarnings.value = completedDocs
+              .where((b) {
+                try {
+                  final d = DateTime.parse(b['date'] ?? '');
+                  return d.isAfter(
+                    monthStart.subtract(const Duration(days: 1)),
+                  );
+                } catch (_) {
+                  return false;
+                }
+              })
+              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
 
           _updateCombinedQueue();
         });
