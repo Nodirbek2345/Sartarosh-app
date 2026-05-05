@@ -5,6 +5,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
@@ -170,7 +171,6 @@ class ProfileView extends StatelessWidget {
                   child: Obx(() {
                     final userService = Get.find<UserService>();
                     final isBarber = userService.isBarberMode.value;
-                    final isBarberRole = userService.userRole.value == 'barber';
 
                     if (isBarber) {
                       // ─── SARTAROSH (Barber) REJIMI MENYULARI ───
@@ -211,8 +211,31 @@ class ProfileView extends StatelessWidget {
                       int idx = 0;
                       return Column(
                         children: [
-                          // PRO: Usta rejimi BIRINCHI o'rinda
-                          if (!isBarberRole) ...[
+                          if (userService.userRole.value == 'barber') ...[
+                            _menuItem(
+                              Icons.swap_horiz_rounded,
+                              "Usta rejimiga o'tish",
+                              idx++,
+                              () async {
+                                // ✅ PRO: Set barber mode ON and go to Bronlar
+                                userService.isBarberMode.value = true;
+                                await const FlutterSecureStorage().write(
+                                  key: 'is_barber_mode',
+                                  value: 'true',
+                                );
+                                Get.snackbar(
+                                  "Usta rejimi",
+                                  "Siz endi usta rejimiga o'tdingiz ✂️",
+                                  backgroundColor: AppTheme.gold,
+                                  colorText: Colors.white,
+                                  snackPosition: SnackPosition.TOP,
+                                  duration: const Duration(seconds: 2),
+                                );
+                                HapticFeedback.mediumImpact();
+                                Get.offNamed('/my-bookings');
+                              },
+                            ),
+                          ] else ...[
                             _menuItem(
                               Icons.storefront_rounded,
                               "Sartarosh sifatida qo'shilish",
