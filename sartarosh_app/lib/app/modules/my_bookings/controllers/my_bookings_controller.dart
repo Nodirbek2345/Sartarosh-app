@@ -12,6 +12,7 @@ class MyBookingsController extends GetxController {
 
   final activeBookings = <Map<String, dynamic>>[].obs;
   final pastBookings = <Map<String, dynamic>>[].obs;
+  final allClientBookings = <Map<String, dynamic>>[].obs;
   final isLoading = true.obs;
 
   // Queue position map: bookingId -> queue position
@@ -108,6 +109,12 @@ class MyBookingsController extends GetxController {
             s == 'cancelled' ||
             s == 'no-show' ||
             s == 'penalty';
+      }).toList();
+
+      // All bookings for filter-based UI (excluding client-deleted)
+      allClientBookings.value = docs.where((b) {
+        final clientDeleted = b['clientDeleted'] ?? false;
+        return !clientDeleted;
       }).toList();
 
       isLoading.value = false;

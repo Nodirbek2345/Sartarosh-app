@@ -13,100 +13,657 @@ class MyBookingsView extends GetView<MyBookingsController> {
   Widget build(BuildContext context) {
     return Obx(() {
       final isBarber = controller.isBarberMode;
-      return DefaultTabController(
-        length: isBarber ? 4 : 2,
-        child: Scaffold(
-          backgroundColor: AppTheme.background,
-          appBar: AppBar(
-            title: Text(
-              isBarber ? "Mijozlar bronlari" : "Mening bronlarim",
-              style: GoogleFonts.playfairDisplay(
-                color: AppTheme.textDark,
-                fontWeight: FontWeight.bold,
-                fontSize: 22,
+      if (isBarber) {
+        return _buildBarberMode();
+      } else {
+        return _buildClientMode();
+      }
+    });
+  }
+
+  // ═══════════════════════════════════════════
+  // 🔥 CLIENT MODE — PRO BRONLAR DESIGN
+  // ═══════════════════════════════════════════
+  Widget _buildClientMode() {
+    final selectedFilter = 'all'.obs;
+    final filters = {
+      'all': 'Barchasi',
+      'pending': 'Kutilmoqda',
+      'confirmed': 'Tasdiqlangan',
+      'in-progress': 'Jarayonda',
+      'completed': 'Bajarildi',
+      'cancelled': 'Bekor',
+    };
+
+    return Scaffold(
+      backgroundColor: AppTheme.background,
+      body: Column(
+        children: [
+          // ── Premium Dark Header ──
+          Container(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+            decoration: BoxDecoration(
+              gradient: AppTheme.darkGradient,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(28),
+                bottomRight: Radius.circular(28),
               ),
             ),
-            backgroundColor: Colors.white,
-            elevation: 0,
-            centerTitle: true,
-            automaticallyImplyLeading: false,
-            actions: [
-              Obx(() {
-                final userService = Get.find<UserService>();
-                // Only show the toggle if the user is actually registered as a barber
-                if (userService.userRole.value == 'barber') {
-                  return IconButton(
-                    icon: Icon(
-                      isBarber
-                          ? Icons.person_rounded
-                          : Icons.content_cut_rounded,
-                      color: AppTheme.primary,
+            child: SafeArea(
+              bottom: false,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "📅 Bronlar",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontSize: 22,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      // Barber mode toggle (if user is also a barber)
+                      Obx(() {
+                        final userService = Get.find<UserService>();
+                        if (userService.userRole.value == 'barber') {
+                          return GestureDetector(
+                            onTap: () => userService.toggleBarberMode(),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.3),
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.content_cut_rounded,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "Usta rejim",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      }),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    "Mening barcha bronlarim",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontSize: 14,
                     ),
-                    onPressed: () {
-                      // 🔥 PRO: Direct toggle — no popup
-                      userService.toggleBarberMode();
-                    },
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-            ],
-          ),
-          body: Column(
-            children: [
-              if (isBarber) _buildBarberTopSection(),
-              Container(
-                color: Colors.white,
-                child: TabBar(
-                  labelColor: AppTheme.primary,
-                  unselectedLabelColor: AppTheme.textMedium,
-                  indicatorColor: AppTheme.primary,
-                  indicatorWeight: 3,
-                  isScrollable: isBarber, // allow scroll if 4 tabs
-                  tabs: isBarber
-                      ? [
-                          const Tab(text: "Kutilmoqda"),
-                          const Tab(text: "Tasdiqlangan"),
-                          const Tab(text: "Jarayonda"),
-                          const Tab(text: "Bajarildi"),
-                        ]
-                      : [const Tab(text: "Faollar"), const Tab(text: "Tarix")],
-                ),
+                  ),
+                  const SizedBox(height: 16),
+                  // ── Filter Chips ──
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Obx(
+                      () => Row(
+                        children: filters.entries.map((e) {
+                          final isSelected = selectedFilter.value == e.key;
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8),
+                            child: GestureDetector(
+                              onTap: () => selectedFilter.value = e.key,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? Colors.white
+                                      : Colors.white.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  e.value,
+                                  style: GoogleFonts.poppins(
+                                    color: isSelected
+                                        ? AppTheme.primary
+                                        : Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              Expanded(
-                child: controller.isLoading.value
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CircularProgressIndicator(color: AppTheme.primary),
-                            const SizedBox(height: 16),
-                            Text(
-                              "Tizim tayyorlanmoqda...",
-                              style: GoogleFonts.poppins(
-                                color: AppTheme.textMedium,
-                                fontSize: 14,
+            ),
+          ),
+          // ── Booking List ──
+          Expanded(
+            child: Obx(() {
+              if (controller.isLoading.value) {
+                return Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(color: AppTheme.primary),
+                      const SizedBox(height: 16),
+                      Text(
+                        "Tizim tayyorlanmoqda...",
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.textMedium,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+              var bookings = controller.allClientBookings.toList();
+              if (selectedFilter.value != 'all') {
+                bookings = bookings
+                    .where((b) => b['status'] == selectedFilter.value)
+                    .toList();
+              }
+              if (bookings.isEmpty) {
+                return _buildEmptyState(
+                  icon: Icons.calendar_today_rounded,
+                  title: "📭 Bronlar topilmadi",
+                  subtitle: "Bosh sahifadan sartarosh tanlab bron qiling",
+                );
+              }
+
+              return RefreshIndicator(
+                color: AppTheme.primary,
+                onRefresh: () async {
+                  await Future.delayed(const Duration(milliseconds: 800));
+                },
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(20),
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  itemCount: bookings.length,
+                  itemBuilder: (_, i) =>
+                      _buildClientBookingCard(bookings[i], i),
+                ),
+              );
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ── Client Booking Card (Premium Design) ──
+  Widget _buildClientBookingCard(Map<String, dynamic> booking, int index) {
+    final status = booking['status'] ?? 'pending';
+    final statusColor = _statusColor(status);
+    final statusText = _statusLabel(status);
+    final statusIcon = _statusIcon(status);
+    final date = booking['date'] ?? '';
+    final time = booking['time'] ?? '';
+    final price = booking['price'] ?? 0;
+    final bookingId = booking['id'] ?? '';
+
+    return Obx(() {
+      final queuePos = controller.queuePositions[bookingId] ?? 0;
+
+      return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(18),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: status == 'in-progress'
+                  ? Border.all(
+                      color: AppTheme.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    )
+                  : null,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // ── Header: icon + barber name + status badge ──
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: statusColor.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Icon(
+                              statusIcon,
+                              color: statusColor,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  booking['barberName'] ?? 'Usta',
+                                  style: GoogleFonts.poppins(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 15,
+                                    color: AppTheme.textDark,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                Text(
+                                  booking['service'] ?? 'Xizmat',
+                                  style: GoogleFonts.poppins(
+                                    color: AppTheme.textMedium,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        statusText,
+                        style: GoogleFonts.poppins(
+                          color: statusColor,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Date / Time / Price Row ──
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AppTheme.background,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.calendar_today_rounded,
+                            size: 14,
+                            color: AppTheme.textMedium,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            date,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppTheme.textDark,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 14,
+                            color: AppTheme.textMedium,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            time,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              color: AppTheme.textDark,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Text(
+                        "$price so'm",
+                        style: GoogleFonts.poppins(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Queue position info ──
+                if (queuePos > 0 &&
+                    (status == 'confirmed' || status == 'pending')) ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppTheme.gold.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppTheme.gold.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.people_rounded,
+                          size: 16,
+                          color: AppTheme.gold,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          "Navbat: $queuePos / ${controller.queueTotals[bookingId] ?? 0}  •  Kutish: ${controller.getEstimatedWait(booking)}",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.gold,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // ── In-progress live indicator ──
+                if (status == 'in-progress') ...[
+                  const SizedBox(height: 10),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: AppTheme.success.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: AppTheme.success.withValues(alpha: 0.2),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 14,
+                          height: 14,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: AppTheme.success,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            "Usta sizga xizmat qilmoqda ✂️",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.success,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // ── Cancel Button for pending/confirmed ──
+                if (status == 'pending' || status == 'confirmed') ...[
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: () {
+                      Get.dialog(
+                        AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          title: Text(
+                            "Bekor qilish",
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          content: Text(
+                            "Haqiqatan ham ushbu bronni bekor qilmoqchimisiz?",
+                            style: GoogleFonts.poppins(fontSize: 14),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Get.back(),
+                              child: Text(
+                                "Yo'q",
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                Get.back();
+                                controller.cancelBooking(
+                                  booking['id'],
+                                  booking['date'] ?? '',
+                                  booking['time'] ?? '',
+                                );
+                              },
+                              child: Text(
+                                "Ha, bekor qilish",
+                                style: GoogleFonts.poppins(
+                                  color: AppTheme.danger,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
                           ],
                         ),
-                      )
-                    : TabBarView(
-                        children: isBarber
-                            ? [
-                                _buildBarberPendingList(),
-                                _buildBarberConfirmedList(),
-                                _buildBarberInProgressList(),
-                                _buildBarberCompletedList(),
-                              ]
-                            : [_buildActiveList(), _buildPastList()],
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        color: AppTheme.danger.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: AppTheme.danger.withValues(alpha: 0.2),
+                        ),
                       ),
-              ),
-            ],
-          ),
-        ),
-      );
+                      child: Center(
+                        child: Text(
+                          "Bekor qilish",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.danger,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+
+                // ── Rebook Button for completed/cancelled ──
+                if (status == 'completed' ||
+                    status == 'cancelled' ||
+                    status == 'no-show' ||
+                    status == 'penalty') ...[
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: () => controller.rebook(booking),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      decoration: BoxDecoration(
+                        gradient: AppTheme.goldGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppTheme.primary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          "🔄 Qayta bron qilish",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          )
+          .animate()
+          .fadeIn(delay: Duration(milliseconds: 60 + (index * 50)))
+          .slideY(begin: 0.04);
     });
+  }
+
+  // ═══════════════════════════════════════════
+  // 🔥 BARBER MODE (existing design unchanged)
+  // ═══════════════════════════════════════════
+  Widget _buildBarberMode() {
+    return DefaultTabController(
+      length: 4,
+      child: Scaffold(
+        backgroundColor: AppTheme.background,
+        appBar: AppBar(
+          title: Text(
+            "Mijozlar bronlari",
+            style: GoogleFonts.playfairDisplay(
+              color: AppTheme.textDark,
+              fontWeight: FontWeight.bold,
+              fontSize: 22,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 0,
+          centerTitle: true,
+          automaticallyImplyLeading: false,
+          actions: [
+            Obx(() {
+              final userService = Get.find<UserService>();
+              if (userService.userRole.value == 'barber') {
+                return IconButton(
+                  icon: Icon(Icons.person_rounded, color: AppTheme.primary),
+                  onPressed: () => userService.toggleBarberMode(),
+                );
+              }
+              return const SizedBox.shrink();
+            }),
+          ],
+        ),
+        body: Column(
+          children: [
+            _buildBarberTopSection(),
+            Container(
+              color: Colors.white,
+              child: TabBar(
+                labelColor: AppTheme.primary,
+                unselectedLabelColor: AppTheme.textMedium,
+                indicatorColor: AppTheme.primary,
+                indicatorWeight: 3,
+                isScrollable: true,
+                tabs: const [
+                  Tab(text: "Kutilmoqda"),
+                  Tab(text: "Tasdiqlangan"),
+                  Tab(text: "Jarayonda"),
+                  Tab(text: "Bajarildi"),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Obx(() {
+                if (controller.isLoading.value) {
+                  return Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator(color: AppTheme.primary),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Tizim tayyorlanmoqda...",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.textMedium,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return TabBarView(
+                  children: [
+                    _buildBarberPendingList(),
+                    _buildBarberConfirmedList(),
+                    _buildBarberInProgressList(),
+                    _buildBarberCompletedList(),
+                  ],
+                );
+              }),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   // ═══════════════════════════════════════════
@@ -469,763 +1026,6 @@ class MyBookingsView extends GetView<MyBookingsController> {
   }
 
   // ═══════════════════════════════════════════
-  // ACTIVE BOOKINGS - WITH QUEUE POSITION
-  // ═══════════════════════════════════════════
-  Widget _buildActiveList() {
-    return Obx(() {
-      final items = controller.activeBookings;
-      if (items.isEmpty) {
-        return _buildEmptyState(
-          icon: Icons.calendar_today_rounded,
-          title: "📭 Hozircha faol bronlar yo'q",
-          subtitle: "Bosh sahifadan sartarosh tanlab bron qiling",
-        );
-      }
-
-      return RefreshIndicator(
-        color: AppTheme.primary,
-        onRefresh: () async {
-          await Future.delayed(const Duration(milliseconds: 800));
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final b = items[index];
-            return _buildActiveBookingCard(b, index);
-          },
-        ),
-      );
-    });
-  }
-
-  Widget _buildActiveBookingCard(Map<String, dynamic> b, int index) {
-    final status = b['status'] ?? 'pending';
-    final bookingId = b['id'] ?? '';
-
-    return Obx(() {
-      final queuePos = controller.queuePositions[bookingId] ?? 0;
-      final queueTotal = controller.queueTotals[bookingId] ?? 0;
-      final estimatedWait = controller.getEstimatedWait(b);
-
-      return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(22),
-              border: Border.all(
-                color: status == 'in-progress'
-                    ? AppTheme.primary.withValues(alpha: 0.4)
-                    : _statusColor(status).withValues(alpha: 0.15),
-                width: status == 'in-progress' ? 2 : 1,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: _statusColor(status).withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                // ── Queue Position Header ──
-                if (queuePos > 0)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 12,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: status == 'in-progress'
-                            ? [
-                                AppTheme.primary.withValues(alpha: 0.12),
-                                AppTheme.primary.withValues(alpha: 0.04),
-                              ]
-                            : [
-                                AppTheme.gold.withValues(alpha: 0.12),
-                                AppTheme.gold.withValues(alpha: 0.04),
-                              ],
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(22),
-                        topRight: Radius.circular(22),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            gradient: status == 'in-progress'
-                                ? LinearGradient(
-                                    colors: [AppTheme.primary, AppTheme.accent],
-                                  )
-                                : LinearGradient(
-                                    colors: [
-                                      AppTheme.gold,
-                                      AppTheme.gold.withValues(alpha: 0.7),
-                                    ],
-                                  ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Center(
-                            child: status == 'in-progress'
-                                ? Icon(
-                                    Icons.content_cut_rounded,
-                                    color: Colors.white,
-                                    size: 18,
-                                  )
-                                : Text(
-                                    "$queuePos",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                status == 'in-progress'
-                                    ? "Hozir xizmat ko'rsatilmoqda"
-                                    : "Navbat: $queuePos / $queueTotal",
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                  color: AppTheme.textDark,
-                                ),
-                              ),
-                              Text(
-                                status == 'in-progress'
-                                    ? "Usta sizga xizmat qilmoqda ✂️"
-                                    : "Kutish: $estimatedWait",
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: AppTheme.textMedium,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        if (status == 'in-progress')
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.success,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 10,
-                                  height: 10,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  "LIVE",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-
-                // ── Main Content ──
-                Padding(
-                  padding: const EdgeInsets.all(18),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _statusColor(
-                                status,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Icon(
-                              _statusIcon(status),
-                              color: _statusColor(status),
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  b['service'] ?? 'Xizmat',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.person_rounded,
-                                      size: 14,
-                                      color: AppTheme.textLight,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Flexible(
-                                      child: Text(
-                                        b['barberName'] ?? '—',
-                                        style: GoogleFonts.poppins(
-                                          color: AppTheme.textMedium,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _statusColor(
-                                status,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              _statusLabel(status),
-                              style: GoogleFonts.poppins(
-                                color: _statusColor(status),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // ── Separator ──
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        child: Container(
-                          height: 1,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.transparent,
-                                AppTheme.textLight.withValues(alpha: 0.2),
-                                Colors.transparent,
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-
-                      // ── Date/Time/Price ──
-                      Row(
-                        children: [
-                          _infoChip(
-                            Icons.calendar_month_rounded,
-                            b['date'] ?? '—',
-                          ),
-                          const SizedBox(width: 8),
-                          _infoChip(Icons.access_time_rounded, b['time'] ?? ''),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              gradient: AppTheme.goldGradient,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              "${((b['price'] ?? 0) ~/ 1000)} ming",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      // ── Duration info ──
-                      if ((b['durationMinutes'] ?? 0) > 0) ...[
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.timelapse_rounded,
-                              size: 14,
-                              color: AppTheme.textLight,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              "Davomiyligi: ${b['durationMinutes']} daqiqa",
-                              style: GoogleFonts.poppins(
-                                color: AppTheme.textMedium,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      // ── Info Banner ──
-                      if (status == 'pending') ...[
-                        const SizedBox(height: 14),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: const Color(
-                              0xFFD97706,
-                            ).withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: const Color(
-                                0xFFD97706,
-                              ).withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.hourglass_top_rounded,
-                                size: 18,
-                                color: const Color(0xFFD97706),
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  "Usta tasdiqlanishini kutmoqda...",
-                                  style: GoogleFonts.poppins(
-                                    color: const Color(0xFFD97706),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                      if (status == 'confirmed') ...[
-                        const SizedBox(height: 14),
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.success.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: AppTheme.success.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.check_circle_rounded,
-                                size: 18,
-                                color: AppTheme.success,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Text(
-                                  "Tasdiqlangan. Iltimos o'z vaqtida keling.",
-                                  style: GoogleFonts.poppins(
-                                    color: AppTheme.success,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-
-                      // ── Cancel Button ──
-                      if (status == 'pending' || status == 'confirmed') ...[
-                        const SizedBox(height: 14),
-                        GestureDetector(
-                          onTap: () {
-                            Get.dialog(
-                              AlertDialog(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                title: Text(
-                                  "Bekor qilish",
-                                  style: GoogleFonts.poppins(
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                content: Text(
-                                  "Haqiqatan ham ushbu bronni bekor qilmoqchimisiz?",
-                                  style: GoogleFonts.poppins(fontSize: 14),
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Get.back(),
-                                    child: Text(
-                                      "Yo'q",
-                                      style: GoogleFonts.poppins(
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Get.back();
-                                      controller.cancelBooking(
-                                        b['id'],
-                                        b['date'] ?? '',
-                                        b['time'] ?? '',
-                                      );
-                                    },
-                                    child: Text(
-                                      "Ha, bekor qilish",
-                                      style: GoogleFonts.poppins(
-                                        color: AppTheme.danger,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          child: Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.symmetric(vertical: 13),
-                            decoration: BoxDecoration(
-                              color: AppTheme.danger.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                color: AppTheme.danger.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Center(
-                              child: Text(
-                                "Bekor qilish",
-                                style: GoogleFonts.poppins(
-                                  color: AppTheme.danger,
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-          .animate()
-          .fadeIn(delay: Duration(milliseconds: 80 + (index * 60)))
-          .slideY(begin: 0.04);
-    });
-  }
-
-  Widget _infoChip(IconData icon, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppTheme.background,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: AppTheme.textMedium),
-          const SizedBox(width: 5),
-          Text(
-            text,
-            style: GoogleFonts.poppins(
-              color: AppTheme.textMedium,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ═══════════════════════════════════════════
-  // PAST BOOKINGS
-  // ═══════════════════════════════════════════
-  Widget _buildPastList() {
-    return Obx(() {
-      final items = controller.pastBookings;
-      if (items.isEmpty) {
-        return _buildEmptyState(
-          icon: Icons.history_rounded,
-          title: "📭 Hozircha tugallangan bronlar yo'q",
-          subtitle: "Mijozlar bilan ishlaganingizda bu yer to'ldiriladi",
-        );
-      }
-
-      return RefreshIndicator(
-        color: AppTheme.primary,
-        onRefresh: () async {
-          await Future.delayed(const Duration(milliseconds: 800));
-        },
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          itemCount: items.length,
-          itemBuilder: (context, index) {
-            final b = items[index];
-            final status = b['status'] ?? 'pending';
-            return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: _statusColor(status).withValues(alpha: 0.12),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _statusColor(
-                                status,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Icon(
-                              _statusIcon(status),
-                              color: _statusColor(status),
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  b['service'] ?? 'Xizmat',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textDark,
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  b['barberName'] ?? '—',
-                                  style: GoogleFonts.poppins(
-                                    color: AppTheme.textMedium,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _statusColor(
-                                status,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(
-                              _statusLabel(status),
-                              style: GoogleFonts.poppins(
-                                color: _statusColor(status),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          GestureDetector(
-                            onTap: () {
-                              Get.dialog(
-                                AlertDialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  title: Text("Tarixdan o'chirish"),
-                                  content: Text(
-                                    "Haqiqatan ham bu yozuvni tarixdan yashirmoqchimisiz?",
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Get.back(),
-                                      child: Text("Yo'q"),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        Get.back();
-                                        controller.deleteHistoryItem(b['id']);
-                                      },
-                                      child: Text(
-                                        "Ha, o'chirish",
-                                        style: TextStyle(
-                                          color: AppTheme.danger,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              );
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: AppTheme.danger.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Icon(
-                                Icons.delete_outline_rounded,
-                                color: AppTheme.danger,
-                                size: 18,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(height: 1, color: AppTheme.background),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_month_rounded,
-                                size: 14,
-                                color: AppTheme.textLight,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                "${b['date'] ?? '—'} • ${b['time'] ?? ''}",
-                                style: GoogleFonts.poppins(
-                                  color: AppTheme.textMedium,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            "${((b['price'] ?? 0) ~/ 1000)} ming so'm",
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textDark,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      GestureDetector(
-                        onTap: () => controller.rebook(b),
-                        child: Container(
-                          width: double.infinity,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [AppTheme.primary, AppTheme.accent],
-                            ),
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppTheme.primary.withValues(alpha: 0.3),
-                                blurRadius: 8,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              "Qayta bron qilish",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                .animate()
-                .fadeIn(delay: Duration(milliseconds: 100 + (index * 50)))
-                .slideY(begin: 0.05);
-          },
-        ),
-      );
-    });
-  }
-
-  // ═══════════════════════════════════════════
   // EMPTY STATE
   // ═══════════════════════════════════════════
   Widget _buildEmptyState({
@@ -1415,6 +1215,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
     final date = b['date'] ?? '';
     final time = b['time'] ?? '';
     final docId = b['id'] ?? '';
+    final price = b['price'] ?? 0;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -1485,29 +1286,62 @@ class MyBookingsView extends GetView<MyBookingsController> {
             ],
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              Icon(Icons.calendar_month, size: 14, color: AppTheme.textMedium),
-              const SizedBox(width: 4),
-              Text(
-                date,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textMedium,
+          // Date/Time/Price row
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppTheme.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.calendar_today_rounded,
+                      size: 14,
+                      color: AppTheme.textMedium,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      date,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: 16),
-              Icon(Icons.access_time, size: 14, color: AppTheme.textMedium),
-              const SizedBox(width: 4),
-              Text(
-                time,
-                style: GoogleFonts.poppins(
-                  fontSize: 13,
-                  color: AppTheme.textMedium,
-                  fontWeight: FontWeight.w600,
+                Row(
+                  children: [
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: AppTheme.textMedium,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      time,
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: AppTheme.textDark,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+                Text(
+                  "$price so'm",
+                  style: GoogleFonts.poppins(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.primary,
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
           if (status == 'pending')
@@ -1534,9 +1368,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
             Row(
               children: [
                 Expanded(
-                  child: _actionBtn(
-                    "Boshlash",
-                    AppTheme.primary,
+                  child: _goldActionBtn(
+                    "🔥 Boshlash",
                     () => controller.startClient(docId),
                   ),
                 ),
@@ -1547,7 +1380,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
               children: [
                 Expanded(
                   child: _actionBtn(
-                    "Tugatish",
+                    "✓ Tugatish",
                     AppTheme.success,
                     () => controller.completeClient(docId),
                   ),
@@ -1575,6 +1408,29 @@ class MyBookingsView extends GetView<MyBookingsController> {
             style: GoogleFonts.poppins(
               color: color,
               fontWeight: FontWeight.w600,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _goldActionBtn(String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          gradient: AppTheme.goldGradient,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Center(
+          child: Text(
+            label,
+            style: GoogleFonts.poppins(
+              color: Colors.white,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
             ),
           ),
         ),

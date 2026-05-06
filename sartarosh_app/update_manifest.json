@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.2",
-    "build_number": 252,
+    "latest_version": "3.9.3",
+    "build_number": 253,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.2 (Pro): Usta boshqaruv paneli Bronlar ichiga to'liq integratsiya qilindi! Statistika, navbat, holat boshqaruvi 🔥",
+    "release_notes": "Sartarosh 3.9.3 (Pro): Mijozlar uchun 'Bronlar' sahifasining dizayni to'liq yangilandi! Premium filtrlar va interfeys qo'shildi 🔥",
     "force_update": false
 }
