@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.12",
-    "build_number": 262,
+    "latest_version": "3.9.13",
+    "build_number": 263,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.12: 🔥 Endi sartaroshlar ham mijoz bosh sahifasida ochiladi! Barber Dashboard faqat 'Bronlar' tugmasidan ochiladi. Toza va professional navigatsiya!",
+    "release_notes": "Sartarosh 3.9.13: 🔙 Barber Dashboard-da orqaga bosilsa endi bosh sahifaga (client home) qaytiladi!",
     "force_update": false
 }
