@@ -210,20 +210,16 @@ class HomeController extends GetxController {
         .collection('barbers')
         .where('gender', isEqualTo: targetGender);
 
-    // REGION mode: STRICT Firestore-level region filter
-    if (mode == 'REGION') {
-      if (targetRegion.isEmpty) {
-        // Prevent leaking all barbers and force location selection
-        rxBarbers.value = [];
-        isLoading.value = false;
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (Get.currentRoute != '/region') {
-            Get.offAllNamed('/region');
-          }
-        });
-        return;
-      }
-      query = query.where('location', isEqualTo: targetRegion);
+    if (mode == 'REGION' && targetRegion.isEmpty) {
+      // Prevent leaking all barbers and force location selection
+      rxBarbers.value = [];
+      isLoading.value = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (Get.currentRoute != '/region') {
+          Get.offAllNamed('/region');
+        }
+      });
+      return;
     }
 
     _barberSub?.cancel();
@@ -234,6 +230,14 @@ class HomeController extends GetxController {
           data['id'] = doc.id;
           return data;
         }).toList();
+
+        // REGION mode: client-side region filter
+        if (mode == 'REGION' && targetRegion.isNotEmpty) {
+          list = list.where((b) {
+            final bLoc = (b['location'] as String?)?.trim() ?? '';
+            return bLoc.toLowerCase() == targetRegion.toLowerCase();
+          }).toList();
+        }
 
         // GPS mode: client-side distance filter (5km)
         if (mode == 'GPS' && userService.userLat.value != 0.0) {

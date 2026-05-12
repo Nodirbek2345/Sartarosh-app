@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.5",
-    "build_number": 255,
+    "latest_version": "3.9.6",
+    "build_number": 256,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Texnik sozlamalar va nosozliklarni aniqlash tizimi ishga tushirildi (3.9.5)",
+    "release_notes": "Sartarosh 3.9.6: Xatolar tuzatildi va tezlik oshirildi! Asosiy sahifaga kirishdagi eski tizimdagi xatolik to'liq tuzatildi \ud83d\ude80",
     "force_update": false
 }
