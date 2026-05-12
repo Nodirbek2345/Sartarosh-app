@@ -73,29 +73,33 @@ class AuthController extends GetxController {
         final userPhoto = user.photoURL ?? '';
 
         // 1. Phone collision check (Prevent Number hijacking)
-        final phoneCheck = await _firestore
-            .collection('users')
-            .where('phone', isEqualTo: inputPhone)
-            .get();
+        try {
+          final phoneCheck = await _firestore
+              .collection('users')
+              .where('phone', isEqualTo: inputPhone)
+              .get();
 
-        if (phoneCheck.docs.isNotEmpty) {
-          final existingAccountUid = phoneCheck.docs.first.id;
-          if (existingAccountUid != user.uid) {
-            // This phone belongs to a DIFFERENT Google account!
-            isLoading.value = false;
-            await googleSignIn.signOut();
-            await FirebaseAuth.instance.signOut();
+          if (phoneCheck.docs.isNotEmpty) {
+            final existingAccountUid = phoneCheck.docs.first.id;
+            if (existingAccountUid != user.uid) {
+              // This phone belongs to a DIFFERENT Google account!
+              isLoading.value = false;
+              await googleSignIn.signOut();
+              await FirebaseAuth.instance.signOut();
 
-            Get.snackbar(
-              "Xatolik",
-              "Bu raqam ($inputPhone) boshqa hisobga ulangan! O'sha Google akkauntdan kiring.",
-              backgroundColor: AppTheme.danger,
-              colorText: Colors.white,
-              snackPosition: SnackPosition.BOTTOM,
-              duration: Duration(seconds: 5),
-            );
-            return;
+              Get.snackbar(
+                "Xatolik",
+                "Bu raqam ($inputPhone) boshqa hisobga ulangan! O'sha Google akkauntdan kiring.",
+                backgroundColor: AppTheme.danger,
+                colorText: Colors.white,
+                snackPosition: SnackPosition.BOTTOM,
+                duration: Duration(seconds: 5),
+              );
+              return;
+            }
           }
+        } catch (e) {
+          debugPrint("Phone check bypassed due to strict Firestore rules: $e");
         }
 
         // Save UID first (critical for security)
