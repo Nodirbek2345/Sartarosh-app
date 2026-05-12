@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.7",
-    "build_number": 257,
+    "latest_version": "3.9.8",
+    "build_number": 258,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.7 (HOTFIX): Ruxsat etilmagan baza xatosi ('permission-denied') to'liq bartaraf etildi. Ilova cheklovlari olib tushirildi. Qat'iy tavsiya etiladi!",
+    "release_notes": "Sartarosh 3.9.8 (PRO): 🔥 Bronlar menyusi ustalar uchun to'liq professional panelga aylantirildi. Usta rejimiga o'tish popup-lari olib tashlandi. Barcha boshqaruv bir joyda mujassamlandi!",
     "force_update": false
 }

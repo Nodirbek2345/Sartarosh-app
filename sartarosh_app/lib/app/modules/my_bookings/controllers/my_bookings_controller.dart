@@ -21,19 +21,22 @@ class MyBookingsController extends GetxController {
   // Total waiting for same barber/date
   final queueTotals = <String, int>{}.obs;
 
+  late final RxBool forceClientMode;
+
   // Real source of truth for UI toggle
   final hasBarberProfile = false.obs;
 
   // Barber states
-  bool get isBarberMode => Get.find<UserService>().isBarberMode.value;
-  void toggleBarberMode(bool val) {
-    Get.find<UserService>().isBarberMode.value = val;
-  }
+  bool get isBarberMode =>
+      Get.find<UserService>().userRole.value == 'barber' &&
+      !forceClientMode.value;
 
+  final barberAll = <Map<String, dynamic>>[].obs;
   final barberPending = <Map<String, dynamic>>[].obs;
   final barberConfirmed = <Map<String, dynamic>>[].obs;
   final barberInProgress = <Map<String, dynamic>>[].obs;
   final barberCompleted = <Map<String, dynamic>>[].obs;
+  final barberCancelled = <Map<String, dynamic>>[].obs;
 
   // Dashboard Stats
   final todayClientsCount = 0.obs;
@@ -50,6 +53,9 @@ class MyBookingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    final args = Get.arguments as Map<String, dynamic>?;
+    forceClientMode = (args?['forceClient'] == true).obs;
+
     _fetchBookings();
     _checkIfBarber();
   }
@@ -441,6 +447,7 @@ class MyBookingsController extends GetxController {
             return dateB.compareTo(dateA);
           });
 
+          barberAll.value = docs;
           barberPending.value = docs
               .where((b) => b['status'] == 'pending')
               .toList();
@@ -453,6 +460,10 @@ class MyBookingsController extends GetxController {
           barberCompleted.value = docs
               .where((b) => b['status'] == 'completed')
               .toList();
+          barberCancelled.value = docs.where((b) {
+            final s = b['status'];
+            return s == 'cancelled' || s == 'no-show' || s == 'penalty';
+          }).toList();
 
           // ── 🔥 Stats Computation ──
           final today = DateFormat('yyyy-MM-dd').format(DateTime.now());

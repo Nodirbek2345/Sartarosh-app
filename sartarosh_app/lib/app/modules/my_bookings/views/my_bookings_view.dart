@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../controllers/my_bookings_controller.dart';
 import '../../../../core/theme/app_theme.dart';
-import '../../../../core/services/user_service.dart';
 
 class MyBookingsView extends GetView<MyBookingsController> {
   const MyBookingsView({super.key});
@@ -65,48 +64,8 @@ class MyBookingsView extends GetView<MyBookingsController> {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      // Barber mode toggle (if user is also a barber)
-                      Obx(() {
-                        final userService = Get.find<UserService>();
-                        if (userService.userRole.value == 'barber') {
-                          return GestureDetector(
-                            onTap: () => userService.toggleBarberMode(),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  const Icon(
-                                    Icons.content_cut_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "Usta rejim",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      }),
+                      // Removed Barber mode toggle from here. It is now handled automatically.
+                      const SizedBox.shrink(),
                     ],
                   ),
                   const SizedBox(height: 4),
@@ -582,7 +541,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
   // ═══════════════════════════════════════════
   Widget _buildBarberMode() {
     return DefaultTabController(
-      length: 4,
+      length: 6,
       child: Scaffold(
         backgroundColor: AppTheme.background,
         appBar: AppBar(
@@ -598,18 +557,7 @@ class MyBookingsView extends GetView<MyBookingsController> {
           elevation: 0,
           centerTitle: true,
           automaticallyImplyLeading: false,
-          actions: [
-            Obx(() {
-              final userService = Get.find<UserService>();
-              if (userService.userRole.value == 'barber') {
-                return IconButton(
-                  icon: Icon(Icons.person_rounded, color: AppTheme.primary),
-                  onPressed: () => userService.toggleBarberMode(),
-                );
-              }
-              return const SizedBox.shrink();
-            }),
-          ],
+          // Menu actions removed since the panel is now seamlessly integrated
         ),
         body: Column(
           children: [
@@ -623,10 +571,12 @@ class MyBookingsView extends GetView<MyBookingsController> {
                 indicatorWeight: 3,
                 isScrollable: true,
                 tabs: const [
+                  Tab(text: "Barchasi"),
                   Tab(text: "Kutilmoqda"),
                   Tab(text: "Tasdiqlangan"),
                   Tab(text: "Jarayonda"),
                   Tab(text: "Bajarildi"),
+                  Tab(text: "Bekor qilingan"),
                 ],
               ),
             ),
@@ -652,10 +602,12 @@ class MyBookingsView extends GetView<MyBookingsController> {
                 }
                 return TabBarView(
                   children: [
+                    _buildBarberAllList(),
                     _buildBarberPendingList(),
                     _buildBarberConfirmedList(),
                     _buildBarberInProgressList(),
                     _buildBarberCompletedList(),
+                    _buildBarberCancelledList(),
                   ],
                 );
               }),
@@ -1135,6 +1087,14 @@ class MyBookingsView extends GetView<MyBookingsController> {
   // BARBER BOOKINGS TABS
   // ═══════════════════════════════════════════
 
+  Widget _buildBarberAllList() {
+    return _buildBarberList(
+      controller.barberAll,
+      "Hali hech qanday bron yo'q",
+      Icons.all_inbox_rounded,
+    );
+  }
+
   Widget _buildBarberPendingList() {
     return _buildBarberList(
       controller.barberPending,
@@ -1168,6 +1128,15 @@ class MyBookingsView extends GetView<MyBookingsController> {
       "Tugallangan bronlar yo'q",
       Icons.done_all_rounded,
       subtitle: "Mijozlar bilan ishlaganingizda bu yer to'ldiriladi",
+    );
+  }
+
+  Widget _buildBarberCancelledList() {
+    return _buildBarberList(
+      controller.barberCancelled,
+      "Bekor qilingan bronlar yo'q",
+      Icons.cancel_outlined,
+      subtitle: "Mijoz bekor qilgan yoki kelmagan holatlar",
     );
   }
 

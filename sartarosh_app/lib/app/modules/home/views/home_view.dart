@@ -1471,7 +1471,7 @@ class HomeView extends GetView<HomeController> {
                   ],
 
                   // ─── SARTAROSH (Barber) MENU ───
-                  if (isBarber) ...[
+                  if (role == 'barber') ...[
                     _menuItem(
                       icon: Icons.person_outline_rounded,
                       title: "Mening profilim",
@@ -1498,28 +1498,7 @@ class HomeView extends GetView<HomeController> {
                     ),
                   ],
 
-                  // Rol almashish
-                  if (role == 'barber' && !isBarber)
-                    _menuItem(
-                      icon: Icons.storefront_rounded,
-                      title: "Usta rejimiga o'tish",
-                      color: AppTheme.gold,
-                      onTap: () {
-                        Get.back();
-                        userService.toggleBarberMode();
-                      },
-                    ),
-                  if (isBarber)
-                    _menuItem(
-                      icon: Icons.swap_horiz_rounded,
-                      title: "Mijoz rejimiga o'tish",
-                      color: AppTheme.primary,
-                      onTap: () {
-                        Get.back();
-                        userService.toggleBarberMode();
-                      },
-                    ),
-
+                  // Menu system completely simplified, 'Rol almashish' logic has been abolished.
                   _menuItem(
                     icon: Icons.logout_rounded,
                     title: "Tizimdan chiqish",

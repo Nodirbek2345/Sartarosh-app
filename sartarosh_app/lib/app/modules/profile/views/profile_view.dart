@@ -169,68 +169,52 @@ class ProfileView extends StatelessWidget {
                   physics: BouncingScrollPhysics(),
                   child: Obx(() {
                     final userService = Get.find<UserService>();
-                    final isBarber = userService.isBarberMode.value;
-
-                    if (isBarber) {
-                      // ─── SARTAROSH (Barber) REJIMI MENYULARI ───
-                      return Column(
-                        children: [
+                    // Menus are now natively integrated based on role. No mode toggles needed.
+                    int idx = 0;
+                    return Column(
+                      children: [
+                        if (userService.userRole.value == 'barber') ...[
                           _menuItem(
                             Icons.design_services_rounded,
                             "Xizmatlar va narxlarni tahrirlash",
-                            0,
+                            idx++,
                             () => _showManageServices(),
                           ),
-                          // "Mijoz rejimiga o'tish" REMOVED
                           _menuItem(
-                            Icons.settings_rounded,
-                            "Sozlamalar",
-                            2,
-                            () => _showSettings(),
-                          ),
-
-                          _menuItem(
-                            Icons.help_outline_rounded,
-                            "Yordam",
-                            4,
-                            () => _showHelp(),
-                          ),
-                        ],
-                      );
-                    } else {
-                      // ─── MIJOZ (Client) REJIMI MENYULARI ───
-                      int idx = 0;
-                      return Column(
-                        children: [
-                          if (userService.userRole.value == 'barber') ...[
-                            // "Usta rejimiga o'tish" REMOVED
-                          ] else ...[
-                            _menuItem(
-                              Icons.storefront_rounded,
-                              userService.targetGender.value == 'female'
-                                  ? "Stilist sifatida qo'shilish"
-                                  : "Sartarosh sifatida qo'shilish",
-                              idx++,
-                              () => Get.toNamed('/add-barber'),
+                            Icons.calendar_month_rounded,
+                            "Mening mijoz sifatidagi bronlarim",
+                            idx++,
+                            () => Get.toNamed(
+                              '/my-bookings',
+                              arguments: {'forceClient': true},
                             ),
-                          ],
-
-                          _menuItem(
-                            Icons.settings_rounded,
-                            "Sozlamalar",
-                            idx++,
-                            () => _showSettings(),
                           ),
-
+                        ] else ...[
                           _menuItem(
-                            Icons.help_outline_rounded,
-                            "Yordam",
+                            Icons.storefront_rounded,
+                            userService.targetGender.value == 'female'
+                                ? "Stilist sifatida qo'shilish"
+                                : "Sartarosh sifatida qo'shilish",
                             idx++,
-                            () => _showHelp(),
+                            () => Get.toNamed('/add-barber'),
                           ),
                         ],
-                      );
-                    }
+
+                        _menuItem(
+                          Icons.settings_rounded,
+                          "Sozlamalar",
+                          idx++,
+                          () => _showSettings(),
+                        ),
+
+                        _menuItem(
+                          Icons.help_outline_rounded,
+                          "Yordam",
+                          idx++,
+                          () => _showHelp(),
+                        ),
+                      ],
+                    );
                   }),
                 ),
               ),
