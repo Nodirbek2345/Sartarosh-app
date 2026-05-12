@@ -68,15 +68,10 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _navItem(
-                Icons.dashboard_rounded,
-                "Dashboard",
-                currentTab.value == 0,
-                () {
-                  pageCtrl.jumpToPage(0);
-                  currentTab.value = 0;
-                },
-              ),
+              _navItem(Icons.home_rounded, "Asosiy", currentTab.value == 0, () {
+                pageCtrl.jumpToPage(0);
+                currentTab.value = 0;
+              }),
               _navItem(
                 Icons.calendar_month_rounded,
                 "Bronlar",

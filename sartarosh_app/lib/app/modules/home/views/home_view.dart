@@ -1460,6 +1460,17 @@ class HomeView extends GetView<HomeController> {
                         Get.toNamed('/favorites');
                       },
                     ),
+                    if (role != 'barber')
+                      _menuItem(
+                        icon: Icons.content_cut_rounded,
+                        title: userService.targetGender.value == 'female'
+                            ? "Stilist sifatida qo'shilish"
+                            : "Sartarosh sifatida qo'shilish",
+                        onTap: () {
+                          Get.back();
+                          Get.toNamed('/add-barber');
+                        },
+                      ),
                     _menuItem(
                       icon: Icons.support_agent_rounded,
                       title: "Qo'llab-quvvatlash",
