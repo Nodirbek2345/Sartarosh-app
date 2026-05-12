@@ -1277,9 +1277,16 @@ class HomeView extends GetView<HomeController> {
               ),
               _navItem(
                 Icons.calendar_month_rounded,
-                "Bron",
+                "Bronlar",
                 false,
-                onTap: () => Get.toNamed('/my-bookings'),
+                onTap: () {
+                  final userService = Get.find<UserService>();
+                  if (userService.userRole.value == 'barber') {
+                    Get.toNamed('/barber-dashboard');
+                  } else {
+                    Get.toNamed('/my-bookings');
+                  }
+                },
               ),
               _navItem(
                 Icons.person_rounded,

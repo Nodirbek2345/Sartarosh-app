@@ -449,7 +449,7 @@ class AddBarberController extends GetxController {
           snackPosition: SnackPosition.BOTTOM,
         );
         await Future.delayed(Duration(milliseconds: 800));
-        Get.offAllNamed('/barber-dashboard');
+        Get.offAllNamed('/home');
         isSubmitting.value = false;
         return;
       }
@@ -517,7 +517,7 @@ class AddBarberController extends GetxController {
       );
 
       await Future.delayed(Duration(milliseconds: 800));
-      Get.offAllNamed('/barber-dashboard');
+      Get.offAllNamed('/home');
     } catch (e) {
       _error(
         "Ro'yxatdan o'tishda xatolik yuz berdi. Iltimos qaytadan urinib ko'ring.",

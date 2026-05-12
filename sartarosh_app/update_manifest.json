@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.11",
-    "build_number": 261,
+    "latest_version": "3.9.12",
+    "build_number": 262,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.11 (HOTFIX): 🔥 'Ruxsat yo'q' xatosi to'liq bartaraf etildi! Endi sartaroshlar kirganida to'g'ridan-to'g'ri Barber Dashboard ochiladi. Bottom nav 'Asosiy' deb nomlandi. Sartarosh bo'lish tugmasi qaytarildi.",
+    "release_notes": "Sartarosh 3.9.12: 🔥 Endi sartaroshlar ham mijoz bosh sahifasida ochiladi! Barber Dashboard faqat 'Bronlar' tugmasidan ochiladi. Toza va professional navigatsiya!",
     "force_update": false
 }
