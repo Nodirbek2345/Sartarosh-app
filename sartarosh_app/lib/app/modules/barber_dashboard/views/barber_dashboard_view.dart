@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +24,7 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (currentTab.value == 0) {
-            Get.offAllNamed('/home');
+            SystemNavigator.pop();
           } else {
             pageController.jumpToPage(0);
             currentTab.value = 0;
@@ -1674,40 +1675,7 @@ class _BarberProfileTab extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
-                // Switch to client mode
-                GestureDetector(
-                  onTap: () {
-                    userService.toggleBarberMode();
-                    Get.offAllNamed('/home');
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppTheme.primary.withValues(alpha: 0.3),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.swap_horiz_rounded, color: AppTheme.primary),
-                        const SizedBox(width: 8),
-                        Text(
-                          "Mijoz rejimiga o'tish",
-                          style: GoogleFonts.poppins(
-                            color: AppTheme.primary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
+
                 // Logout
                 GestureDetector(
                   onTap: () {

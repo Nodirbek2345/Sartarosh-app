@@ -60,6 +60,10 @@ class SplashController extends GetxController {
     }
 
     // Go straight to Home
-    Get.offAllNamed(Routes.home);
+    if (userService.userRole.value == 'barber') {
+      Get.offAllNamed(Routes.barberDashboard);
+    } else {
+      Get.offAllNamed(Routes.home);
+    }
   }
 }

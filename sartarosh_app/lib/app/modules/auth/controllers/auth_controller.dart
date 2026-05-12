@@ -341,7 +341,11 @@ class AuthController extends GetxController {
     if (!userService.hasLocation) {
       Get.offAllNamed('/region');
     } else {
-      Get.offAllNamed('/home');
+      if (userService.userRole.value == 'barber') {
+        Get.offAllNamed('/barber-dashboard');
+      } else {
+        Get.offAllNamed('/home');
+      }
     }
   }
 

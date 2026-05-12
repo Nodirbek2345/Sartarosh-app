@@ -70,7 +70,11 @@ class RegionController extends GetxController {
         userService.setGpsMode(position.latitude, position.longitude);
         userService.setRegion(regionKey);
 
-        Get.offAllNamed('/home');
+        if (userService.userRole.value == 'barber') {
+          Get.offAllNamed('/barber-dashboard');
+        } else {
+          Get.offAllNamed('/home');
+        }
       } else {
         _showGpsFailureModal("Joylashuvni aniqlab bo'lmadi");
       }
@@ -301,7 +305,11 @@ class RegionController extends GetxController {
                           duration: Duration(seconds: 3),
                         );
 
-                        Get.offAllNamed('/home');
+                        if (userService.userRole.value == 'barber') {
+                          Get.offAllNamed('/barber-dashboard');
+                        } else {
+                          Get.offAllNamed('/home');
+                        }
                       },
                     );
                   },
