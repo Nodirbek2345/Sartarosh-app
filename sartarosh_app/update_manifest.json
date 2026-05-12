@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.6",
-    "build_number": 256,
+    "latest_version": "3.9.7",
+    "build_number": 257,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.6: Xatolar tuzatildi va tezlik oshirildi! Asosiy sahifaga kirishdagi eski tizimdagi xatolik to'liq tuzatildi \ud83d\ude80",
+    "release_notes": "Sartarosh 3.9.7 (HOTFIX): Ruxsat etilmagan baza xatosi ('permission-denied') to'liq bartaraf etildi. Ilova cheklovlari olib tushirildi. Qat'iy tavsiya etiladi!",
     "force_update": false
 }
