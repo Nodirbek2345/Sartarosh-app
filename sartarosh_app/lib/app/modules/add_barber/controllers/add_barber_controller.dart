@@ -178,8 +178,12 @@ class AddBarberController extends GetxController {
         _error("Iltimos, to'g'ri telefon raqamni kiriting");
         return;
       }
-      if (addressCtrl.text.trim().isEmpty) {
-        _error("Iltimos, manzilingizni kiriting");
+      if (addressCtrl.text.trim().isEmpty || location.value.trim().isEmpty) {
+        if (!isLocating.value) {
+          _showRegionFallbackDialog();
+        } else {
+          _error("Ayni paytda tayyorlanmoqda, biroz kuting...");
+        }
         return;
       }
     }
@@ -407,7 +411,7 @@ class AddBarberController extends GetxController {
 
     // PRO: Validate location before submit
     if (location.value.trim().isEmpty) {
-      _error("Iltimos, avval 📍 tugmasini bosib joylashuvni aniqlang");
+      _showRegionFallbackDialog();
       return;
     }
 

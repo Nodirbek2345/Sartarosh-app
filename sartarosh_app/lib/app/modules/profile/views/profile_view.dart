@@ -207,7 +207,9 @@ class ProfileView extends StatelessWidget {
                           ] else ...[
                             _menuItem(
                               Icons.storefront_rounded,
-                              "Sartarosh sifatida qo'shilish",
+                              userService.targetGender.value == 'female'
+                                  ? "Stilist sifatida qo'shilish"
+                                  : "Sartarosh sifatida qo'shilish",
                               idx++,
                               () => Get.toNamed('/add-barber'),
                             ),

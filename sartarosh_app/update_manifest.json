@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.3",
-    "build_number": 253,
+    "latest_version": "3.9.4",
+    "build_number": 254,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.3 (Pro): Mijozlar uchun 'Bronlar' sahifasining dizayni to'liq yangilandi! Premium filtrlar va interfeys qo'shildi 🔥",
+    "release_notes": "Sartarosh 3.9.4 (Pro): Usta profilini ochishni ancha qulaylashtirdik! Endi GPS orqali manzilingizni yanada avtomatlashtirilgan tarzda tanlashingiz mumkin \ud83d\ude80",
     "force_update": false
 }
