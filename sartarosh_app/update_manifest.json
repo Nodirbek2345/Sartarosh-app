@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.4",
-    "build_number": 254,
+    "latest_version": "3.9.5",
+    "build_number": 255,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.4 (Pro): Usta profilini ochishni ancha qulaylashtirdik! Endi GPS orqali manzilingizni yanada avtomatlashtirilgan tarzda tanlashingiz mumkin \ud83d\ude80",
+    "release_notes": "Texnik sozlamalar va nosozliklarni aniqlash tizimi ishga tushirildi (3.9.5)",
     "force_update": false
 }

@@ -260,8 +260,13 @@ class HomeController extends GetxController {
         isLoading.value = false;
       },
       onError: (e) {
+        debugPrint(e.toString());
         isLoading.value = false;
-        Get.snackbar("Xatolik", "Baza bilan ulanishda xatolik");
+        Get.snackbar(
+          "Xatolik",
+          "Firebase: ${e.toString().replaceAll('FirebaseException', '')}",
+          duration: const Duration(seconds: 10),
+        );
       },
     );
   }
