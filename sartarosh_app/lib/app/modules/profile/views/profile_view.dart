@@ -365,8 +365,10 @@ class ProfileView extends StatelessWidget {
                           ),
                           Expanded(
                             child: ListView.builder(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
+                              padding: const EdgeInsets.only(
+                                left: 16,
+                                right: 16,
+                                bottom: 64,
                               ),
                               itemCount: filteredGlobalServices.length,
                               itemBuilder: (context, index) {

@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.19",
-    "build_number": 269,
+    "latest_version": "3.9.20",
+    "build_number": 270,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.19: ✨ Xizmatlar ro'yxati boyitildi! Endi ayollar ustalariga ham (Soch kesish + Yuvish, Makiyaj + Turmak) va bolalariga ham kombinatsiyalangan xizmat turlarini qo'shish imkoniyati bor. 📊 Admin panelida esa 'Hududlar bo'yicha eng ko'p sartaroshlar' reytingi qo'shildi!",
+    "release_notes": "Sartarosh 3.9.20: ✨ UI qo'shimcha qulayliklari: 'Xizmatlar va narxlar' ro'yxati ekran oxiriga biroz yaqinlashib qolish holati to'g'irlandi. Endi pastga scroll qilish orqali barcha tugmalarni to'liq ko'rish mumkin.",
     "force_update": false
 }
