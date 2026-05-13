@@ -310,6 +310,20 @@ class ProfileView extends StatelessWidget {
                               ?.cast<Map<String, dynamic>>() ??
                           [];
 
+                      // Filter global services by the barber's target gender
+                      final barberTargetGender =
+                          barberData['gender'] ??
+                          barberData['targetGender'] ??
+                          'male';
+                      final filteredGlobalServices = globalServices.where((
+                        doc,
+                      ) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        final serviceGender = data['gender'] ?? 'all';
+                        return serviceGender == barberTargetGender ||
+                            serviceGender == 'all';
+                      }).toList();
+
                       return Column(
                         children: [
                           GestureDetector(
@@ -372,10 +386,10 @@ class ProfileView extends StatelessWidget {
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 16,
                               ),
-                              itemCount: globalServices.length,
+                              itemCount: filteredGlobalServices.length,
                               itemBuilder: (context, index) {
                                 final gSvc =
-                                    globalServices[index].data()
+                                    filteredGlobalServices[index].data()
                                         as Map<String, dynamic>;
                                 final gName = gSvc['name'] ?? '';
                                 final gCat = gSvc['category'] ?? '';
