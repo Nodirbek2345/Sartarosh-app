@@ -227,7 +227,7 @@ class ProfileView extends StatelessWidget {
                     int idx = 0;
                     return Column(
                       children: [
-                        if (!userService.isBarberMode.value)
+                        if (!Get.find<UserService>().isBarberMode.value)
                           _menuItem(
                             Icons.content_cut_rounded,
                             "Sartarosh bo'lish",
@@ -609,7 +609,7 @@ class ProfileView extends StatelessWidget {
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 16),
                 decoration: BoxDecoration(
-                  color: AppTheme.cardLight,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: AppTheme.textLight.withValues(alpha: 0.3),
@@ -660,7 +660,11 @@ class ProfileView extends StatelessWidget {
                   ),
                   shape: BoxShape.circle,
                 ),
-                child: Icon(Icons.stars_rounded, color: AppTheme.primary, size: 36),
+                child: Icon(
+                  Icons.stars_rounded,
+                  color: AppTheme.primary,
+                  size: 36,
+                ),
               ),
               SizedBox(height: 20),
               Text(
@@ -684,11 +688,15 @@ class ProfileView extends StatelessWidget {
               SizedBox(height: 24),
               GestureDetector(
                 onTap: () async {
-                  final Uri url = Uri.parse('tg://resolve?domain=Nodirbek_qaxxorov');
+                  final Uri url = Uri.parse(
+                    'tg://resolve?domain=Nodirbek_qaxxorov',
+                  );
                   if (await canLaunchUrl(url)) {
                     await launchUrl(url);
                   } else {
-                    final Uri webUrl = Uri.parse('https://t.me/Nodirbek_qaxxorov');
+                    final Uri webUrl = Uri.parse(
+                      'https://t.me/Nodirbek_qaxxorov',
+                    );
                     await launchUrl(webUrl);
                   }
                 },
@@ -735,7 +743,7 @@ class ProfileView extends StatelessWidget {
                   width: double.infinity,
                   padding: EdgeInsets.symmetric(vertical: 14),
                   decoration: BoxDecoration(
-                    color: AppTheme.cardLight,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: AppTheme.textLight.withValues(alpha: 0.3),
@@ -744,7 +752,11 @@ class ProfileView extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.phone_rounded, color: AppTheme.textDark, size: 20),
+                      Icon(
+                        Icons.phone_rounded,
+                        color: AppTheme.textDark,
+                        size: 20,
+                      ),
                       SizedBox(width: 8),
                       Text(
                         "Qo'ng'iroq qilish",
@@ -774,41 +786,6 @@ class ProfileView extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-
-  Widget _helpItem(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppTheme.primary.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.favorite_rounded,
-                      color: AppTheme.primary,
-                      size: 20,
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        "Sartarosh ilovasini tanlaganingiz uchun rahmat!",
-                        style: TextStyle(
-                          color: AppTheme.textMedium,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      isScrollControlled: true,
     );
   }
 
