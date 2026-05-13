@@ -1669,6 +1669,12 @@ class _BarberProfileTab extends StatelessWidget {
                   },
                 ),
                 const SizedBox(height: 12),
+                _profileMenuItem(
+                  Icons.storefront_rounded,
+                  "Sartarosh sifatida qo'shilish",
+                  () => Get.toNamed('/add-barber'),
+                ),
+                const SizedBox(height: 12),
 
                 // Logout
                 GestureDetector(
