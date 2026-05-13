@@ -6,7 +6,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 
 import 'package:google_fonts/google_fonts.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
@@ -227,6 +226,12 @@ class ProfileView extends StatelessWidget {
                     int idx = 0;
                     return Column(
                       children: [
+                        _menuItem(
+                          Icons.favorite_rounded,
+                          "Sevimlilar",
+                          idx++,
+                          () => Get.toNamed('/favorites'),
+                        ),
                         if (!Get.find<UserService>().isBarberMode.value)
                           _menuItem(
                             Icons.content_cut_rounded,
@@ -633,159 +638,280 @@ class ProfileView extends StatelessWidget {
     );
   }
 
-  // ─── SARTAROSH BO'LISH ───
+  // ─── SARTAROSH BO'LISH (To'g'ridan-to'g'ri) ───
   void _showBecomeBarber() {
-    Get.dialog(
-      AlertDialog(
-        backgroundColor: Colors.transparent,
-        contentPadding: EdgeInsets.zero,
-        insetPadding: EdgeInsets.symmetric(horizontal: 20),
-        content: Container(
-          width: double.infinity,
-          decoration: AppTheme.lightGlassCard(radius: 28),
-          padding: EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppTheme.primary.withValues(alpha: 0.15),
-                      AppTheme.primary.withValues(alpha: 0.05),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.stars_rounded,
-                  color: AppTheme.primary,
-                  size: 36,
-                ),
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Sartarosh bo'lish",
-                style: GoogleFonts.playfairDisplay(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: AppTheme.textDark,
-                ),
-              ),
-              SizedBox(height: 12),
-              Text(
-                "Sartarosh sifatida ro'yxatdan o'tish va daromad topish uchun ilova administratori bilan bog'laning.",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.poppins(
-                  fontSize: 14,
-                  color: AppTheme.textMedium,
-                  height: 1.5,
-                ),
-              ),
-              SizedBox(height: 24),
-              GestureDetector(
-                onTap: () async {
-                  final Uri url = Uri.parse(
-                    'tg://resolve?domain=Nodirbek_qaxxorov',
-                  );
-                  if (await canLaunchUrl(url)) {
-                    await launchUrl(url);
-                  } else {
-                    final Uri webUrl = Uri.parse(
-                      'https://t.me/Nodirbek_qaxxorov',
-                    );
-                    await launchUrl(webUrl);
-                  }
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Color(0xFF229ED9), Color(0xFF27A7E7)],
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Color(0xFF229ED9).withValues(alpha: 0.3),
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.telegram, color: Colors.white, size: 20),
-                      SizedBox(width: 8),
-                      Text(
-                        "Telegram orqali",
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SizedBox(height: 12),
-              GestureDetector(
-                onTap: () async {
-                  final Uri url = Uri.parse('tel:+998937955642');
-                  await launchUrl(url);
-                },
-                child: Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
+    final userService = Get.find<UserService>();
+    final nameCtrl = TextEditingController(text: userService.name.value);
+    final phoneCtrl = TextEditingController(text: userService.phone.value);
+    final addressCtrl = TextEditingController();
+    final isLoading = false.obs;
+
+    Get.bottomSheet(
+      Obx(
+        () => Container(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 32),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
                       color: AppTheme.textLight.withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.phone_rounded,
-                        color: AppTheme.textDark,
-                        size: 20,
+                  SizedBox(height: 20),
+                  Container(
+                    padding: EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppTheme.primary.withValues(alpha: 0.15),
+                          AppTheme.primary.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      SizedBox(width: 8),
-                      Text(
-                        "Qo'ng'iroq qilish",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.content_cut_rounded,
+                      color: AppTheme.primary,
+                      size: 28,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    "Sartarosh bo'lish",
+                    style: GoogleFonts.playfairDisplay(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: AppTheme.textDark,
+                    ),
+                  ),
+                  SizedBox(height: 6),
+                  Text(
+                    "Ma'lumotlarni to'ldiring va ro'yxatdan o'ting",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      color: AppTheme.textMedium,
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  TextField(
+                    controller: nameCtrl,
+                    decoration: InputDecoration(
+                      labelText: "Ism Familiya",
+                      labelStyle: TextStyle(color: AppTheme.textMedium),
+                      prefixIcon: Icon(
+                        Icons.person_rounded,
+                        color: AppTheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppTheme.primary,
+                          width: 2,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
-              SizedBox(height: 16),
-              GestureDetector(
-                onTap: () => Get.back(),
-                child: Text(
-                  "Yopish",
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.textMedium,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 14,
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: phoneCtrl,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: "Telefon raqam (mijozlar ko'radi)",
+                      labelStyle: TextStyle(color: AppTheme.textMedium),
+                      prefixIcon: Icon(
+                        Icons.phone_rounded,
+                        color: AppTheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppTheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  SizedBox(height: 12),
+                  TextField(
+                    controller: addressCtrl,
+                    decoration: InputDecoration(
+                      labelText: "Manzil (tuman, ko'cha)",
+                      labelStyle: TextStyle(color: AppTheme.textMedium),
+                      prefixIcon: Icon(
+                        Icons.location_on_rounded,
+                        color: AppTheme.primary,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: AppTheme.primary,
+                          width: 2,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  GestureDetector(
+                    onTap: isLoading.value
+                        ? null
+                        : () async {
+                            final name = nameCtrl.text.trim();
+                            final phone = phoneCtrl.text.trim();
+                            final address = addressCtrl.text.trim();
+                            if (name.isEmpty ||
+                                phone.isEmpty ||
+                                address.isEmpty) {
+                              Get.snackbar(
+                                'Xatolik',
+                                "Iltimos barcha maydonlarni to'ldiring",
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red.shade100,
+                                colorText: Colors.red.shade800,
+                                margin: EdgeInsets.all(16),
+                                borderRadius: 14,
+                              );
+                              return;
+                            }
+                            isLoading.value = true;
+                            try {
+                              final uid = userService.currentUid;
+                              await FirebaseFirestore.instance
+                                  .collection('barbers')
+                                  .add({
+                                    'uid': uid,
+                                    'name': name,
+                                    'phone': phone,
+                                    'address': address,
+                                    'location': address,
+                                    'image': userService.avatarBase64.value,
+                                    'rating': 0.0,
+                                    'reviewCount': 0,
+                                    'isActive': true,
+                                    'gender': 'male',
+                                    'createdAt': FieldValue.serverTimestamp(),
+                                  });
+                              await FirebaseFirestore.instance
+                                  .collection('users')
+                                  .doc(uid)
+                                  .set({
+                                    'role': 'barber',
+                                  }, SetOptions(merge: true));
+                              userService.userRole.value = 'barber';
+                              userService.isBarberMode.value = true;
+                              userService.setUserRole('barber');
+                              Get.back();
+                              Get.snackbar(
+                                'Muvaffaqiyat! 🎉',
+                                "Siz muvaffaqiyatli sartarosh sifatida ro'yxatdan o'tdingiz!",
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: AppTheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                colorText: AppTheme.primary,
+                                margin: EdgeInsets.all(16),
+                                borderRadius: 14,
+                                duration: Duration(seconds: 3),
+                              );
+                            } catch (e) {
+                              isLoading.value = false;
+                              Get.snackbar(
+                                'Xatolik',
+                                "Qayta urinib ko'ring",
+                                snackPosition: SnackPosition.BOTTOM,
+                                backgroundColor: Colors.red.shade100,
+                                colorText: Colors.red.shade800,
+                                margin: EdgeInsets.all(16),
+                                borderRadius: 14,
+                              );
+                            }
+                          },
+                    child: Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isLoading.value
+                              ? [Colors.grey.shade300, Colors.grey.shade400]
+                              : [
+                                  AppTheme.primary,
+                                  AppTheme.primary.withValues(alpha: 0.8),
+                                ],
+                        ),
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: isLoading.value
+                            ? []
+                            : [
+                                BoxShadow(
+                                  color: AppTheme.primary.withValues(
+                                    alpha: 0.3,
+                                  ),
+                                  blurRadius: 10,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
+                      ),
+                      child: Center(
+                        child: isLoading.value
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Text(
+                                "Ro'yxatdan o'tish",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () => Get.back(),
+                    child: Text(
+                      "Bekor qilish",
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.textMedium,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
+      isScrollControlled: true,
     );
   }
 
