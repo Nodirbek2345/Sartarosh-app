@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/user_service.dart';
 import '../../home/controllers/home_controller.dart';
+import '../../add_barber/controllers/add_barber_controller.dart';
 
 class ServicesController extends GetxController {
   final selectedService = Rxn<Map<String, dynamic>>();
@@ -49,8 +50,18 @@ class ServicesController extends GetxController {
 
           try {
             final globalServices = Get.find<HomeController>().rxServices;
-            for (final gs in globalServices) {
+            final allServices = [
+              ...globalServices,
+              ...AddBarberController.defaultServices,
+            ];
+
+            // Track by unique name to prevent duplicates if globalServices already has it
+            final Set<String> processedNames = {};
+
+            for (final gs in allServices) {
               final name = (gs['name'] ?? '') as String;
+              if (processedNames.contains(name)) continue;
+
               final category = (gs['category'] ?? '') as String;
               final serviceGender = (gs['gender'] ?? 'all') as String;
               if (name.isEmpty) continue;
@@ -66,6 +77,8 @@ class ServicesController extends GetxController {
                 final matchName = name.toLowerCase().contains(target);
                 if (!matchCat && !matchName) continue;
               }
+
+              processedNames.add(name);
 
               aggregated[name] = {
                 'name': name,

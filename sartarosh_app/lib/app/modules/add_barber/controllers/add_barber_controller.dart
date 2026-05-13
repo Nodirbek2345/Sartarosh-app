@@ -82,7 +82,7 @@ class AddBarberController extends GetxController {
 
   // Standard services catalog — auto-seeded if missing from Firestore
   // Each service has a 'gender' field: 'male', 'female', or 'all'
-  static const List<Map<String, String>> _defaultServices = [
+  static const List<Map<String, String>> defaultServices = [
     // ─── ERKAKLAR (male) ───
     {'name': 'Soch olish', 'category': 'Soch olish', 'gender': 'male'},
     {'name': 'Soqol olish', 'category': 'Soqol olish', 'gender': 'male'},
@@ -173,7 +173,7 @@ class AddBarberController extends GetxController {
         }
       } else {
         // Fallback to local default services agar baza bo'sh bo'lsa
-        for (final def in _defaultServices) {
+        for (final def in defaultServices) {
           _allRawServices.add(def);
         }
       }
@@ -184,7 +184,7 @@ class AddBarberController extends GetxController {
       debugPrint("Error fetching global services: $e");
       // Xatolik bo'lsa ham fallback services ni ishlatish
       if (_allRawServices.isEmpty) {
-        _allRawServices.addAll(_defaultServices);
+        _allRawServices.addAll(defaultServices);
         _filterServices();
       }
     } finally {
