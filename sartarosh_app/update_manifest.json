@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.23",
-    "build_number": 273,
+    "latest_version": "3.9.24",
+    "build_number": 274,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.23: ✨ Profil bo'limi yanada toza va tushunarli bo'ldi. Endi ustalar barcha xizmat va narxlarni maxsus 'Bronlar' yonidagi 'Profil' panelidan 'Xizmatlarim va Narxlar' tugmasi orqali to'liq qulay formatda o'zgartiradilar. Eski qo'shimcha menyu olib tashlandi.",
+    "release_notes": "Sartarosh 3.9.24: ✨ Glassmorphism dizayn yangilandi! Bosh ekran, Usta kartochkalari, Profil sahifasi va Usta tafsilotlari ekrani mukammal premium ko'rinishga ega bo'ldi. Shaffof shisha effektlar, gradientlar va zamonaviy animatsiyalar qo'shildi.",
     "force_update": false
 }

@@ -25,11 +25,12 @@ class BarberDetailView extends StatelessWidget {
       backgroundColor: AppTheme.background,
       body: Column(
         children: [
-          // Hero Image
+          // ── IMMERSIVE GLASS HERO ──────────────────────
           Stack(
             children: [
+              // Hero image
               Container(
-                height: 320,
+                height: 340,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
@@ -41,22 +42,24 @@ class BarberDetailView extends StatelessWidget {
                   ),
                 ),
               ),
-              // Gradient overlay
+              // Multi-layer gradient overlay for depth
               Container(
-                height: 320,
+                height: 340,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
+                    stops: [0.0, 0.35, 0.75, 1.0],
                     colors: [
-                      Colors.black.withValues(alpha: 0.4),
+                      Colors.black.withValues(alpha: 0.45),
                       Colors.transparent,
-                      AppTheme.background,
+                      Colors.black.withValues(alpha: 0.30),
+                      Colors.black.withValues(alpha: 0.72),
                     ],
                   ),
                 ),
               ),
-              // Back
+              // Back button — glass
               Positioned(
                 top: 48,
                 left: 16,
@@ -65,10 +68,10 @@ class BarberDetailView extends StatelessWidget {
                   () => Get.back(),
                 ),
               ),
-              // Favorite
+              // Favorite button — glass
               Positioned(
                 top: 48,
-                right: 68,
+                right: 16,
                 child: Obx(() {
                   final isFav = Get.find<UserService>().isFavorite(
                     barber['id'],
@@ -78,9 +81,150 @@ class BarberDetailView extends StatelessWidget {
                         ? Icons.favorite_rounded
                         : Icons.favorite_border_rounded,
                     () => Get.find<UserService>().toggleFavorite(barber['id']),
-                    color: isFav ? AppTheme.danger : AppTheme.textDark,
+                    color: isFav ? AppTheme.danger : Colors.white,
                   );
                 }),
+              ),
+              // Glass name/info card overlaid at the bottom of hero
+              Positioned(
+                bottom: 0,
+                left: 16,
+                right: 16,
+                child: Container(
+                  padding: EdgeInsets.all(18),
+                  decoration: AppTheme.glassCard(radius: 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Name + status
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              barber['name'] ?? 'Usta',
+                              style: GoogleFonts.playfairDisplay(
+                                fontSize: 22,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                          Builder(
+                            builder: (_) {
+                              final bool isActive = barber['isActive'] ?? true;
+                              return Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isActive
+                                      ? AppTheme.success.withValues(alpha: 0.25)
+                                      : AppTheme.danger.withValues(alpha: 0.25),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: isActive
+                                        ? AppTheme.success.withValues(
+                                            alpha: 0.6,
+                                          )
+                                        : AppTheme.danger.withValues(
+                                            alpha: 0.6,
+                                          ),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 7,
+                                      height: 7,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        color: isActive
+                                            ? AppTheme.success
+                                            : AppTheme.danger,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color:
+                                                (isActive
+                                                        ? AppTheme.success
+                                                        : AppTheme.danger)
+                                                    .withValues(alpha: 0.5),
+                                            blurRadius: 4,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    SizedBox(width: 5),
+                                    Text(
+                                      isActive ? "Ishda" : "Ishda emas",
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 8),
+                      // Location + rating in one row
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 13,
+                            color: Colors.white70,
+                          ),
+                          SizedBox(width: 3),
+                          Expanded(
+                            child: Obx(() {
+                              final ctrl = Get.find<BarberDetailController>();
+                              final dist = ctrl.distanceText.value;
+                              final addr = barber['address'] ?? 'Toshkent';
+                              return Text(
+                                dist.isNotEmpty ? "$addr · $dist" : addr,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white70,
+                                  fontSize: 12,
+                                ),
+                              );
+                            }),
+                          ),
+                          SizedBox(width: 12),
+                          Icon(
+                            Icons.star_rounded,
+                            size: 14,
+                            color: AppTheme.primaryLight,
+                          ),
+                          SizedBox(width: 3),
+                          Text(
+                            "${barber['rating'] ?? 5.0}",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            "  (${barber['reviewCount'] ?? 0})",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white60,
+                              fontSize: 11,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.08),
               ),
             ],
           ).animate().fadeIn(),
@@ -89,127 +233,10 @@ class BarberDetailView extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               physics: BouncingScrollPhysics(),
-              padding: EdgeInsets.symmetric(horizontal: 16),
+              padding: EdgeInsets.fromLTRB(16, 20, 16, 0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Name + Status
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        barber['name'] ?? 'Usta',
-                        style: GoogleFonts.playfairDisplay(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          color: AppTheme.textDark,
-                        ),
-                      ),
-                      Builder(
-                        builder: (_) {
-                          final bool isActive = barber['isActive'] ?? true;
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: isActive
-                                  ? AppTheme.success.withValues(alpha: 0.1)
-                                  : AppTheme.danger.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: isActive
-                                        ? AppTheme.success
-                                        : AppTheme.danger,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color:
-                                            (isActive
-                                                    ? AppTheme.success
-                                                    : AppTheme.danger)
-                                                .withValues(alpha: 0.4),
-                                        blurRadius: 6,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                SizedBox(width: 6),
-                                Text(
-                                  isActive ? "Ishda ✓" : "Ishda emas",
-                                  style: GoogleFonts.poppins(
-                                    color: isActive
-                                        ? AppTheme.success
-                                        : AppTheme.danger,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 100.ms),
-
-                  SizedBox(height: 8),
-
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.location_on_rounded,
-                        size: 15,
-                        color: AppTheme.textMedium,
-                      ),
-                      SizedBox(width: 4),
-                      Expanded(
-                        child: Obx(() {
-                          final controller = Get.find<BarberDetailController>();
-                          final dist = controller.distanceText.value;
-                          final address = barber['address'] ?? "Toshkent";
-
-                          return Text(
-                            dist.isNotEmpty ? "$address • $dist" : address,
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.textMedium,
-                              fontSize: 13,
-                            ),
-                          );
-                        }),
-                      ),
-                      SizedBox(width: 16),
-                      Icon(Icons.star_rounded, size: 15, color: AppTheme.gold),
-                      SizedBox(width: 3),
-                      Text(
-                        "${barber['rating'] ?? 5.0}",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textDark,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                        ),
-                      ),
-                      Text(
-                        "  (${barber['reviewCount'] ?? 0} sharhlar)",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textMedium,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 200.ms),
-
-                  SizedBox(height: 20),
-
                   // Action Buttons
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -556,22 +583,13 @@ class BarberDetailView extends StatelessWidget {
   Widget _circleButton(
     IconData icon,
     VoidCallback onTap, {
-    Color color = AppTheme.textDark,
+    Color color = Colors.white,
   }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.9),
-          shape: BoxShape.circle,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 8,
-            ),
-          ],
-        ),
+        decoration: AppTheme.glassCard(radius: 14),
         child: Icon(icon, size: 22, color: color),
       ),
     );
@@ -590,10 +608,21 @@ class BarberDetailView extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            padding: EdgeInsets.all(14),
+            padding: EdgeInsets.all(15),
             decoration: BoxDecoration(
-              color: AppTheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primary.withValues(alpha: 0.15),
+                  AppTheme.primary.withValues(alpha: 0.06),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppTheme.primary.withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
             child: Icon(icon, color: AppTheme.primary, size: 22),
           ),

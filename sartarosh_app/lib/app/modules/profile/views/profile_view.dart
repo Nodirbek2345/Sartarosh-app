@@ -19,139 +19,194 @@ class ProfileView extends StatelessWidget {
       backgroundColor: AppTheme.background,
       body: Column(
         children: [
-          // Header
+          // ┌─────────────────────────────────────────────
+          // │  GLASSMORPHISM PROFILE HERO HEADER
+          // └─────────────────────────────────────────────
           Container(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
             decoration: BoxDecoration(
-              gradient: AppTheme.darkGradient,
+              gradient: AppTheme.glassHeroGradient,
               borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(28),
-                bottomRight: Radius.circular(28),
+                bottomLeft: Radius.circular(32),
+                bottomRight: Radius.circular(32),
               ),
             ),
             child: SafeArea(
               bottom: false,
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: Icon(
-                          Icons.arrow_back_rounded,
-                          color: Colors.white,
-                        ),
-                        onPressed: () => Get.back(),
-                      ),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            "Profil",
-                            style: TextStyle(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(16, 4, 16, 28),
+                child: Column(
+                  children: [
+                    // Top bar
+                    Row(
+                      children: [
+                        GestureDetector(
+                          onTap: () => Get.back(),
+                          child: Container(
+                            padding: EdgeInsets.all(9),
+                            decoration: AppTheme.glassCard(radius: 13),
+                            child: Icon(
+                              Icons.arrow_back_rounded,
                               color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
+                              size: 20,
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(width: 48),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  GestureDetector(
-                    onTap: () async {
-                      final picker = ImagePicker();
-                      final XFile? image = await picker.pickImage(
-                        source: ImageSource.gallery,
-                        maxWidth: 400,
-                        maxHeight: 400,
-                        imageQuality: 80,
-                      );
-                      if (image != null) {
-                        final bytes = await image.readAsBytes();
-                        final base64String = base64Encode(bytes);
-                        Get.find<UserService>().updateAvatar(base64String);
-                      }
-                    },
-                    child: Container(
-                      padding: EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.4),
-                          width: 2,
-                        ),
-                      ),
-                      child: Obx(() {
-                        final avatarBase64 =
-                            Get.find<UserService>().avatarBase64.value;
-                        return Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            CircleAvatar(
-                              radius: 42,
-                              backgroundColor: Colors.transparent,
-                              backgroundImage: avatarBase64.isNotEmpty
-                                  ? MemoryImage(base64Decode(avatarBase64))
-                                        as ImageProvider
-                                  : const AssetImage(
-                                      'assets/images/default_avatar.png',
-                                    ),
-                            ),
-                            Container(
-                              width: 84,
-                              height: 84,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.black.withValues(alpha: 0.3),
+                        Expanded(
+                          child: Center(
+                            child: Text(
+                              "Profil",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.3,
                               ),
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.camera_alt_rounded,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                                SizedBox(height: 2),
-                                Text(
-                                  "Rasm",
-                                  style: GoogleFonts.poppins(
-                                    color: Colors.white,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        SizedBox(width: 42),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+
+                    // Glass profile card — like the reference image
+                    Container(
+                      padding: EdgeInsets.all(20),
+                      decoration: AppTheme.glassCard(radius: 24),
+                      child: Column(
+                        children: [
+                          // Avatar + name row
+                          Row(
+                            children: [
+                              // Avatar with glass ring (tap to change)
+                              GestureDetector(
+                                onTap: () async {
+                                  final picker = ImagePicker();
+                                  final XFile? image = await picker.pickImage(
+                                    source: ImageSource.gallery,
+                                    maxWidth: 400,
+                                    maxHeight: 400,
+                                    imageQuality: 80,
+                                  );
+                                  if (image != null) {
+                                    final bytes = await image.readAsBytes();
+                                    Get.find<UserService>().updateAvatar(
+                                      base64Encode(bytes),
+                                    );
+                                  }
+                                },
+                                child: Container(
+                                  padding: EdgeInsets.all(3),
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.6,
+                                      ),
+                                      width: 2,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 16,
+                                        offset: Offset(0, 4),
+                                      ),
+                                    ],
                                   ),
+                                  child: Obx(() {
+                                    final av = Get.find<UserService>()
+                                        .avatarBase64
+                                        .value;
+                                    return CircleAvatar(
+                                      radius: 36,
+                                      backgroundColor: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                      backgroundImage: av.isNotEmpty
+                                          ? MemoryImage(base64Decode(av))
+                                                as ImageProvider
+                                          : const AssetImage(
+                                              'assets/images/default_avatar.png',
+                                            ),
+                                      child: av.isEmpty
+                                          ? Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(
+                                                  Icons.camera_alt_rounded,
+                                                  color: Colors.white,
+                                                  size: 18,
+                                                ),
+                                                Text(
+                                                  "Rasm",
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.white,
+                                                    fontSize: 9,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : null,
+                                    );
+                                  }),
+                                ).animate().scale(duration: 500.ms),
+                              ),
+                              SizedBox(width: 16),
+                              // Name, phone, role badges
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Obx(
+                                      () => Text(
+                                        Get.find<UserService>().name.value,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white,
+                                          fontSize: 19,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ).animate().fadeIn(delay: 100.ms),
+                                    SizedBox(height: 2),
+                                    Obx(
+                                      () => Text(
+                                        Get.find<UserService>().phone.value,
+                                        style: GoogleFonts.poppins(
+                                          color: Colors.white.withValues(
+                                            alpha: 0.7,
+                                          ),
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ).animate().fadeIn(delay: 200.ms),
+                                    SizedBox(height: 10),
+                                    // Role badge pills — inspired by reference image
+                                    Obx(() {
+                                      final us = Get.find<UserService>();
+                                      final isBarber =
+                                          us.userRole.value == 'barber';
+                                      return Wrap(
+                                        spacing: 8,
+                                        children: [
+                                          _glassBadge(
+                                            isBarber ? "Sartarosh ✂️" : "Mijoz",
+                                          ),
+                                          if (isBarber) _glassBadge("Pro ⭐"),
+                                        ],
+                                      );
+                                    }),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ],
-                        );
-                      }),
-                    ).animate().scale(duration: 500.ms),
-                  ),
-                  SizedBox(height: 14),
-                  Obx(
-                    () => Text(
-                      Get.find<UserService>().name.value,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
-                    ),
-                  ).animate().fadeIn(delay: 200.ms),
-                  SizedBox(height: 4),
-                  Obx(
-                    () => Text(
-                      Get.find<UserService>().phone.value,
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.7),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ).animate().fadeIn(delay: 300.ms),
-                ],
+                    ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.06),
+                  ],
+                ),
               ),
             ),
           ),
@@ -168,19 +223,15 @@ class ProfileView extends StatelessWidget {
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Obx(() {
-                    // Menus are now natively integrated based on role. No mode toggles needed.
                     int idx = 0;
                     return Column(
                       children: [
-                        // Barber role menus are exclusively available in the Barber Dashboard tab.
-                        // Removed legacy redundant 'Xizmatlar va narxlarni tahrirlash' menu here.
                         _menuItem(
                           Icons.settings_rounded,
                           "Sozlamalar",
                           idx++,
                           () => _showSettings(),
                         ),
-
                         _menuItem(
                           Icons.help_outline_rounded,
                           "Yordam",
@@ -195,6 +246,29 @@ class ProfileView extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // Glass badge pill, like in reference image
+  Widget _glassBadge(String label) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.22),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.4),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.poppins(
+          color: Colors.white,
+          fontSize: 11,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -618,52 +692,80 @@ class ProfileView extends StatelessWidget {
 
   Widget _menuItem(IconData icon, String label, int index, VoidCallback onTap) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Container(
-          padding: EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.03),
-                blurRadius: 12,
-              ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
+          padding: EdgeInsets.only(bottom: 12),
+          child: GestureDetector(
+            onTap: onTap,
+            child: Container(
+              padding: EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
                   color: AppTheme.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(12),
+                  width: 1,
                 ),
-                child: Icon(icon, color: AppTheme.primary, size: 22),
-              ),
-              SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.05),
+                    blurRadius: 16,
+                    spreadRadius: -4,
+                    offset: Offset(0, 6),
                   ),
-                ),
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
+                  ),
+                ],
               ),
-              Icon(
-                Icons.chevron_right_rounded,
-                color: AppTheme.textLight,
-                size: 22,
+              child: Row(
+                children: [
+                  Container(
+                    padding: EdgeInsets.all(11),
+                    decoration: BoxDecoration(
+                      gradient: AppTheme.goldGradient,
+                      borderRadius: BorderRadius.circular(13),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primary.withValues(alpha: 0.25),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(icon, color: Colors.white, size: 20),
+                  ),
+                  SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      label,
+                      style: GoogleFonts.poppins(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding: EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      color: AppTheme.primary.withValues(alpha: 0.07),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      Icons.chevron_right_rounded,
+                      color: AppTheme.primary,
+                      size: 18,
+                    ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        ),
-      ),
-    ).animate().fadeIn(delay: Duration(milliseconds: 400 + (index * 80)));
+        )
+        .animate()
+        .fadeIn(delay: Duration(milliseconds: 300 + (index * 80)))
+        .slideX(begin: 0.04);
   }
 
   // ─── BONUS CARD ───
@@ -702,18 +804,29 @@ class ProfileView extends StatelessWidget {
 
           return Container(
             margin: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            padding: EdgeInsets.all(16),
+            padding: EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: [
+                  AppTheme.primary.withValues(alpha: 0.07),
+                  Colors.white,
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: AppTheme.gold.withValues(alpha: 0.35),
+                width: 1.2,
+              ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.gold.withValues(alpha: 0.15),
+                  color: AppTheme.gold.withValues(alpha: 0.12),
                   blurRadius: 20,
+                  spreadRadius: -4,
                   offset: Offset(0, 8),
                 ),
               ],
-              border: Border.all(color: AppTheme.gold.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

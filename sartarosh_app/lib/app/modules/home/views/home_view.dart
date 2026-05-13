@@ -91,176 +91,163 @@ class HomeView extends GetView<HomeController> {
   // ─── HEADER ───
   Widget _buildHeader() {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 8, 20, 20),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: Offset(0, 4),
-          ),
-        ],
+        gradient: AppTheme.glassHeroGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(28),
+          bottomRight: Radius.circular(28),
+        ),
       ),
       child: SafeArea(
         bottom: false,
-        child: Row(
-          children: [
-            // Menu icon
-            GestureDetector(
-              onTap: () => _showMenuBottomSheet(),
-              child: Container(
-                padding: EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: AppTheme.background,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(Icons.menu, color: AppTheme.textDark, size: 22),
-              ),
-            ),
-            Spacer(),
-            GestureDetector(
-              onTap: () => Get.toNamed('/region'),
-              child: Obx(() {
-                final userService = Get.find<UserService>();
-                final mode = userService.filterMode.value;
-                final region = userService.selectedRegion.value;
-                final isGps = mode == 'GPS';
-                final displayText = isGps
-                    ? "GPS · 20km"
-                    : (region.isNotEmpty ? region : "Viloyat tanlang");
-                return Row(
-                  children: [
-                    Icon(
-                      isGps ? Icons.gps_fixed_rounded : Icons.location_on,
-                      color: AppTheme.primary,
-                      size: 18,
-                    ),
-                    SizedBox(width: 4),
-                    Text(
-                      displayText,
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.textDark,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: AppTheme.textMedium,
-                      size: 20,
-                    ),
-                  ],
-                );
-              }),
-            ),
-            Spacer(),
-            // Bell Button
-            Obx(() {
-              final notifController =
-                  Get.isRegistered<NotificationsController>()
-                  ? Get.find<NotificationsController>()
-                  : Get.put(NotificationsController());
-
-              final unread = notifController.unreadCount.value;
-              return GestureDetector(
-                onTap: () => Get.toNamed('/notifications'),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(20, 12, 20, 24),
+          child: Row(
+            children: [
+              // Menu icon — glass circle
+              GestureDetector(
+                onTap: () => _showMenuBottomSheet(),
                 child: Container(
-                  margin: EdgeInsets.only(right: 12),
                   padding: EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primary,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppTheme.primary.withValues(alpha: 0.2),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Icon(
-                            Icons.notifications_active_rounded,
+                  decoration: AppTheme.glassCard(radius: 13),
+                  child: Icon(Icons.menu, color: Colors.white, size: 22),
+                ),
+              ),
+              Spacer(),
+              // Location pill — glass
+              GestureDetector(
+                onTap: () => Get.toNamed('/region'),
+                child: Obx(() {
+                  final userService = Get.find<UserService>();
+                  final mode = userService.filterMode.value;
+                  final region = userService.selectedRegion.value;
+                  final isGps = mode == 'GPS';
+                  final displayText = isGps
+                      ? "GPS · 20km"
+                      : (region.isNotEmpty ? region : "Viloyat tanlang");
+                  return Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: AppTheme.glassCard(radius: 20),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          isGps ? Icons.gps_fixed_rounded : Icons.location_on,
+                          color: Colors.white,
+                          size: 15,
+                        ),
+                        SizedBox(width: 5),
+                        Text(
+                          displayText,
+                          style: GoogleFonts.poppins(
                             color: Colors.white,
-                            size: 20,
-                          )
-                          .animate(
-                            target: unread > 0 ? 1 : 0,
-                            onPlay: (c) => c.repeat(reverse: true),
-                          )
-                          .shimmer()
-                          .shake(hz: 4),
-
-                      if (unread > 0)
-                        Positioned(
-                          top: -4,
-                          right: -4,
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: AppTheme.danger,
-                              borderRadius: BorderRadius.circular(10),
-                              border: Border.all(
-                                color: AppTheme.primary,
-                                width: 1.5,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: Colors.white.withValues(alpha: 0.7),
+                          size: 16,
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+              ),
+              Spacer(),
+              // Bell — glass
+              Obx(() {
+                final notifController =
+                    Get.isRegistered<NotificationsController>()
+                    ? Get.find<NotificationsController>()
+                    : Get.put(NotificationsController());
+                final unread = notifController.unreadCount.value;
+                return GestureDetector(
+                  onTap: () => Get.toNamed('/notifications'),
+                  child: Container(
+                    margin: EdgeInsets.only(right: 10),
+                    padding: EdgeInsets.all(10),
+                    decoration: AppTheme.glassCard(radius: 13),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(
+                              Icons.notifications_active_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            )
+                            .animate(
+                              target: unread > 0 ? 1 : 0,
+                              onPlay: (c) => c.repeat(reverse: true),
+                            )
+                            .shake(hz: 4),
+                        if (unread > 0)
+                          Positioned(
+                            top: -4,
+                            right: -4,
+                            child: Container(
+                              width: 14,
+                              height: 14,
+                              decoration: BoxDecoration(
+                                color: AppTheme.danger,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white,
+                                  width: 1.5,
+                                ),
                               ),
-                            ),
-                            child: Text(
-                              "$unread",
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 9,
-                                fontWeight: FontWeight.bold,
+                              child: Center(
+                                child: Text(
+                                  "$unread",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            }),
-            // Avatar
-            Obx(() {
-              final avatarBase64 = Get.find<UserService>().avatarBase64.value;
-              return GestureDetector(
-                onTap: () => Get.toNamed('/profile'),
-                child: Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppTheme.primary.withValues(alpha: 0.4),
-                      width: 2,
+                      ],
                     ),
-                    image: avatarBase64.isNotEmpty
-                        ? DecorationImage(
-                            image: MemoryImage(base64Decode(avatarBase64)),
-                            fit: BoxFit.cover,
+                  ),
+                );
+              }),
+              // Avatar — glass border
+              Obx(() {
+                final avatarBase64 = Get.find<UserService>().avatarBase64.value;
+                return GestureDetector(
+                  onTap: () => Get.toNamed('/profile'),
+                  child: Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                      image: avatarBase64.isNotEmpty
+                          ? DecorationImage(
+                              image: MemoryImage(base64Decode(avatarBase64)),
+                              fit: BoxFit.cover,
+                            )
+                          : null,
+                      color: Colors.white.withValues(alpha: 0.18),
+                    ),
+                    child: avatarBase64.isEmpty
+                        ? Icon(
+                            Icons.person_rounded,
+                            color: Colors.white,
+                            size: 22,
                           )
                         : null,
-                    color: avatarBase64.isEmpty
-                        ? AppTheme.primary.withValues(alpha: 0.1)
-                        : null,
                   ),
-                  child: avatarBase64.isEmpty
-                      ? Icon(
-                          Icons.person_rounded,
-                          color: AppTheme.primary,
-                          size: 22,
-                        )
-                      : null,
-                ),
-              );
-            }),
-          ],
+                );
+              }),
+            ],
+          ),
         ),
       ),
     ).animate().fadeIn().slideY(begin: -0.1);
@@ -269,19 +256,9 @@ class HomeView extends GetView<HomeController> {
   // ─── SEARCH BAR ───
   Widget _buildSearchBar() {
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 12, 16, 8),
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
       child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 16,
-              offset: Offset(0, 4),
-            ),
-          ],
-        ),
+        decoration: AppTheme.lightGlassCard(radius: 18),
         child: TextField(
           decoration: InputDecoration(
             hintText: "Usta yoki xizmat qidiring...",
@@ -291,15 +268,22 @@ class HomeView extends GetView<HomeController> {
             ),
             prefixIcon: Icon(
               Icons.search_rounded,
-              color: AppTheme.textLight,
+              color: AppTheme.primary,
               size: 22,
             ),
             suffixIcon: Container(
-              margin: EdgeInsets.all(8),
+              margin: EdgeInsets.all(9),
               padding: EdgeInsets.all(8),
               decoration: BoxDecoration(
                 gradient: AppTheme.goldGradient,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(11),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppTheme.primary.withValues(alpha: 0.25),
+                    blurRadius: 8,
+                    offset: Offset(0, 3),
+                  ),
+                ],
               ),
               child: Icon(Icons.tune_rounded, color: Colors.white, size: 18),
             ),
@@ -996,27 +980,35 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  // ─── BARBER LIST ITEM (Nearby style) ───
+  // ─── BARBER LIST ITEM (Glass card) ───
   Widget _buildBarberListItem(Map<String, dynamic> barber, int index) {
-    // True business logic for Faol/Faol emas and Bo'sh/Band
     final bool isActive = barber['isActive'] ?? true;
 
     return GestureDetector(
           onTap: () => Get.toNamed('/barber-detail', arguments: barber),
           child: Container(
-            margin: EdgeInsets.only(bottom: 12),
-            padding: EdgeInsets.all(12),
+            margin: EdgeInsets.only(bottom: 14),
+            padding: EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: isActive
-                  ? null
-                  : Border.all(color: AppTheme.danger.withValues(alpha: 0.1)),
+              borderRadius: BorderRadius.circular(22),
+              border: Border.all(
+                color: isActive
+                    ? AppTheme.primary.withValues(alpha: 0.08)
+                    : AppTheme.danger.withValues(alpha: 0.10),
+                width: 1.2,
+              ),
               boxShadow: [
                 BoxShadow(
+                  color: AppTheme.primary.withValues(alpha: 0.05),
+                  blurRadius: 20,
+                  spreadRadius: -4,
+                  offset: Offset(0, 8),
+                ),
+                BoxShadow(
                   color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 12,
-                  offset: Offset(0, 4),
+                  blurRadius: 8,
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
@@ -1254,11 +1246,12 @@ class HomeView extends GetView<HomeController> {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: Offset(0, -4),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 24,
+            offset: Offset(0, -6),
           ),
         ],
       ),
@@ -1268,7 +1261,7 @@ class HomeView extends GetView<HomeController> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _navItem(Icons.dashboard_rounded, "Asosiy", true),
+              _navItem(Icons.home_rounded, "Asosiy", true),
               _navItem(
                 Icons.search_rounded,
                 "Qidirish",
@@ -1311,31 +1304,39 @@ class HomeView extends GetView<HomeController> {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 64,
+        width: 70,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: EdgeInsets.all(6),
+            AnimatedContainer(
+              duration: Duration(milliseconds: 250),
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: isActive
                   ? BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      gradient: AppTheme.goldGradient,
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppTheme.primary.withValues(alpha: 0.30),
+                          blurRadius: 10,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
                     )
                   : null,
               child: Icon(
                 icon,
-                color: isActive ? AppTheme.primary : AppTheme.textLight,
+                color: isActive ? Colors.white : AppTheme.textLight,
                 size: 22,
               ),
             ),
-            SizedBox(height: 3),
+            SizedBox(height: 4),
             Text(
               label,
               style: GoogleFonts.poppins(
                 color: isActive ? AppTheme.primary : AppTheme.textLight,
                 fontSize: 10,
-                fontWeight: isActive ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
               ),
             ),
           ],

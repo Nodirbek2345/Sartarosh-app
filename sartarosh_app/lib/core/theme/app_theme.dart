@@ -32,7 +32,15 @@ class AppTheme {
   static const Color success = Color(0xFF22C55E);
   static const Color danger = Color(0xFFEF4444);
 
-  // Gradients
+  // ─── GLASS COLORS ───
+  /// White glass overlay — for cards on dark/image backgrounds
+  static Color get glassWhite => Colors.white.withValues(alpha: 0.18);
+  static Color get glassWhiteStrong => Colors.white.withValues(alpha: 0.28);
+  static Color get glassBorder => Colors.white.withValues(alpha: 0.35);
+  static Color get glassDark => Colors.black.withValues(alpha: 0.18);
+  static Color get glassDarkCard => Colors.black.withValues(alpha: 0.12);
+
+  // ─── GRADIENTS ───
   static LinearGradient get goldGradient => LinearGradient(
     colors: [primary, accent],
     begin: Alignment.topLeft,
@@ -50,6 +58,74 @@ class AppTheme {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
   );
+
+  /// Brilliant warm glass gradient background — inspired by the pink-sky reference
+  static LinearGradient get glassHeroGradient => isFemale
+      ? LinearGradient(
+          colors: [
+            Color(0xFF2C1320),
+            Color(0xFF7B1048),
+            Color(0xFFD63384).withValues(alpha: 0.85),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        )
+      : LinearGradient(
+          colors: [Color(0xFF1A1A2E), Color(0xFF16213E), Color(0xFF0F3460)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
+
+  /// Secondary glass gradient — lighter for cards behind glass overlay
+  static LinearGradient get glassCardGradient => LinearGradient(
+    colors: [
+      Colors.white.withValues(alpha: 0.22),
+      Colors.white.withValues(alpha: 0.10),
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  /// Decoration for a standard frosted glass card
+  static BoxDecoration glassCard({
+    double radius = 20,
+    Color? borderColor,
+    Color? bgColor,
+  }) {
+    return BoxDecoration(
+      color: bgColor ?? Colors.white.withValues(alpha: 0.18),
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(
+        color: borderColor ?? Colors.white.withValues(alpha: 0.35),
+        width: 1.2,
+      ),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.10),
+          blurRadius: 20,
+          spreadRadius: -4,
+          offset: Offset(0, 8),
+        ),
+      ],
+    );
+  }
+
+  /// Decoration for a frosted glass card on a light background
+  static BoxDecoration lightGlassCard({double radius = 20}) {
+    return BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(radius),
+      border: Border.all(color: Color(0xFFE8E8E8), width: 1),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.05),
+          blurRadius: 20,
+          spreadRadius: -4,
+          offset: Offset(0, 8),
+        ),
+      ],
+    );
+  }
 
   static ThemeData get luxuryTheme => ThemeData(
     scaffoldBackgroundColor: background,
