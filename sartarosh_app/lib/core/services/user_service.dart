@@ -112,6 +112,10 @@ class UserService extends GetxService {
           if (serverRole.isNotEmpty) {
             userRole.value = serverRole;
             await _storage.write(key: 'user_role', value: serverRole);
+            if (serverRole == 'barber') {
+              isBarberMode.value = true;
+              await _storage.write(key: 'is_barber_mode', value: 'true');
+            }
           }
           if (serverAvatar.isNotEmpty) {
             avatarBase64.value = serverAvatar;
