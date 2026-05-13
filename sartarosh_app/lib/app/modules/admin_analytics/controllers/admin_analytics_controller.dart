@@ -20,6 +20,9 @@ class AdminAnalyticsController extends GetxController {
   var monthlyChartDataOborot = <int, double>{}.obs;
   var monthlyChartDataAdmin = <int, double>{}.obs;
 
+  // Regional Stats
+  var regionBarberCounts = <String, int>{}.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -94,6 +97,24 @@ class AdminAnalyticsController extends GetxController {
 
       monthlyChartDataOborot(chartOborot);
       monthlyChartDataAdmin(chartAdmin);
+
+      // Fetch Barbers for Regional Stats
+      final barbersSnapshot = await _firestore.collection('barbers').get();
+      Map<String, int> rCounts = {};
+      for (var doc in barbersSnapshot.docs) {
+        final r = doc.data()['region'] ?? 'Noma\'lum';
+        rCounts[r] = (rCounts[r] ?? 0) + 1;
+      }
+
+      // Sort in descending order
+      var sortedKeys = rCounts.keys.toList(growable: false)
+        ..sort((k1, k2) => rCounts[k2]!.compareTo(rCounts[k1]!));
+
+      Map<String, int> sortedRegionCounts = {
+        for (var k in sortedKeys) k: rCounts[k]!,
+      };
+
+      regionBarberCounts(sortedRegionCounts);
     } catch (e) {
       Get.log("Admin Analytics Xatosi: $e");
     } finally {

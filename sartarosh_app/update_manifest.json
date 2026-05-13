@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.18",
-    "build_number": 268,
+    "latest_version": "3.9.19",
+    "build_number": 269,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.18: 🧼 Mijoz profil oynasi (Asosiy sahifadagi) ham ortiqcha tugmalardan tozalandi. 'Mening bronlarim' va 'Sevimlilar' tugmalari allaqachon pastki menyuda (Navbar) bo'lgani uchun, ular ichki menyudan olib tashlandi.",
+    "release_notes": "Sartarosh 3.9.19: ✨ Xizmatlar ro'yxati boyitildi! Endi ayollar ustalariga ham (Soch kesish + Yuvish, Makiyaj + Turmak) va bolalariga ham kombinatsiyalangan xizmat turlarini qo'shish imkoniyati bor. 📊 Admin panelida esa 'Hududlar bo'yicha eng ko'p sartaroshlar' reytingi qo'shildi!",
     "force_update": false
 }

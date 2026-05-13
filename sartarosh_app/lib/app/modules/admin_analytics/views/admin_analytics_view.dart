@@ -81,6 +81,11 @@ class AdminAnalyticsView extends GetView<AdminAnalyticsController> {
                   .animate()
                   .fadeIn(delay: 200.ms)
                   .slideY(begin: 0.1),
+              const SizedBox(height: 32),
+              _buildRegionalBarberStats()
+                  .animate()
+                  .fadeIn(delay: 300.ms)
+                  .slideY(begin: 0.1),
               const SizedBox(height: 48), // Bottom padding scroll space
             ],
           ),
@@ -490,6 +495,132 @@ class AdminAnalyticsView extends GetView<AdminAnalyticsController> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildRegionalBarberStats() {
+    if (controller.regionBarberCounts.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.map_rounded,
+                  color: AppTheme.primary,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Hududlar bo'yicha",
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.textDark,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text(
+                      "Eng ko'p sartaroshlar viloyatlar bo'ylab",
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.textMedium,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          ...controller.regionBarberCounts.entries.map((entry) {
+            final region = entry.key;
+            final count = entry.value;
+            // Calculate percentage based on max value for visually pleasing bars
+            final maxCount =
+                controller.regionBarberCounts.values.first; // Already sorted
+            final double percentage = maxCount > 0 ? count / maxCount : 0;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        region,
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.textDark,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Text(
+                        "$count ta",
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.primary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Stack(
+                    children: [
+                      Container(
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: AppTheme.textMedium.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      FractionallySizedBox(
+                        widthFactor: percentage,
+                        child: Container(
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primary,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 }

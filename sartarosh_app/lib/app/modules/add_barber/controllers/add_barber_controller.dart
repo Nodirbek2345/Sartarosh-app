@@ -87,26 +87,75 @@ class AddBarberController extends GetxController {
     {'name': 'Soch olish', 'category': 'Soch olish', 'gender': 'male'},
     {'name': 'Soqol olish', 'category': 'Soqol olish', 'gender': 'male'},
     {'name': 'Soch + Soqol', 'category': 'Kompleks', 'gender': 'male'},
+    {
+      'name': 'Soch + Soqol + Bosh yuvish',
+      'category': 'Kompleks',
+      'gender': 'male',
+    },
     {'name': 'Styling', 'category': 'Styling', 'gender': 'male'},
     {'name': 'Bosh yuvish', 'category': 'Bosh yuvish', 'gender': 'male'},
     {'name': 'Bolalar soch olish', 'category': 'Bolalar', 'gender': 'male'},
+    {
+      'name': 'Bolalar soch + Naqsh chizish',
+      'category': 'Bolalar',
+      'gender': 'male',
+    },
     {'name': "To'y soch turmak", 'category': "To'y marasim", 'gender': 'male'},
-    {'name': "To'y kompleks", 'category': "To'y marasim", 'gender': 'male'},
+    {
+      'name': "To'y kompleks (Soch + Soqol + Yuz tozalash)",
+      'category': "To'y marasim",
+      'gender': 'male',
+    },
 
     // ─── AYOLLAR (female) ───
-    {'name': 'Soch turmaklash', 'category': 'Soch turmak', 'gender': 'female'},
-    {"name": "Bo'yash", "category": "Bo'yash", "gender": "female"},
-    {'name': 'Makiyaj', 'category': 'Makiyaj', 'gender': 'female'},
-    {'name': 'Manikyur', 'category': 'Manikyur', 'gender': 'female'},
     {'name': 'Soch kesish', 'category': 'Soch olish', 'gender': 'female'},
-    {'name': 'Kompleks xizmat', 'category': 'Kompleks', 'gender': 'female'},
+    {'name': 'Soch turmaklash', 'category': 'Soch turmak', 'gender': 'female'},
+    {
+      'name': 'Soch kesish + Ukladka',
+      'category': 'Kompleks',
+      'gender': 'female',
+    },
+    {
+      'name': 'Soch kesish + Yuvish',
+      'category': 'Kompleks',
+      'gender': 'female',
+    },
+    {'name': "Bo'yash", "category": "Bo'yash", "gender": "female"},
+    {
+      'name': "Soch kesish + Bo'yash",
+      "category": "Kompleks",
+      "gender": "female",
+    },
+    {'name': 'Makiyaj', 'category': 'Makiyaj', 'gender': 'female'},
+    {'name': 'Makiyaj + Turmak', 'category': 'Kompleks', 'gender': 'female'},
+    {'name': 'Manikyur', 'category': 'Manikyur', 'gender': 'female'},
+    {'name': 'Manikyur + Pedikyur', 'category': 'Kompleks', 'gender': 'female'},
     {'name': "To'y makiyaji", 'category': "To'y marasim", 'gender': 'female'},
     {
       'name': "To'y soch turmak",
       'category': "To'y marasim",
       'gender': 'female',
     },
-    {'name': "To'y kompleks", 'category': "To'y marasim", 'gender': 'female'},
+    {
+      'name': "To'y kompleks (Makiyaj + Turmak + Manikyur)",
+      'category': "To'y marasim",
+      'gender': 'female',
+    },
+    {
+      'name': 'Qiz bolalar soch kesish',
+      'category': 'Bolalar',
+      'gender': 'female',
+    },
+    {
+      'name': 'Qiz bolalar soch turmak',
+      'category': 'Bolalar',
+      'gender': 'female',
+    },
+    {
+      'name': 'Qiz bolalar soch + turmak',
+      'category': 'Bolalar',
+      'gender': 'female',
+    },
   ];
 
   Future<void> _fetchGlobalServices() async {
