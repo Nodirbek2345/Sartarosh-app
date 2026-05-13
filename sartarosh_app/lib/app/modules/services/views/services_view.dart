@@ -217,10 +217,7 @@ class ServicesView extends GetView<ServicesController> {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Icon(
-                                  IconData(
-                                    s['icon'],
-                                    fontFamily: 'MaterialIcons',
-                                  ),
+                                  s['icon'] as IconData,
                                   color: AppTheme.primary,
                                   size: 28,
                                 ),
@@ -332,11 +329,7 @@ class ServicesView extends GetView<ServicesController> {
                 ),
               ),
               SizedBox(height: 20),
-              Icon(
-                IconData(s['icon'], fontFamily: 'MaterialIcons'),
-                color: AppTheme.primary,
-                size: 48,
-              ),
+              Icon(s['icon'] as IconData, color: AppTheme.primary, size: 48),
               SizedBox(height: 16),
               Text(
                 s['name'],

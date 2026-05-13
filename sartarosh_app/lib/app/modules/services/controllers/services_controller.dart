@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/services/user_service.dart';
@@ -13,19 +14,20 @@ class ServicesController extends GetxController {
   final isLoading = true.obs;
 
   // Icon mapping for known service categories/names
-  static const Map<String, int> _iconMap = {
-    'soch olish': 0xe14f, // content_cut
-    'soch turmak': 0xe14f,
-    'soch turmaklash': 0xe14f,
-    'soqol olish': 0xf04bc, // face
-    'soqol': 0xf04bc,
-    'kompleks': 0xf0597, // spa
-    'styling': 0xe048, // auto_awesome
-    'bosh yuvish': 0xf0806, // water_drop
-    'makiyaj': 0xf1a0, // face_retouching_natural
-    "bo'yash": 0xe15a, // color_lens
-    'manikyur': 0xe6e1, // back_hand
-    'bolalar': 0xe091, // child_care
+  static const Map<String, IconData> _iconMap = {
+    'soch olish': Icons.content_cut_rounded,
+    'soch turmak': Icons.content_cut_rounded,
+    'soch turmaklash': Icons.content_cut_rounded,
+    'soqol olish': Icons.face_rounded,
+    'soqol': Icons.face_rounded,
+    'kompleks': Icons.spa_rounded,
+    'styling': Icons.auto_awesome_rounded,
+    'bosh yuvish': Icons.water_drop_rounded,
+    'makiyaj': Icons.face_retouching_natural_rounded,
+    "bo'yash": Icons.color_lens_rounded,
+    'manikyur': Icons.back_hand_rounded,
+    'bolalar': Icons.child_care_rounded,
+    "to'y marasim": Icons.celebration_rounded,
   };
 
   @override
@@ -170,7 +172,7 @@ class ServicesController extends GetxController {
         });
   }
 
-  int _getIcon(String name, String category) {
+  IconData _getIcon(String name, String category) {
     final lower = name.toLowerCase();
     for (final entry in _iconMap.entries) {
       if (lower.contains(entry.key)) return entry.value;
@@ -179,7 +181,7 @@ class ServicesController extends GetxController {
     for (final entry in _iconMap.entries) {
       if (catLower.contains(entry.key)) return entry.value;
     }
-    return 0xe14f; // fallback: content_cut
+    return Icons.content_cut_rounded; // fallback
   }
 
   void selectService(Map<String, dynamic> service) {

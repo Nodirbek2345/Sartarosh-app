@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.21",
-    "build_number": 271,
+    "latest_version": "3.9.22",
+    "build_number": 272,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.21: 🚀 Xizmatlar oynasi ishga tushdi! Endi 'To'y marasim', 'Kompleks' va boshqa kategoriyalarga kirganingizda, bazada ushbu xizmatni ko'rsatadigan ustalar yo'q bo'lsa ham uning ichi bo'sh chiqmaydi! Ustalar qo'shmagan taqdirda standart xizmat turlarini ko'rasiz va izlashingiz mumkin.",
+    "release_notes": "Sartarosh 3.9.22: 🎨 Xizmatlar ro'yxatidagi noto'g'ri (buzilgan yozuvli yoki boshqa rasm) ko'rinayotgan iconkalar to'liq tuzatildi. Endi barcha xizmatlar o'ziga xos aniq ikonkalarda - professional dizaynda chiqa boshlaydi!",
     "force_update": false
 }
