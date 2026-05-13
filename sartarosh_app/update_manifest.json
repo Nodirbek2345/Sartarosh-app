@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.14",
-    "build_number": 264,
+    "latest_version": "3.9.15",
+    "build_number": 265,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.14: 🏠 Endi ilova ochilganda DOIM bosh sahifa (client home) ko'rsatiladi. Barber dashboard faqat 'Bronlar' tugmasi orqali ochiladi!",
+    "release_notes": "Sartarosh 3.9.15: 🧹 Asosiy menyudagi takrorlanishlar (\"Mening profilim\", \"Qo'llab-quvvatlash\") oib tashlandi, menyu yanada ixchamlashtirildi.",
     "force_update": false
 }
