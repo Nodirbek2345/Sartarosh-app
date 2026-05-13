@@ -180,24 +180,6 @@ class ProfileView extends StatelessWidget {
                             idx++,
                             () => _showManageServices(),
                           ),
-                          _menuItem(
-                            Icons.calendar_month_rounded,
-                            "Mening mijoz sifatidagi bronlarim",
-                            idx++,
-                            () => Get.toNamed(
-                              '/my-bookings',
-                              arguments: {'forceClient': true},
-                            ),
-                          ),
-                        ] else ...[
-                          _menuItem(
-                            Icons.storefront_rounded,
-                            userService.targetGender.value == 'female'
-                                ? "Stilist sifatida qo'shilish"
-                                : "Sartarosh sifatida qo'shilish",
-                            idx++,
-                            () => Get.toNamed('/add-barber'),
-                          ),
                         ],
 
                         _menuItem(

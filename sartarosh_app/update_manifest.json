@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.16",
-    "build_number": 266,
+    "latest_version": "3.9.17",
+    "build_number": 267,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.16: 🛠 Sartaroshlar xizmati to'g'irlandi! Endi erkaklar ustalariga ayollar xizmatlari (Masalan, makiyaj, manikyur va h.k.) chiqmaydi. Faqat usta jinsiga mos xizmatlar ko'rsatiladi.",
+    "release_notes": "Sartarosh 3.9.17: 🧼 Sartarosh profili tozalandi! 'Mening mijoz sifatidagi bronlarim' hamda 'Sartarosh sifatida qo'shilish' kabi ortiqcha tugmalar olib tashlandi. Profil yanada professional ko'rinishga keldi.",
     "force_update": false
 }
