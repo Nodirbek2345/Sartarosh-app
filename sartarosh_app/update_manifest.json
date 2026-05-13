@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.24",
-    "build_number": 274,
+    "latest_version": "3.9.25",
+    "build_number": 275,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.24: ✨ Glassmorphism dizayn yangilandi! Bosh ekran, Usta kartochkalari, Profil sahifasi va Usta tafsilotlari ekrani mukammal premium ko'rinishga ega bo'ldi. Shaffof shisha effektlar, gradientlar va zamonaviy animatsiyalar qo'shildi.",
+    "release_notes": "Sartarosh 3.9.25: ✨ Glassmorphism dizayni bilan to'liq yangilanish va mijozlar uchun Profil sahifasida maxsus 'Sartarosh bo'lish' tugmasi qo'shildi! Endi mijozlar ham tez va oson tarzda sartarosh ro'yxatidan o'tishlari uchun ulanish ustunligiga egadirlar.",
     "force_update": false
 }

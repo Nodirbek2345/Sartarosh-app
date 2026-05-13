@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:convert';
 
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/services/update_service.dart';
@@ -226,6 +227,13 @@ class ProfileView extends StatelessWidget {
                     int idx = 0;
                     return Column(
                       children: [
+                        if (!userService.isBarberMode.value)
+                          _menuItem(
+                            Icons.content_cut_rounded,
+                            "Sartarosh bo'lish",
+                            idx++,
+                            () => _showBecomeBarber(),
+                          ),
                         _menuItem(
                           Icons.settings_rounded,
                           "Sozlamalar",
@@ -598,6 +606,178 @@ class ProfileView extends StatelessWidget {
               ),
               SizedBox(height: 12),
               Container(
+                width: double.infinity,
+                padding: EdgeInsets.symmetric(vertical: 16),
+                decoration: BoxDecoration(
+                  color: AppTheme.cardLight,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppTheme.textLight.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    "Sartarosh v${Get.find<UpdateService>().currentVersion}",
+                    style: TextStyle(
+                      color: AppTheme.textMedium,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // ─── SARTAROSH BO'LISH ───
+  void _showBecomeBarber() {
+    Get.dialog(
+      AlertDialog(
+        backgroundColor: Colors.transparent,
+        contentPadding: EdgeInsets.zero,
+        insetPadding: EdgeInsets.symmetric(horizontal: 20),
+        content: Container(
+          width: double.infinity,
+          decoration: AppTheme.lightGlassCard(radius: 28),
+          padding: EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppTheme.primary.withValues(alpha: 0.15),
+                      AppTheme.primary.withValues(alpha: 0.05),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.stars_rounded, color: AppTheme.primary, size: 36),
+              ),
+              SizedBox(height: 20),
+              Text(
+                "Sartarosh bo'lish",
+                style: GoogleFonts.playfairDisplay(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w800,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              SizedBox(height: 12),
+              Text(
+                "Sartarosh sifatida ro'yxatdan o'tish va daromad topish uchun ilova administratori bilan bog'laning.",
+                textAlign: TextAlign.center,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  color: AppTheme.textMedium,
+                  height: 1.5,
+                ),
+              ),
+              SizedBox(height: 24),
+              GestureDetector(
+                onTap: () async {
+                  final Uri url = Uri.parse('tg://resolve?domain=Nodirbek_qaxxorov');
+                  if (await canLaunchUrl(url)) {
+                    await launchUrl(url);
+                  } else {
+                    final Uri webUrl = Uri.parse('https://t.me/Nodirbek_qaxxorov');
+                    await launchUrl(webUrl);
+                  }
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFF229ED9), Color(0xFF27A7E7)],
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Color(0xFF229ED9).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.telegram, color: Colors.white, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        "Telegram orqali",
+                        style: GoogleFonts.poppins(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 12),
+              GestureDetector(
+                onTap: () async {
+                  final Uri url = Uri.parse('tel:+998937955642');
+                  await launchUrl(url);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppTheme.cardLight,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.phone_rounded, color: AppTheme.textDark, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        "Qo'ng'iroq qilish",
+                        style: GoogleFonts.poppins(
+                          color: AppTheme.textDark,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 15,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => Get.back(),
+                child: Text(
+                  "Yopish",
+                  style: GoogleFonts.poppins(
+                    color: AppTheme.textMedium,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _helpItem(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   color: AppTheme.primary.withValues(alpha: 0.06),
