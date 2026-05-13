@@ -1,11 +1,14 @@
 import 'dart:convert';
 import 'package:get/get.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../../core/utils/input_sanitizer.dart';
 
+/// UserService — foydalanuvchi holati va persist qiluvchi servis.
+/// ⚠️ FlutterSecureStorage ISHLATILMAYDI — Android'da restart'da
+///    Keystore kaliti yo'qolishi bilan barcha ma'lumotlarni o'chirib
+///    yuborishi mumkin. Buning o'rniga SharedPreferences ishlatiladi.
 class UserService extends GetxService {
   final name = "Mijoz".obs;
   final phone = "+998 -- --- -- --".obs;
@@ -16,18 +19,16 @@ class UserService extends GetxService {
   final isBarberMode = false.obs;
   final targetGender = 'male'.obs;
 
-  /// Welcome'dagi yo'nalish: male_classic | female_beauty (tavsiya / analitika)
   final audienceProfile = ''.obs;
   final selectedRegion = ''.obs;
   final uid = ''.obs;
   final userRole = 'client'.obs;
 
   // GPS + Region dual-mode filter
-  final filterMode = 'REGION'.obs; // 'GPS' or 'REGION'
+  final filterMode = 'REGION'.obs;
   final userLat = 0.0.obs;
   final userLng = 0.0.obs;
 
-  late FlutterSecureStorage _storage;
   late SharedPreferences _prefs;
 
   String get currentUid {
@@ -45,47 +46,62 @@ class UserService extends GetxService {
     return selectedRegion.value.isNotEmpty;
   }
 
+  // ─── Private helpers ───
+  Future<void> _write(String key, String? value) async {
+    if (value == null) {
+      await _prefs.remove(key);
+    } else {
+      await _prefs.setString(key, value);
+    }
+  }
+
+  String? _read(String key) => _prefs.getString(key);
+
+  Future<void> _writeBool(String key, bool value) async {
+    await _prefs.setBool(key, value);
+  }
+
+  bool _readBool(String key, {bool defaultValue = false}) =>
+      _prefs.getBool(key) ?? defaultValue;
+
   Future<UserService> init() async {
-    _storage = const FlutterSecureStorage();
     _prefs = await SharedPreferences.getInstance();
 
-    name.value = await _storage.read(key: 'user_name') ?? "Mijoz";
-    phone.value = await _storage.read(key: 'user_phone') ?? "+998 -- --- -- --";
-    isLogged.value = (await _storage.read(key: 'is_logged')) == 'true';
-    avatarBase64.value = await _storage.read(key: 'user_avatar') ?? "";
-    photoUrl.value = await _storage.read(key: 'user_photo_url') ?? "";
+    // ─── Load local ───
+    name.value = _read('user_name') ?? "Mijoz";
+    phone.value = _read('user_phone') ?? "+998 -- --- -- --";
+    isLogged.value = _readBool('is_logged');
+    avatarBase64.value = _read('user_avatar') ?? "";
+    photoUrl.value = _read('user_photo_url') ?? "";
 
-    final favListString = await _storage.read(key: 'favorite_barbers');
+    final favListString = _read('favorite_barbers');
     if (favListString != null && favListString.isNotEmpty) {
       try {
         favoriteBarberIds.value = List<String>.from(jsonDecode(favListString));
-      } catch (e) {
+      } catch (_) {
         favoriteBarberIds.value = [];
       }
     }
 
-    isBarberMode.value = (await _storage.read(key: 'is_barber_mode')) == 'true';
-    targetGender.value = await _storage.read(key: 'target_gender') ?? 'male';
-    audienceProfile.value = await _storage.read(key: 'audience_profile') ?? '';
-    userRole.value = await _storage.read(key: 'user_role') ?? 'client';
-    uid.value = await _storage.read(key: 'user_uid') ?? '';
+    isBarberMode.value = _readBool('is_barber_mode');
+    targetGender.value = _read('target_gender') ?? 'male';
+    audienceProfile.value = _read('audience_profile') ?? '';
+    userRole.value = _read('user_role') ?? 'client';
+    uid.value = _read('user_uid') ?? '';
 
-    // GPS & Region persistence via SharedPreferences (Faster, reliable)
-    filterMode.value = _prefs.getString('filter_mode') ?? 'REGION';
-    selectedRegion.value = _prefs.getString('selected_region') ?? '';
+    filterMode.value = _read('filter_mode') ?? 'REGION';
+    selectedRegion.value = _read('selected_region') ?? '';
     userLat.value = _prefs.getDouble('user_lat') ?? 0.0;
     userLng.value = _prefs.getDouble('user_lng') ?? 0.0;
 
-    // Sync with Firebase Auth
+    // ─── Sync with Firebase Auth ───
     final firebaseUser = FirebaseAuth.instance.currentUser;
     if (firebaseUser != null && uid.value.isEmpty) {
       uid.value = firebaseUser.uid;
-      await _storage.write(key: 'user_uid', value: firebaseUser.uid);
+      await _write('user_uid', firebaseUser.uid);
     }
 
-    // PRO: Auto-restore profile from Firestore after reinstall/device change
-    // ALWAYS pull saved profile data from Firestore on app start to ensure UI
-    // strictly mirrors the database (single source of truth).
+    // ─── Auto-restore profile from Firestore ───
     if (currentUid.isNotEmpty) {
       try {
         final userDoc = await FirebaseFirestore.instance
@@ -100,55 +116,56 @@ class UserService extends GetxService {
           final serverAvatar = data['avatar'] as String? ?? '';
           final serverPhotoUrl = data['photoUrl'] as String? ?? '';
           final serverTargetGender = data['targetGender'] as String? ?? '';
+          final serverAudience = data['audienceProfile'] as String? ?? '';
+          final serverRegion = data['region'] as String? ?? '';
 
           if (serverName.isNotEmpty && serverName != "Mijoz") {
             name.value = serverName;
-            await _storage.write(key: 'user_name', value: serverName);
+            await _write('user_name', serverName);
           }
           if (serverPhone.isNotEmpty) {
             phone.value = serverPhone;
-            await _storage.write(key: 'user_phone', value: serverPhone);
+            await _write('user_phone', serverPhone);
           }
           if (serverRole.isNotEmpty) {
             userRole.value = serverRole;
-            await _storage.write(key: 'user_role', value: serverRole);
+            await _write('user_role', serverRole);
             if (serverRole == 'barber') {
               isBarberMode.value = true;
-              await _storage.write(key: 'is_barber_mode', value: 'true');
+              await _writeBool('is_barber_mode', true);
             }
           }
           if (serverAvatar.isNotEmpty) {
             avatarBase64.value = serverAvatar;
-            await _storage.write(key: 'user_avatar', value: serverAvatar);
+            await _write('user_avatar', serverAvatar);
           }
           if (serverPhotoUrl.isNotEmpty) {
             photoUrl.value = serverPhotoUrl;
-            await _storage.write(key: 'user_photo_url', value: serverPhotoUrl);
+            await _write('user_photo_url', serverPhotoUrl);
           }
           if (serverTargetGender.isNotEmpty) {
             targetGender.value = serverTargetGender;
-            await _storage.write(
-              key: 'target_gender',
-              value: serverTargetGender,
-            );
+            await _write('target_gender', serverTargetGender);
           }
-          final serverAudience = data['audienceProfile'] as String? ?? '';
           if (serverAudience.isNotEmpty) {
             audienceProfile.value = serverAudience;
-            await _storage.write(
-              key: 'audience_profile',
-              value: serverAudience,
-            );
+            await _write('audience_profile', serverAudience);
+          }
+          // Restore region from Firestore if local is empty
+          if (selectedRegion.value.isEmpty && serverRegion.isNotEmpty) {
+            selectedRegion.value = serverRegion;
+            await _write('selected_region', serverRegion);
+            await _write('filter_mode', 'REGION');
+            filterMode.value = 'REGION';
           }
 
-          // Mark as logged in since Firestore profile exists
           isLogged.value = true;
-          await _storage.write(key: 'is_logged', value: 'true');
+          await _writeBool('is_logged', true);
         }
       } catch (_) {}
     }
 
-    // PRO: Auto role-recovery — fix desync for users stuck as 'client'
+    // ─── Auto role-recovery ───
     if (currentUid.isNotEmpty && userRole.value == 'client') {
       try {
         final barberCheck = await FirebaseFirestore.instance
@@ -159,9 +176,8 @@ class UserService extends GetxService {
         if (barberCheck.docs.isNotEmpty) {
           userRole.value = 'barber';
           isBarberMode.value = true;
-          await _storage.write(key: 'user_role', value: 'barber');
-          await _storage.write(key: 'is_barber_mode', value: 'true');
-          // Also sync to Firestore users collection
+          await _write('user_role', 'barber');
+          await _writeBool('is_barber_mode', true);
           try {
             await FirebaseFirestore.instance
                 .collection('users')
@@ -172,10 +188,27 @@ class UserService extends GetxService {
       } catch (_) {}
     }
 
-    // PRO: One-time migration — push local profile to Firestore
-    // This covers the case where user set a custom name on an older version
-    // that only saved to local storage. Now we auto-sync it to Firestore
-    // BEFORE they potentially delete the app.
+    // ─── Restore favorites from Firestore if local empty ───
+    if (currentUid.isNotEmpty && favoriteBarberIds.isEmpty) {
+      try {
+        final userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .get();
+        if (userDoc.exists) {
+          final favs = userDoc.data()?['favorites'];
+          if (favs != null && favs is List) {
+            favoriteBarberIds.value = List<String>.from(favs);
+            await _write(
+              'favorite_barbers',
+              jsonEncode(favoriteBarberIds.toList()),
+            );
+          }
+        }
+      } catch (_) {}
+    }
+
+    // ─── One-time profile sync to Firestore ───
     if (currentUid.isNotEmpty &&
         isLogged.value &&
         name.value != "Mijoz" &&
@@ -187,7 +220,6 @@ class UserService extends GetxService {
             .get();
         if (userDoc.exists) {
           final serverName = userDoc.data()?['name'] ?? '';
-          // If local name differs from server name → push local to server
           if (serverName != name.value) {
             final Map<String, dynamic> syncData = {'name': name.value};
             if (phone.value.isNotEmpty && phone.value != "+998 -- --- -- --") {
@@ -211,10 +243,18 @@ class UserService extends GetxService {
     } else {
       favoriteBarberIds.add(barberId);
     }
-    await _storage.write(
-      key: 'favorite_barbers',
-      value: jsonEncode(favoriteBarberIds.toList()),
-    );
+    await _write('favorite_barbers', jsonEncode(favoriteBarberIds.toList()));
+    // Sync to Firestore so favorites persist across reinstalls
+    if (currentUid.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .set({
+              'favorites': favoriteBarberIds.toList(),
+            }, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   bool isFavorite(String barberId) {
@@ -223,7 +263,7 @@ class UserService extends GetxService {
 
   void updateAvatar(String base64Image) async {
     avatarBase64.value = base64Image;
-    await _storage.write(key: 'user_avatar', value: base64Image);
+    await _write('user_avatar', base64Image);
 
     if (currentUid.isNotEmpty) {
       try {
@@ -235,7 +275,6 @@ class UserService extends GetxService {
           await userDoc.reference.update({'avatar': base64Image});
         }
 
-        // Sync to barber profile as well if they are a barber
         if (userRole.value == 'barber') {
           final barberSnapshot = await FirebaseFirestore.instance
               .collection('barbers')
@@ -247,33 +286,28 @@ class UserService extends GetxService {
             });
           }
         }
-      } catch (e) {
-        // Exception intentionally ignored for minor avatar sync issues
-      }
+      } catch (_) {}
     }
   }
 
   void updatePhotoUrl(String url) async {
     photoUrl.value = url;
-    await _storage.write(key: 'user_photo_url', value: url);
+    await _write('user_photo_url', url);
   }
 
   void updateUid(String newUid) async {
     uid.value = newUid;
-    await _storage.write(key: 'user_uid', value: newUid);
+    await _write('user_uid', newUid);
   }
 
   void toggleBarberMode() async {
     isBarberMode.value = !isBarberMode.value;
-    await _storage.write(
-      key: 'is_barber_mode',
-      value: isBarberMode.value.toString(),
-    );
+    await _writeBool('is_barber_mode', isBarberMode.value);
   }
 
   void setTargetGender(String gender) async {
     targetGender.value = gender;
-    await _storage.write(key: 'target_gender', value: gender);
+    await _write('target_gender', gender);
     final uidToUpdate = currentUid;
     if (uidToUpdate.isNotEmpty) {
       try {
@@ -285,12 +319,11 @@ class UserService extends GetxService {
     }
   }
 
-  /// "Erkaklar va bolalar" — yaqin sartarosh / barbershop oqimi
   Future<void> applyWelcomeMaleAudience() async {
     targetGender.value = 'male';
     audienceProfile.value = 'male_classic';
-    await _storage.write(key: 'target_gender', value: 'male');
-    await _storage.write(key: 'audience_profile', value: 'male_classic');
+    await _write('target_gender', 'male');
+    await _write('audience_profile', 'male_classic');
     final uidToUpdate = currentUid;
     if (uidToUpdate.isNotEmpty) {
       try {
@@ -306,12 +339,11 @@ class UserService extends GetxService {
     }
   }
 
-  /// "Ayollar va qizlar" — salon / go'zallik kategoriyalari ustuvor
   Future<void> applyWelcomeFemaleAudience() async {
     targetGender.value = 'female';
     audienceProfile.value = 'female_beauty';
-    await _storage.write(key: 'target_gender', value: 'female');
-    await _storage.write(key: 'audience_profile', value: 'female_beauty');
+    await _write('target_gender', 'female');
+    await _write('audience_profile', 'female_beauty');
     final uidToUpdate = currentUid;
     if (uidToUpdate.isNotEmpty) {
       try {
@@ -329,7 +361,9 @@ class UserService extends GetxService {
 
   void setRegion(String region) async {
     selectedRegion.value = region;
-    await _prefs.setString('selected_region', region);
+    await _write('selected_region', region);
+    await _write('filter_mode', 'REGION');
+    filterMode.value = 'REGION';
 
     if (currentUid.isNotEmpty) {
       try {
@@ -341,17 +375,16 @@ class UserService extends GetxService {
     }
   }
 
-  /// Switch to GPS mode — clears region, stores coords
   void setGpsMode(double lat, double lng) async {
     filterMode.value = 'GPS';
     userLat.value = lat;
     userLng.value = lng;
     selectedRegion.value = '';
 
-    await _prefs.setString('filter_mode', 'GPS');
+    await _write('filter_mode', 'GPS');
     await _prefs.setDouble('user_lat', lat);
     await _prefs.setDouble('user_lng', lng);
-    await _prefs.setString('selected_region', '');
+    await _write('selected_region', '');
 
     if (currentUid.isNotEmpty) {
       try {
@@ -363,15 +396,14 @@ class UserService extends GetxService {
     }
   }
 
-  /// Switch to Region mode — clears GPS coords
   void setRegionMode(String region) async {
     filterMode.value = 'REGION';
     selectedRegion.value = region;
     userLat.value = 0.0;
     userLng.value = 0.0;
 
-    await _prefs.setString('filter_mode', 'REGION');
-    await _prefs.setString('selected_region', region);
+    await _write('filter_mode', 'REGION');
+    await _write('selected_region', region);
     await _prefs.setDouble('user_lat', 0.0);
     await _prefs.setDouble('user_lng', 0.0);
 
@@ -387,7 +419,7 @@ class UserService extends GetxService {
 
   void setUserRole(String role) async {
     userRole.value = role;
-    await _storage.write(key: 'user_role', value: role);
+    await _write('user_role', role);
   }
 
   void updateUser(String rawName, String rawPhone) async {
@@ -396,16 +428,15 @@ class UserService extends GetxService {
 
     if (newName.isNotEmpty) {
       name.value = newName;
-      await _storage.write(key: 'user_name', value: newName);
+      await _write('user_name', newName);
     }
     if (newPhone.isNotEmpty) {
       phone.value = newPhone;
-      await _storage.write(key: 'user_phone', value: newPhone);
+      await _write('user_phone', newPhone);
     }
     isLogged.value = true;
-    await _storage.write(key: 'is_logged', value: 'true');
+    await _writeBool('is_logged', true);
 
-    // PRO FIX: Sync to Firestore so reinstalling app doesn't lose the custom name/phone
     if (currentUid.isNotEmpty) {
       try {
         final Map<String, dynamic> updateData = {};
@@ -418,7 +449,6 @@ class UserService extends GetxService {
               .doc(currentUid)
               .set(updateData, SetOptions(merge: true));
 
-          // If the user is also a barber, sync their name to the barber doc as well
           if (userRole.value == 'barber') {
             final snap = await FirebaseFirestore.instance
                 .collection('barbers')
@@ -451,18 +481,12 @@ class UserService extends GetxService {
     photoUrl.value = '';
     targetGender.value = 'male';
     audienceProfile.value = '';
-
-    // Clear SharedPreferences for location
-    await _prefs.remove('filter_mode');
-    await _prefs.remove('selected_region');
-    await _prefs.remove('user_lat');
-    await _prefs.remove('user_lng');
-
     selectedRegion.value = '';
     filterMode.value = 'REGION';
     userLat.value = 0.0;
     userLng.value = 0.0;
     favoriteBarberIds.clear();
-    await _storage.deleteAll();
+
+    await _prefs.clear();
   }
 }
