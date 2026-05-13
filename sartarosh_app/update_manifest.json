@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.22",
-    "build_number": 272,
+    "latest_version": "3.9.23",
+    "build_number": 273,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.22: 🎨 Xizmatlar ro'yxatidagi noto'g'ri (buzilgan yozuvli yoki boshqa rasm) ko'rinayotgan iconkalar to'liq tuzatildi. Endi barcha xizmatlar o'ziga xos aniq ikonkalarda - professional dizaynda chiqa boshlaydi!",
+    "release_notes": "Sartarosh 3.9.23: ✨ Profil bo'limi yanada toza va tushunarli bo'ldi. Endi ustalar barcha xizmat va narxlarni maxsus 'Bronlar' yonidagi 'Profil' panelidan 'Xizmatlarim va Narxlar' tugmasi orqali to'liq qulay formatda o'zgartiradilar. Eski qo'shimcha menyu olib tashlandi.",
     "force_update": false
 }
