@@ -1241,23 +1241,28 @@ class HomeView extends GetView<HomeController> {
         .slideX(begin: 0.05);
   }
 
-  // ─── BOTTOM NAV ───
+  // ─── BOTTOM NAV (fluffy soft style) ───
   Widget _buildBottomNav() {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        color: const Color(0xFFF5F0E8),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 24,
-            offset: Offset(0, -6),
+            color: Colors.black.withValues(alpha: 0.12),
+            blurRadius: 32,
+            offset: const Offset(0, -8),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.9),
+            blurRadius: 1,
+            offset: const Offset(0, -1),
           ),
         ],
       ),
       child: SafeArea(
         child: SizedBox(
-          height: 72,
+          height: 76,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -1304,40 +1309,70 @@ class HomeView extends GetView<HomeController> {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 70,
+        width: 72,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             AnimatedContainer(
-              duration: Duration(milliseconds: 250),
-              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: isActive
-                  ? BoxDecoration(
-                      gradient: AppTheme.goldGradient,
-                      borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
+              duration: const Duration(milliseconds: 280),
+              curve: Curves.easeOutBack,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: isActive
+                    ? const Color(0xFFE8C97A)
+                    : const Color(0xFFF0EBE0),
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: isActive
+                    ? [
+                        // outer glow
                         BoxShadow(
-                          color: AppTheme.primary.withValues(alpha: 0.30),
+                          color: const Color(
+                            0xFFC9A84C,
+                          ).withValues(alpha: 0.55),
+                          blurRadius: 14,
+                          offset: const Offset(0, 5),
+                        ),
+                        // top-left light highlight
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          blurRadius: 4,
+                          offset: const Offset(-3, -3),
+                        ),
+                      ]
+                    : [
+                        // soft outer shadow
+                        BoxShadow(
+                          color: const Color(
+                            0xFFBDAF98,
+                          ).withValues(alpha: 0.55),
                           blurRadius: 10,
-                          offset: Offset(0, 4),
+                          offset: const Offset(3, 4),
+                        ),
+                        // top-left highlight
+                        BoxShadow(
+                          color: Colors.white.withValues(alpha: 0.95),
+                          blurRadius: 6,
+                          offset: const Offset(-3, -3),
                         ),
                       ],
-                    )
-                  : null,
+              ),
               child: Icon(
                 icon,
-                color: isActive ? Colors.white : AppTheme.textLight,
+                color: isActive ? Colors.white : const Color(0xFF9E9390),
                 size: 22,
               ),
             ),
-            SizedBox(height: 4),
-            Text(
-              label,
+            const SizedBox(height: 5),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
               style: GoogleFonts.poppins(
-                color: isActive ? AppTheme.primary : AppTheme.textLight,
+                color: isActive
+                    ? const Color(0xFFA07C2A)
+                    : const Color(0xFF9E9390),
                 fontSize: 10,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
               ),
+              child: Text(label),
             ),
           ],
         ),
