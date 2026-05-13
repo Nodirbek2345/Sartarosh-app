@@ -1,7 +1,7 @@
 {
-    "latest_version": "3.9.17",
-    "build_number": 267,
+    "latest_version": "3.9.18",
+    "build_number": 268,
     "download_url": "https://github.com/Nodirbek2345/Sartarosh-app/releases/latest/download/app-release.apk",
-    "release_notes": "Sartarosh 3.9.17: 🧼 Sartarosh profili tozalandi! 'Mening mijoz sifatidagi bronlarim' hamda 'Sartarosh sifatida qo'shilish' kabi ortiqcha tugmalar olib tashlandi. Profil yanada professional ko'rinishga keldi.",
+    "release_notes": "Sartarosh 3.9.18: 🧼 Mijoz profil oynasi (Asosiy sahifadagi) ham ortiqcha tugmalardan tozalandi. 'Mening bronlarim' va 'Sevimlilar' tugmalari allaqachon pastki menyuda (Navbar) bo'lgani uchun, ular ichki menyudan olib tashlandi.",
     "force_update": false
 }

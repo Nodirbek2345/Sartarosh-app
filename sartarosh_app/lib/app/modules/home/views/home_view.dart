@@ -1450,23 +1450,7 @@ class HomeView extends GetView<HomeController> {
                         Get.toNamed('/profile');
                       },
                     ),
-                    _menuItem(
-                      icon: Icons.calendar_today_rounded,
-                      title: "Mening bronlarim",
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed('/my-bookings');
-                      },
-                    ),
 
-                    _menuItem(
-                      icon: Icons.favorite_border_rounded,
-                      title: "Sevimlilar",
-                      onTap: () {
-                        Get.back();
-                        Get.toNamed('/favorites');
-                      },
-                    ),
                     if (role != 'barber')
                       _menuItem(
                         icon: Icons.content_cut_rounded,
