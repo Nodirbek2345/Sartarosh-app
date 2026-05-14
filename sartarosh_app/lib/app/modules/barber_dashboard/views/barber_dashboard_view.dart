@@ -175,7 +175,7 @@ class _DashboardTab extends StatelessWidget {
               ),
             ).animate().fadeIn(delay: 350.ms),
           ),
-          if (controller.todayBookings.isEmpty)
+          if (controller.activeTodayBookings.isEmpty)
             SliverToBoxAdapter(child: _buildEmptyState())
           else
             SliverPadding(
@@ -185,8 +185,8 @@ class _DashboardTab extends StatelessWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) =>
-                      _buildBookingCard(controller.todayBookings[index]),
-                  childCount: controller.todayBookings.length,
+                      _buildBookingCard(controller.activeTodayBookings[index]),
+                  childCount: controller.activeTodayBookings.length,
                 ),
               ),
             ),
@@ -341,7 +341,7 @@ class _DashboardTab extends StatelessWidget {
               _statCard(
                 Icons.monetization_on_rounded,
                 "Bugun",
-                "${controller.todayEarnings.value}",
+                controller.formatEarnings(controller.todayEarnings.value),
                 AppTheme.gold,
               ),
             ],
@@ -352,14 +352,14 @@ class _DashboardTab extends StatelessWidget {
               _statCard(
                 Icons.account_balance_wallet_rounded,
                 "Bu hafta",
-                "${controller.weeklyEarnings.value}",
+                controller.formatEarnings(controller.weeklyEarnings.value),
                 const Color(0xFF5E60CE), // Deep Purple
               ),
               const SizedBox(width: 12),
               _statCard(
                 Icons.savings_rounded,
                 "Bu oy",
-                "${controller.monthlyEarnings.value}",
+                controller.formatEarnings(controller.monthlyEarnings.value),
                 const Color(0xFF6930C3), // Vibrant Violet
               ),
             ],
@@ -850,25 +850,47 @@ class _DashboardTab extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        booking['client'] ?? 'Mijoz',
-                        style: GoogleFonts.poppins(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                          color: AppTheme.textDark,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          booking['client'] ?? 'Mijoz',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: AppTheme.textDark,
+                          ),
                         ),
-                      ),
-                      Text(
-                        "${booking['time'] ?? ''} | ${booking['service'] ?? 'Xizmat'}",
-                        style: GoogleFonts.poppins(
-                          color: AppTheme.textMedium,
-                          fontSize: 12,
+                        Text(
+                          "${booking['time'] ?? ''} | ${booking['service'] ?? 'Xizmat'}",
+                          style: GoogleFonts.poppins(
+                            color: AppTheme.textMedium,
+                            fontSize: 12,
+                          ),
                         ),
-                      ),
-                    ],
+                        if (booking['clientPhone'] != null &&
+                            (booking['clientPhone'] as String).isNotEmpty)
+                          Text(
+                            "📞 ${booking['clientPhone']}",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.primary,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        if (booking['price'] != null &&
+                            (booking['price'] as num) > 0)
+                          Text(
+                            "💰 ${controller.formatEarnings((booking['price'] as num).toInt())} so'm",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.gold,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ],
               ),

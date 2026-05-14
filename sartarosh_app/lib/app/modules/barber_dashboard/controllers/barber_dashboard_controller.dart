@@ -408,10 +408,7 @@ class BarberDashboardController extends GetxController {
       for (var doc in overlaps.docs) {
         if (doc.id != docId) {
           await doc.reference.update({'status': 'cancelled'});
-          await BookingSlotLock.releaseFromBookingData(
-            _firestore,
-            doc.data(),
-          );
+          await BookingSlotLock.releaseFromBookingData(_firestore, doc.data());
         }
       }
 
@@ -500,25 +497,29 @@ class BarberDashboardController extends GetxController {
   }
 
   /// Checks if Start button should be enabled for a booking
+  /// Relaxed: any confirmed booking on today can be started
   bool canStartBooking(Map<String, dynamic> booking) {
     if (booking['status'] != 'confirmed') return false;
     if (booking['date'] != todayDate) return false;
-    try {
-      final parts = (booking['time'] as String).split(':');
-      final now = DateTime.now();
-      final bookingTime = DateTime(
-        now.year,
-        now.month,
-        now.day,
-        int.parse(parts[0]),
-        int.parse(parts[1]),
-      );
-      final diffMin = bookingTime.difference(now).inMinutes;
-      // Allow start from 15 mins before up to 30 mins after
-      return diffMin <= 15 && diffMin >= -30;
-    } catch (_) {
-      return false;
+    return true;
+  }
+
+  /// Format earnings nicely: 60000 -> "60 ming", 0 -> "0"
+  String formatEarnings(int amount) {
+    if (amount == 0) return '0';
+    if (amount >= 1000) {
+      final thousands = amount ~/ 1000;
+      return '$thousands ming';
     }
+    return '$amount';
+  }
+
+  /// Active bookings for dashboard display (excludes completed/cancelled/no-show)
+  List<Map<String, dynamic>> get activeTodayBookings {
+    return todayBookings.where((b) {
+      final s = b['status'];
+      return s == 'pending' || s == 'confirmed' || s == 'in-progress';
+    }).toList();
   }
 
   Future<void> startClient(String docId) async {
@@ -537,11 +538,11 @@ class BarberDashboardController extends GetxController {
         return;
       }
 
-      // Time gate: booking must be today and within 15 min window
+      // Guard: booking must be confirmed and today
       if (!canStartBooking(data)) {
         Get.snackbar(
-          "Vaqt emas",
-          "Xizmatni boshlash vaqti hali kelmadi yoki o'tib ketdi",
+          "Xatolik",
+          "Faqat bugungi tasdiqlangan bronni boshlash mumkin",
           backgroundColor: Colors.orange,
           colorText: Colors.white,
         );
