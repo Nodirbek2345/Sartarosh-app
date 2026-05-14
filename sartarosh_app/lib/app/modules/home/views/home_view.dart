@@ -736,7 +736,8 @@ class HomeView extends GetView<HomeController> {
         return Padding(
           padding: EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: GestureDetector(
-            onTap: () => Get.toNamed('/my-bookings'),
+            onTap: () =>
+                Get.toNamed('/my-bookings', arguments: {'forceClient': true}),
             child: Container(
               padding: EdgeInsets.all(14),
               decoration: BoxDecoration(
