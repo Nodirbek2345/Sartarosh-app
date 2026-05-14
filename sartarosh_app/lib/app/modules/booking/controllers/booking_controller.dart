@@ -165,7 +165,8 @@ class BookingController extends GetxController {
     const r = 6371.0;
     final dLat = _degToRad(lat2 - lat1);
     final dLng = _degToRad(lng2 - lng1);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(_degToRad(lat1)) *
             math.cos(_degToRad(lat2)) *
             math.sin(dLng / 2) *
@@ -195,11 +196,14 @@ class BookingController extends GetxController {
     }
 
     _barbersSub = query.snapshots().listen((snapshot) {
-      var list = snapshot.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).toList();
+      var list = snapshot.docs
+          .map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          })
+          .where((b) => b['uid'] != userService.currentUid)
+          .toList();
 
       final hasGps =
           userService.userLat.value != 0.0 && userService.userLng.value != 0.0;
@@ -252,8 +256,7 @@ class BookingController extends GetxController {
         suggestedBarbers.clear();
         final selId = selectedBarber.value?['id']?.toString();
         if (selectedBarber.value == null ||
-            (selId != null &&
-                !list.any((b) => b['id']?.toString() == selId))) {
+            (selId != null && !list.any((b) => b['id']?.toString() == selId))) {
           selectedBarber.value = list.first;
         }
       }
@@ -274,11 +277,16 @@ class BookingController extends GetxController {
           .limit(40)
           .get();
 
-      var list = snap.docs.map((doc) {
-        final data = doc.data();
-        data['id'] = doc.id;
-        return data;
-      }).where((b) => b['isActive'] != false).toList();
+      var list = snap.docs
+          .map((doc) {
+            final data = doc.data();
+            data['id'] = doc.id;
+            return data;
+          })
+          .where(
+            (b) => b['isActive'] != false && b['uid'] != userService.currentUid,
+          )
+          .toList();
 
       if (mode == 'REGION' && region.isNotEmpty) {
         list = list
@@ -701,7 +709,12 @@ class BookingController extends GetxController {
         return;
       }
 
-      final lockRef = BookingSlotLock.ref(_firestore, barberId, dateStr, timeVal);
+      final lockRef = BookingSlotLock.ref(
+        _firestore,
+        barberId,
+        dateStr,
+        timeVal,
+      );
       final barberRef = _firestore.collection('barbers').doc(barberId);
       final priceForDb = servicePrice < 1 ? 1 : servicePrice;
 
@@ -718,8 +731,8 @@ class BookingController extends GetxController {
         final barberUid = barberSnap.data()?['uid'] as String? ?? '';
         final barberGender =
             barberSnap.data()?['gender']?.toString().toLowerCase() ?? 'male';
-        final clientGender =
-            Get.find<UserService>().targetGender.value.toLowerCase();
+        final clientGender = Get.find<UserService>().targetGender.value
+            .toLowerCase();
         if (barberGender != 'all' && barberGender != clientGender) {
           throw Exception('GENDER_MISMATCH');
         }
@@ -786,10 +799,10 @@ class BookingController extends GetxController {
       final msg = es.contains('TIME_SLOT_TAKEN')
           ? "Bu vaqt allaqachon band. Boshqa vaqt tanlang."
           : es.contains('BARBER_NOT_FOUND')
-              ? "Usta ma'lumotlari topilmadi. Sahifani yangilang."
-              : es.contains('GENDER_MISMATCH')
-                  ? "Tanlangan usta siz tanlagan bo'lim (erkaklar/ayollar) uchun mos emas."
-                  : "Bron qilishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
+          ? "Usta ma'lumotlari topilmadi. Sahifani yangilang."
+          : es.contains('GENDER_MISMATCH')
+          ? "Tanlangan usta siz tanlagan bo'lim (erkaklar/ayollar) uchun mos emas."
+          : "Bron qilishda xatolik yuz berdi. Qaytadan urinib ko'ring.";
       Get.snackbar(
         "Xatolik",
         msg,

@@ -98,6 +98,7 @@ class ServicesController extends GetxController {
 
           for (final doc in querySnapshot.docs) {
             final data = doc.data();
+            if (data['uid'] == Get.find<UserService>().currentUid) continue;
             final barberServices = data['services'] as List?;
             if (barberServices == null) continue;
 

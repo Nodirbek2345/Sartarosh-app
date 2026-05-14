@@ -225,11 +225,14 @@ class HomeController extends GetxController {
     _barberSub?.cancel();
     _barberSub = query.snapshots().listen(
       (snapshot) {
-        var list = snapshot.docs.map((doc) {
-          final data = doc.data();
-          data['id'] = doc.id;
-          return data;
-        }).toList();
+        var list = snapshot.docs
+            .map((doc) {
+              final data = doc.data();
+              data['id'] = doc.id;
+              return data;
+            })
+            .where((b) => b['uid'] != userService.currentUid)
+            .toList();
 
         // REGION mode: client-side region filter
         if (mode == 'REGION' && targetRegion.isNotEmpty) {
