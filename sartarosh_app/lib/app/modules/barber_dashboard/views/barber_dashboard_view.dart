@@ -834,66 +834,71 @@ class _DashboardTab extends StatelessWidget {
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: AppTheme.primary.withValues(alpha: 0.08),
-                      borderRadius: BorderRadius.circular(12),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: AppTheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.person_rounded,
+                        color: AppTheme.primary,
+                        size: 22,
+                      ),
                     ),
-                    child: Icon(
-                      Icons.person_rounded,
-                      color: AppTheme.primary,
-                      size: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          booking['client'] ?? 'Mijoz',
-                          style: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w600,
-                            fontSize: 15,
-                            color: AppTheme.textDark,
-                          ),
-                        ),
-                        Text(
-                          "${booking['time'] ?? ''} | ${booking['service'] ?? 'Xizmat'}",
-                          style: GoogleFonts.poppins(
-                            color: AppTheme.textMedium,
-                            fontSize: 12,
-                          ),
-                        ),
-                        if (booking['clientPhone'] != null &&
-                            (booking['clientPhone'] as String).isNotEmpty)
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            "📞 ${booking['clientPhone']}",
+                            booking['client'] ?? 'Mijoz',
                             style: GoogleFonts.poppins(
-                              color: AppTheme.primary,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        if (booking['price'] != null &&
-                            (booking['price'] as num) > 0)
-                          Text(
-                            "💰 ${controller.formatEarnings((booking['price'] as num).toInt())} so'm",
-                            style: GoogleFonts.poppins(
-                              color: AppTheme.gold,
-                              fontSize: 11,
                               fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                              color: AppTheme.textDark,
                             ),
                           ),
-                      ],
+                          Text(
+                            "${booking['time'] ?? ''} | ${booking['service'] ?? 'Xizmat'}",
+                            style: GoogleFonts.poppins(
+                              color: AppTheme.textMedium,
+                              fontSize: 12,
+                            ),
+                          ),
+                          if (booking['clientPhone'] != null &&
+                              (booking['clientPhone'] as String).isNotEmpty)
+                            Text(
+                              "📞 ${booking['clientPhone']}",
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          if (booking['price'] != null &&
+                              (booking['price'] as num) > 0)
+                            Text(
+                              "💰 ${controller.formatEarnings((booking['price'] as num).toInt())} so'm",
+                              style: GoogleFonts.poppins(
+                                color: AppTheme.gold,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
+              const SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
