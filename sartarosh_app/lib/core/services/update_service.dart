@@ -60,9 +60,7 @@ class UpdateService extends GetxService {
           releaseNotes: releaseNotes,
         );
       }
-    } catch (e) {
-      debugPrint("Raw Github Update check failed: $e");
-    }
+    } catch (_) {}
   }
 
   bool _isUpdateAvailable(String current, String latest) {

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
-// import 'package:firebase_app_check/firebase_app_check.dart';
 import 'dart:ui';
 import 'app/routes/app_pages.dart';
 import 'core/theme/app_theme.dart';
@@ -16,12 +15,10 @@ void main() async {
   // Barcha Flutter Xatolarini ushlash (Release uchun)
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    debugPrint("Flutter Error Caught: ${details.exception}");
   };
 
   // Barcha Dart Asinxron xatolarini ushlash (App qulashini oldini oladi)
   PlatformDispatcher.instance.onError = (error, stack) {
-    debugPrint("Dart Async Error Caught: $error");
     return true;
   };
 
@@ -39,9 +36,7 @@ void main() async {
     // OTA orqali (GitHub Releases) o'rnatilganda Play Integrity ishlamaydi va
     // "permission-denied" xatosini beradi. Shuning uchun App Check vaqtincha olib tushildi.
     // await FirebaseAppCheck.instance.activate();
-  } catch (e) {
-    debugPrint("Firebase init error: $e");
-  }
+  } catch (_) {}
 
   await Get.putAsync(() => UserService().init());
   await Get.putAsync(() => UpdateService().init());

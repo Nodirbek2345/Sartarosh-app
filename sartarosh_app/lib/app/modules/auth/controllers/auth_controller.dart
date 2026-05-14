@@ -98,9 +98,7 @@ class AuthController extends GetxController {
               return;
             }
           }
-        } catch (e) {
-          debugPrint("Phone check bypassed due to strict Firestore rules: $e");
-        }
+        } catch (_) {}
 
         // Save UID first (critical for security)
         userService.updateUid(user.uid);

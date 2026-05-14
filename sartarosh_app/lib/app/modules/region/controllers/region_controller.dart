@@ -74,8 +74,7 @@ class RegionController extends GetxController {
       } else {
         _showGpsFailureModal("Joylashuvni aniqlab bo'lmadi");
       }
-    } catch (e) {
-      debugPrint("GPS error: $e");
+    } catch (_) {
       _showGpsFailureModal("GPS orqali joylashuvni aniqlashda xatolik.");
     } finally {
       isDetecting.value = false;

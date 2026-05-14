@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -8,7 +7,7 @@ import 'user_service.dart';
 // Top-level function to handle background messages
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  debugPrint("Handling a background message: ${message.messageId}");
+  // Background message handling
 }
 
 class NotificationService extends GetxService {
@@ -20,12 +19,7 @@ class NotificationService extends GetxService {
 
   Future<NotificationService> init() async {
     // 1. Request Permission
-    NotificationSettings settings = await _fcm.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
-    debugPrint('User granted permission: ${settings.authorizationStatus}');
+    await _fcm.requestPermission(alert: true, badge: true, sound: true);
 
     // 2. Initialize Local Notifications
     const AndroidInitializationSettings initializationSettingsAndroid =

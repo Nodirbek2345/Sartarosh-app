@@ -267,7 +267,6 @@ class HomeController extends GetxController {
         isLoading.value = false;
       },
       onError: (e) {
-        debugPrint(e.toString());
         isLoading.value = false;
         Get.snackbar(
           "Xatolik",

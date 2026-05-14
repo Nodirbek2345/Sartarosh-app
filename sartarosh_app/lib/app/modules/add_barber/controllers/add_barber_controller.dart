@@ -181,7 +181,6 @@ class AddBarberController extends GetxController {
       // Initial filter based on current `gender.value`
       _filterServices();
     } catch (e) {
-      debugPrint("Error fetching global services: $e");
       // Xatolik bo'lsa ham fallback services ni ishlatish
       if (_allRawServices.isEmpty) {
         _allRawServices.addAll(defaultServices);
@@ -513,9 +512,7 @@ class AddBarberController extends GetxController {
           );
           await ref.putFile(file);
           imageUrl = await ref.getDownloadURL();
-        } catch (e) {
-          debugPrint('Image upload error: $e');
-        }
+        } catch (_) {}
       }
 
       await _firestore.collection('barbers').add({
