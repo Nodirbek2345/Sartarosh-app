@@ -30,6 +30,18 @@ class BarberServicesView extends GetView<BarberServicesController> {
         ),
         centerTitle: true,
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => controller.showAddCustomServiceDialog(),
+        backgroundColor: AppTheme.primary,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: Text(
+          "Yangi xizmat",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       body: Obx(() {
         if (controller.isLoading.value) {
           return Center(
@@ -148,6 +160,9 @@ class BarberServicesView extends GetView<BarberServicesController> {
             GestureDetector(
               onTap: () => controller.toggleService(index),
               behavior: HitTestBehavior.opaque,
+              onLongPress: (s['isCustom'] == true)
+                  ? () => controller.deleteCustomService(index)
+                  : null,
               child: Padding(
                 padding: EdgeInsets.all(16),
                 child: Row(
@@ -186,6 +201,26 @@ class BarberServicesView extends GetView<BarberServicesController> {
                               fontSize: 12,
                             ),
                           ),
+                          if (s['isCustom'] == true)
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.gold.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                "⭐ Maxsus",
+                                style: GoogleFonts.poppins(
+                                  color: AppTheme.gold,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),

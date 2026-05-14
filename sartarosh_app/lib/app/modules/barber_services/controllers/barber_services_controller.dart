@@ -27,6 +27,7 @@ class BarberServicesController extends GetxController {
     'manikyur': 0xe6e1,
     'bolalar': 0xe091,
     "to'y": 0xf06bb,
+    'custom': 0xe145, // star icon for custom services
   };
 
   @override
@@ -56,7 +57,7 @@ class BarberServicesController extends GetxController {
       final globalSnap = await _firestore.collection('services').get();
       final globalServices = globalSnap.docs.map((d) => d.data()).toList();
 
-      // 2. Fetch Barber's custom services
+      // 2. Fetch Barber's current services
       final barberDocSnap = await _firestore
           .collection('barbers')
           .where('uid', isEqualTo: uid)
@@ -80,7 +81,10 @@ class BarberServicesController extends GetxController {
         }
       }
 
-      // 3. Build reactive list
+      // Track which names came from global catalog
+      final globalNames = <String>{};
+
+      // 3. Build reactive list from global services
       final builtList = <RxMap<String, dynamic>>[];
       for (var g in globalServices) {
         final serviceGender = g['gender'] ?? 'all';
@@ -90,6 +94,7 @@ class BarberServicesController extends GetxController {
 
         final name = g['name'] ?? '';
         final category = g['category'] ?? '';
+        globalNames.add(name);
 
         final myData = myServiceMap[name];
         final isEnabled = myData != null;
@@ -104,8 +109,28 @@ class BarberServicesController extends GetxController {
             'isEnabled': isEnabled,
             'price': price,
             'duration': duration,
+            'isCustom': false,
           }.obs,
         );
+      }
+
+      // 4. Add barber's custom services (not in global catalog)
+      for (var s in myServices) {
+        final name = s['name'] ?? '';
+        if (name.isNotEmpty && !globalNames.contains(name)) {
+          final category = s['category'] ?? 'Maxsus';
+          builtList.add(
+            {
+              'name': name,
+              'category': category,
+              'icon': _getIcon(name, category),
+              'isEnabled': true,
+              'price': s['price'] ?? 15000,
+              'duration': s['duration'] ?? 30,
+              'isCustom': true,
+            }.obs,
+          );
+        }
       }
 
       servicesList.value = builtList;
@@ -129,6 +154,227 @@ class BarberServicesController extends GetxController {
   void updateDuration(int index, int newDuration) {
     if (newDuration < 5) return;
     servicesList[index]['duration'] = newDuration;
+  }
+
+  // ═══════════════════════════════════════════
+  // ADD CUSTOM SERVICE
+  // ═══════════════════════════════════════════
+  void showAddCustomServiceDialog() {
+    final nameCtrl = TextEditingController();
+    final selectedCategory = 'Maxsus'.obs;
+    final categories = [
+      'Maxsus',
+      'Kompleks',
+      'Soch olish',
+      'Soqol olish',
+      'Styling',
+      'Bosh yuvish',
+      'Bolalar',
+      "To'y marasim",
+      'Makiyaj',
+      "Bo'yash",
+      'Manikyur',
+    ];
+
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(24),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "➕ Yangi xizmat qo'shish",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                "Masalan: Bosh yuvish + Soch olish",
+                style: TextStyle(fontSize: 13, color: AppTheme.textMedium),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: nameCtrl,
+                decoration: InputDecoration(
+                  labelText: "Xizmat nomi",
+                  hintText: "Masalan: Bosh yuvish + Soch olish",
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: BorderSide(color: AppTheme.primary, width: 2),
+                  ),
+                  prefixIcon: Icon(Icons.content_cut, color: AppTheme.primary),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                "Kategoriya",
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Obx(
+                () => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: categories.map((cat) {
+                    final isSelected = selectedCategory.value == cat;
+                    return GestureDetector(
+                      onTap: () => selectedCategory.value = cat,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppTheme.primary
+                              : AppTheme.primary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          cat,
+                          style: TextStyle(
+                            color: isSelected ? Colors.white : AppTheme.primary,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: ElevatedButton(
+                  onPressed: () {
+                    final name = nameCtrl.text.trim();
+                    if (name.isEmpty) {
+                      Get.snackbar(
+                        "Xatolik",
+                        "Xizmat nomini kiriting",
+                        backgroundColor: AppTheme.danger,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+                    // Check for duplicate
+                    final exists = servicesList.any(
+                      (s) =>
+                          (s['name'] as String).toLowerCase() ==
+                          name.toLowerCase(),
+                    );
+                    if (exists) {
+                      Get.snackbar(
+                        "Xatolik",
+                        "Bu xizmat allaqachon mavjud",
+                        backgroundColor: AppTheme.danger,
+                        colorText: Colors.white,
+                      );
+                      return;
+                    }
+
+                    final category = selectedCategory.value;
+                    servicesList.add(
+                      {
+                        'name': name,
+                        'category': category,
+                        'icon': _getIcon(name, category),
+                        'isEnabled': true,
+                        'price': 15000,
+                        'duration': 30,
+                        'isCustom': true,
+                      }.obs,
+                    );
+                    Get.back();
+                    Get.snackbar(
+                      "Qo'shildi ✅",
+                      "\"$name\" xizmati qo'shildi. Narx va vaqtni sozlang.",
+                      backgroundColor: AppTheme.success,
+                      colorText: Colors.white,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: const Text(
+                    "Qo'shish",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  // DELETE CUSTOM SERVICE
+  // ═══════════════════════════════════════════
+  void deleteCustomService(int index) {
+    final s = servicesList[index];
+    if (s['isCustom'] != true) return;
+
+    Get.dialog(
+      AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text("O'chirish"),
+        content: Text("\"${s['name']}\" xizmatini o'chirishni xohlaysizmi?"),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text("Bekor qilish"),
+          ),
+          TextButton(
+            onPressed: () {
+              servicesList.removeAt(index);
+              Get.back();
+              Get.snackbar("O'chirildi", "Xizmat o'chirildi");
+            },
+            child: Text("O'chirish", style: TextStyle(color: AppTheme.danger)),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> saveSettings() async {
@@ -158,7 +404,7 @@ class BarberServicesController extends GetxController {
           'services': activeServices,
         });
         Get.snackbar(
-          "Saqlandi",
+          "Saqlandi ✅",
           "Xizmatlar va narxlar muvaffaqiyatli saqlandi!",
           backgroundColor: AppTheme.success,
           colorText: Colors.white,
