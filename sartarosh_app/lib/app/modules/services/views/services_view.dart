@@ -192,94 +192,89 @@ class ServicesView extends GetView<ServicesController> {
 
                     return Padding(
                       padding: EdgeInsets.only(bottom: 12),
-                      child: GestureDetector(
-                        onTap: () => _showDetail(s),
-                        child: Container(
-                          padding: EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.03),
-                                blurRadius: 12,
+                      child: Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.03),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primary.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(14),
                               ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: EdgeInsets.all(14),
-                                decoration: BoxDecoration(
-                                  color: AppTheme.primary.withValues(
-                                    alpha: 0.08,
+                              child: Icon(
+                                s['icon'] as IconData,
+                                color: AppTheme.primary,
+                                size: 28,
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s['name'],
+                                    style: TextStyle(
+                                      fontSize: 17,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textDark,
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: Icon(
-                                  s['icon'] as IconData,
-                                  color: AppTheme.primary,
-                                  size: 28,
-                                ),
-                              ),
-                              SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      s['name'],
-                                      style: TextStyle(
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w700,
-                                        color: AppTheme.textDark,
+                                  SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.access_time_rounded,
+                                        size: 13,
+                                        color: AppTheme.textMedium,
                                       ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Row(
-                                      children: [
-                                        Icon(
-                                          Icons.access_time_rounded,
-                                          size: 13,
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "${s['duration'] ?? 30} daqiqa",
+                                        style: TextStyle(
                                           color: AppTheme.textMedium,
+                                          fontSize: 13,
                                         ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          "${s['duration'] ?? 30} daqiqa",
-                                          style: TextStyle(
-                                            color: AppTheme.textMedium,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        SizedBox(width: 12),
-                                        Icon(
-                                          Icons.person_rounded,
-                                          size: 13,
+                                      ),
+                                      SizedBox(width: 12),
+                                      Icon(
+                                        Icons.person_rounded,
+                                        size: 13,
+                                        color: AppTheme.textMedium,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        "$barberCount usta",
+                                        style: TextStyle(
                                           color: AppTheme.textMedium,
+                                          fontSize: 13,
                                         ),
-                                        SizedBox(width: 4),
-                                        Text(
-                                          "$barberCount usta",
-                                          style: TextStyle(
-                                            color: AppTheme.textMedium,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              Text(
-                                priceText,
-                                style: TextStyle(
-                                  color: AppTheme.primary,
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                            ),
+                            Text(
+                              priceText,
+                              style: TextStyle(
+                                color: AppTheme.primary,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
                     ).animate().fadeIn(
