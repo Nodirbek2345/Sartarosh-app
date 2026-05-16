@@ -457,6 +457,7 @@ class BarberDetailView extends StatelessWidget {
           // CTA
           Builder(
             builder: (_) {
+              if (isSelf) return const SizedBox.shrink();
               final bool ctaActive = barber['isActive'] ?? true;
               return Container(
                 padding: EdgeInsets.fromLTRB(
