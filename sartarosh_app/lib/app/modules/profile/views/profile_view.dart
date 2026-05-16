@@ -810,12 +810,18 @@ class ProfileView extends StatelessWidget {
                                     'name': name,
                                     'phone': phone,
                                     'address': address,
-                                    'location': address,
+                                    'location':
+                                        userService
+                                            .selectedRegion
+                                            .value
+                                            .isNotEmpty
+                                        ? userService.selectedRegion.value
+                                        : address,
                                     'image': userService.avatarBase64.value,
                                     'rating': 0.0,
                                     'reviewCount': 0,
                                     'isActive': true,
-                                    'gender': 'male',
+                                    'gender': userService.targetGender.value,
                                     'createdAt': FieldValue.serverTimestamp(),
                                   });
                               await FirebaseFirestore.instance
