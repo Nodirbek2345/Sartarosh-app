@@ -709,6 +709,23 @@ class BookingController extends GetxController {
         return;
       }
 
+      int completedVisits = 0;
+      if (uid.isNotEmpty) {
+        try {
+          final snap = await _firestore
+              .collection('bookings')
+              .where('clientUid', isEqualTo: uid)
+              .where('status', isEqualTo: 'completed')
+              .get();
+          completedVisits = snap.docs.length;
+        } catch (_) {}
+      }
+      final isFreeVisit =
+          (completedVisits % 6) == 5; // 5 tasidan keyin 6-si bepul
+      final priceForDb = isFreeVisit
+          ? 0
+          : (servicePrice < 1 ? 1 : servicePrice);
+
       final lockRef = BookingSlotLock.ref(
         _firestore,
         barberId,
@@ -716,7 +733,6 @@ class BookingController extends GetxController {
         timeVal,
       );
       final barberRef = _firestore.collection('barbers').doc(barberId);
-      final priceForDb = servicePrice < 1 ? 1 : servicePrice;
 
       await _firestore.runTransaction((transaction) async {
         final lockSnap = await transaction.get(lockRef);
@@ -756,13 +772,16 @@ class BookingController extends GetxController {
           'barberUid': barberUid,
           'service': InputSanitizer.sanitizeText(serviceName),
           'price': priceForDb,
+          'isFreeBonus': isFreeVisit,
           'durationMinutes': serviceDurationMinutes,
           'date': dateStr,
           'time': timeVal,
           'paymentType': selectedPaymentMethod.value,
-          'paymentStatus': selectedPaymentMethod.value == 'cash'
-              ? 'unpaid'
-              : 'pending_payment',
+          'paymentStatus': isFreeVisit
+              ? 'bonus'
+              : (selectedPaymentMethod.value == 'cash'
+                    ? 'unpaid'
+                    : 'pending_payment'),
           'status': 'pending',
           'createdAt': FieldValue.serverTimestamp(),
         });
