@@ -504,14 +504,18 @@ class BarberDashboardController extends GetxController {
     return true;
   }
 
-  /// Format earnings nicely: 60000 -> "60 ming", 0 -> "0"
+  /// Format earnings nicely: 60000 -> "60 ming", 1500 -> "1.5 ming", 0 -> "0"
   String formatEarnings(int amount) {
     if (amount == 0) return '0';
-    if (amount >= 1000) {
-      final thousands = amount ~/ 1000;
-      return '$thousands ming';
+    if (amount >= 1000000) {
+      final mln = amount / 1000000;
+      return '${mln.toStringAsFixed(mln.truncateToDouble() == mln ? 0 : 1)} mln';
     }
-    return '$amount';
+    if (amount >= 1000) {
+      final thousands = amount / 1000;
+      return '${thousands.toStringAsFixed(thousands.truncateToDouble() == thousands ? 0 : 1)} ming';
+    }
+    return '$amount so\'m';
   }
 
   /// Active bookings for dashboard display (excludes completed/cancelled/no-show)

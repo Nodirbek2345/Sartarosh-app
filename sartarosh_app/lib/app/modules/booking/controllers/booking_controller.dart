@@ -722,9 +722,7 @@ class BookingController extends GetxController {
       }
       final isFreeVisit =
           (completedVisits % 6) == 5; // 5 tasidan keyin 6-si bepul
-      final priceForDb = isFreeVisit
-          ? 0
-          : (servicePrice < 1 ? 1 : servicePrice);
+      final priceForDb = isFreeVisit ? 0 : servicePrice;
 
       final lockRef = BookingSlotLock.ref(
         _firestore,
