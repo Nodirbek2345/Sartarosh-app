@@ -176,170 +176,384 @@ class BarberServicesController extends GetxController {
       'Manikyur',
     ];
 
+    final isComboMode = false.obs;
+    final selectedCombos = <String>[].obs;
+
+    // Available services: only active and not custom (i.e. those fetched globally, this acts as base components)
+    final availableBaseServices = servicesList
+        .where((s) => s['isEnabled'] == true && s['isCustom'] == false)
+        .toList();
+
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(24),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
-                    borderRadius: BorderRadius.circular(2),
+      Obx(
+        () => Container(
+          padding: const EdgeInsets.all(24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade300,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Text(
-                "➕ Yangi xizmat qo'shish",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                "Masalan: Bosh yuvish + Soch olish",
-                style: TextStyle(fontSize: 13, color: AppTheme.textMedium),
-              ),
-              const SizedBox(height: 20),
-              TextField(
-                controller: nameCtrl,
-                decoration: InputDecoration(
-                  labelText: "Xizmat nomi",
-                  hintText: "Masalan: Bosh yuvish + Soch olish",
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
+                  const SizedBox(height: 20),
+                  Text(
+                    "➕ Yangi xizmat qo'shish",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textDark,
+                    ),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    borderSide: BorderSide(color: AppTheme.primary, width: 2),
-                  ),
-                  prefixIcon: Icon(Icons.content_cut, color: AppTheme.primary),
-                ),
-                textCapitalization: TextCapitalization.sentences,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                "Kategoriya",
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppTheme.textDark,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Obx(
-                () => Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: categories.map((cat) {
-                    final isSelected = selectedCategory.value == cat;
-                    return GestureDetector(
-                      onTap: () => selectedCategory.value = cat,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 8,
+                  const SizedBox(height: 16),
+
+                  // Mode Switcher
+                  Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.all(4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => isComboMode.value = false,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: !isComboMode.value
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: !isComboMode.value
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                          blurRadius: 4,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Oddiy",
+                                style: TextStyle(
+                                  fontWeight: !isComboMode.value
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: !isComboMode.value
+                                      ? AppTheme.primary
+                                      : AppTheme.textMedium,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppTheme.primary
-                              : AppTheme.primary.withValues(alpha: 0.08),
-                          borderRadius: BorderRadius.circular(10),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => isComboMode.value = true,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isComboMode.value
+                                    ? Colors.white
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: isComboMode.value
+                                    ? [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.05,
+                                          ),
+                                          blurRadius: 4,
+                                        ),
+                                      ]
+                                    : null,
+                              ),
+                              alignment: Alignment.center,
+                              child: Text(
+                                "Birlashtirish",
+                                style: TextStyle(
+                                  fontWeight: isComboMode.value
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                                  color: isComboMode.value
+                                      ? AppTheme.primary
+                                      : AppTheme.textMedium,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  if (!isComboMode.value) ...[
+                    Text(
+                      "Masalan: Bosh yuvish + Soch olish",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: AppTheme.textMedium,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: nameCtrl,
+                      decoration: InputDecoration(
+                        labelText: "Xizmat nomi",
+                        hintText: "Masalan: Bosh yuvish + Soch olish",
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: AppTheme.primary,
+                            width: 2,
+                          ),
+                        ),
+                        prefixIcon: Icon(
+                          Icons.content_cut,
+                          color: AppTheme.primary,
+                        ),
+                      ),
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      "Kategoriya",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: categories.map((cat) {
+                        final isSelected = selectedCategory.value == cat;
+                        return GestureDetector(
+                          onTap: () => selectedCategory.value = cat,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              cat,
+                              style: TextStyle(
+                                color: isSelected
+                                    ? Colors.white
+                                    : AppTheme.primary,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  ] else ...[
+                    Text(
+                      "Mavjud xizmatlarni tanlang",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textDark,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: availableBaseServices.map((s) {
+                        final sName = s['name'] as String;
+                        final isSelected = selectedCombos.contains(sName);
+                        return GestureDetector(
+                          onTap: () {
+                            if (isSelected) {
+                              selectedCombos.remove(sName);
+                            } else {
+                              selectedCombos.add(sName);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppTheme.primary
+                                  : AppTheme.primary.withValues(alpha: 0.08),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (isSelected) ...[
+                                  const Icon(
+                                    Icons.check,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                ],
+                                Text(
+                                  sName,
+                                  style: TextStyle(
+                                    color: isSelected
+                                        ? Colors.white
+                                        : AppTheme.primary,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    if (availableBaseServices.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
-                          cat,
+                          "Hozircha biriktirish uchun asosiy xizmatlar yo'q.",
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppTheme.primary,
+                            color: AppTheme.textMedium,
                             fontSize: 13,
-                            fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                    );
-                  }).toList(),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final name = nameCtrl.text.trim();
-                    if (name.isEmpty) {
-                      Get.snackbar(
-                        "Xatolik",
-                        "Xizmat nomini kiriting",
-                        backgroundColor: AppTheme.danger,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
-                    // Check for duplicate
-                    final exists = servicesList.any(
-                      (s) =>
-                          (s['name'] as String).toLowerCase() ==
-                          name.toLowerCase(),
-                    );
-                    if (exists) {
-                      Get.snackbar(
-                        "Xatolik",
-                        "Bu xizmat allaqachon mavjud",
-                        backgroundColor: AppTheme.danger,
-                        colorText: Colors.white,
-                      );
-                      return;
-                    }
+                  ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 52,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        String name = "";
+                        String category = "Maxsus";
+                        int price = 15000;
+                        int duration = 30;
 
-                    final category = selectedCategory.value;
-                    servicesList.add(
-                      {
-                        'name': name,
-                        'category': category,
-                        'icon': _getIcon(name, category),
-                        'isEnabled': true,
-                        'price': 15000,
-                        'duration': 30,
-                        'isCustom': true,
-                      }.obs,
-                    );
-                    Get.back();
-                    Get.snackbar(
-                      "Qo'shildi ✅",
-                      "\"$name\" xizmati qo'shildi. Narx va vaqtni sozlang.",
-                      backgroundColor: AppTheme.success,
-                      colorText: Colors.white,
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
+                        if (isComboMode.value) {
+                          if (selectedCombos.length < 2) {
+                            Get.snackbar(
+                              "Xatolik",
+                              "Iltimos kamida 2 ta xizmatni tanlang",
+                              backgroundColor: AppTheme.danger,
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+                          name = selectedCombos.join(' + ');
+                          category = "Kompleks";
+
+                          int tPrice = 0;
+                          int tDuration = 0;
+                          for (var sName in selectedCombos) {
+                            final baseS = availableBaseServices.firstWhere(
+                              (e) => e['name'] == sName,
+                            );
+                            tPrice += (baseS['price'] as int);
+                            tDuration += (baseS['duration'] as int);
+                          }
+                          price = tPrice;
+                          duration = tDuration;
+                        } else {
+                          name = nameCtrl.text.trim();
+                          if (name.isEmpty) {
+                            Get.snackbar(
+                              "Xatolik",
+                              "Xizmat nomini kiriting",
+                              backgroundColor: AppTheme.danger,
+                              colorText: Colors.white,
+                            );
+                            return;
+                          }
+                          category = selectedCategory.value;
+                        }
+
+                        // Check for duplicate
+                        final exists = servicesList.any(
+                          (s) =>
+                              (s['name'] as String).toLowerCase() ==
+                              name.toLowerCase(),
+                        );
+                        if (exists) {
+                          Get.snackbar(
+                            "Mavjud",
+                            "Bu xizmat allaqachon mavjud",
+                            backgroundColor: AppTheme.danger,
+                            colorText: Colors.white,
+                          );
+                          return;
+                        }
+
+                        servicesList.add(
+                          {
+                            'name': name,
+                            'category': category,
+                            'icon': _getIcon(name, category),
+                            'isEnabled': true,
+                            'price': price,
+                            'duration': duration,
+                            'isCustom': true,
+                          }.obs,
+                        );
+                        Get.back();
+                        Get.snackbar(
+                          "Qo'shildi ✅",
+                          "\"$name\" muvaffaqiyatli qo'shildi",
+                          backgroundColor: AppTheme.success,
+                          colorText: Colors.white,
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppTheme.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      child: const Text(
+                        "Qo'shish",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                     ),
                   ),
-                  child: const Text(
-                    "Qo'shish",
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
