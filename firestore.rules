@@ -152,6 +152,34 @@ service cloud.firestore {
       allow delete: if false; // Bronni o'chirish mumkin emas
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 4.5. NAVBATLAR (Queues - Jonli Navbat)
+    // ═══════════════════════════════════════════════════════
+    match /queues/{queueId} {
+      // O'qish: o'zi yaratgan, yoki o'ziga mo'ljallangan (barber) navbatlarni o'qish mumkin
+      allow read: if isSignedIn() && (
+        existingData().clientUid == request.auth.uid ||
+        existingData().barberUid == request.auth.uid
+      );
+      
+      // Yaratish: mijoz o'zi uchun jonli navbat yarata oladi
+      allow create: if isSignedIn()
+        && incomingData().clientUid == request.auth.uid
+        && incomingData().keys().hasAll(['clientUid', 'barberId', 'barberUid', 'status'])
+        && incomingData().status == 'waiting';
+        
+      // Yangilash: faqat sartarosh maqomni in_progress yoki completed/cancelled ga o'zgartiroladi
+      allow update: if isSignedIn() && existingData().barberUid == request.auth.uid;
+      
+      // Mijoz o'z navbatidan chiqa olishini ta'minlash (maqomni bekor qilish)
+      allow update: if isSignedIn() 
+        && existingData().clientUid == request.auth.uid 
+        && incomingData().clientUid == request.auth.uid
+        && incomingData().status == 'cancelled';
+        
+      allow delete: if false;
+    }
+
     // Vaqt slotini atomik band qilish (mijoz bron yaratganda)
     match /booking_time_locks/{lockId} {
       allow read: if isSignedIn();

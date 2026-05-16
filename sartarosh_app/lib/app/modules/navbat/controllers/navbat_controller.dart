@@ -32,37 +32,29 @@ class NavbatController extends GetxController {
       return;
     }
 
-    // Faqat bugungi pending yoki in_progress bronlarimizni olaiz
-    final now = DateTime.now();
-    final todayStr =
-        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
-
+    // Query 'queues' collection for the client's active walk-in requests
     FirebaseFirestore.instance
-        .collection('bookings')
+        .collection('queues')
         .where('clientUid', isEqualTo: uid)
-        .where('date', isEqualTo: todayStr)
-        .where('status', whereIn: ['pending', 'in_progress'])
+        .where('status', whereIn: ['waiting', 'in_progress'])
         .snapshots()
         .listen((shot) async {
-          final List<Map<String, dynamic>> myBookings = [];
+          final List<Map<String, dynamic>> myQueues = [];
 
           for (var doc in shot.docs) {
             final data = doc.data();
             data['docId'] = doc.id;
 
-            // Barber id orqali queue pozitsiyani hisoblaymiz
             final barberId = data['barberId'];
             int queuePosition = 0;
             int estimatedWait = 0;
 
-            if (data['isQueue'] == true && data['status'] == 'pending') {
-              // Queue pozitsiyani topish
+            if (data['status'] == 'waiting') {
+              // Calculate live queue position based on arrival time
               final queueShot = await FirebaseFirestore.instance
-                  .collection('bookings')
+                  .collection('queues')
                   .where('barberId', isEqualTo: barberId)
-                  .where('date', isEqualTo: todayStr)
-                  .where('isQueue', isEqualTo: true)
-                  .where('status', isEqualTo: 'pending')
+                  .where('status', isEqualTo: 'waiting')
                   .orderBy('createdAt', descending: false)
                   .get();
 
@@ -74,17 +66,42 @@ class NavbatController extends GetxController {
                 }
                 pos++;
               }
-              estimatedWait =
-                  queuePosition * 30; // Har bir mijozga o'rtacha 30 daqiqa
+              // Average 30 min wait per person ahead
+              estimatedWait = queuePosition * 30;
             }
 
+            // Map field names from queues collection to match NavbatView requirements
+            data['serviceName'] = data['service'] ?? 'Xizmat turi';
             data['queuePosition'] = queuePosition;
             data['estimatedWait'] = estimatedWait;
+            data['isQueue'] = true; // Flag for UI distinction
 
-            myBookings.add(data);
+            myQueues.add(data);
           }
 
-          activeQueueBookings.value = myBookings;
+          // Also merge any 'in-progress' BOOKINGS (appointments) to show them here too
+          // That way the user sees if they have an active appointment right now
+          try {
+            final now = DateTime.now();
+            final todayStr =
+                "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+            final bookingsShot = await FirebaseFirestore.instance
+                .collection('bookings')
+                .where('clientUid', isEqualTo: uid)
+                .where('date', isEqualTo: todayStr)
+                .where('status', whereIn: ['pending', 'in_progress'])
+                .get();
+
+            for (var bDoc in bookingsShot.docs) {
+              final bData = bDoc.data();
+              bData['docId'] = bDoc.id;
+              bData['isQueue'] = false;
+              myQueues.add(bData);
+            }
+          } catch (_) {}
+
+          activeQueueBookings.value = myQueues;
           isLoading.value = false;
         });
   }

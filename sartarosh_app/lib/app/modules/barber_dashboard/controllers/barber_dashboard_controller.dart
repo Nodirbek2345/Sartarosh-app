@@ -171,7 +171,7 @@ class BarberDashboardController extends GetxController {
   void _updateCombinedQueue() {
     // Find one in-progress from EITHER bookings OR queues
     final activeBooking = todayBookings.firstWhereOrNull(
-      (b) => b['status'] == 'in-progress',
+      (b) => b['status'] == 'in_progress',
     );
     final activeQueue = todayQueues.firstWhereOrNull(
       (q) => q['status'] == 'in_progress',
@@ -528,11 +528,11 @@ class BarberDashboardController extends GetxController {
 
   Future<void> startClient(String docId) async {
     try {
-      // State guard: only confirmed → in-progress
+      // State guard: only confirmed → in_progress
       final snapshot = await _firestore.collection('bookings').doc(docId).get();
       if (!snapshot.exists) return;
       final data = snapshot.data()!;
-      if (!_canTransition(data['status'] ?? '', 'in-progress')) {
+      if (!_canTransition(data['status'] ?? '', 'in_progress')) {
         Get.snackbar(
           "Xatolik",
           "Faqat tasdiqlangan bronni boshlash mumkin",
@@ -553,12 +553,12 @@ class BarberDashboardController extends GetxController {
         return;
       }
 
-      // Prevent multiple in-progress
+      // Prevent multiple in_progress
       final inProgressSnap = await _firestore
           .collection('bookings')
           .where('barberId', isEqualTo: _barberId)
           .where('date', isEqualTo: todayDate)
-          .where('status', isEqualTo: 'in-progress')
+          .where('status', isEqualTo: 'in_progress')
           .get();
 
       if (inProgressSnap.docs.isNotEmpty) {
@@ -572,7 +572,7 @@ class BarberDashboardController extends GetxController {
       }
 
       await _firestore.collection('bookings').doc(docId).update({
-        'status': 'in-progress',
+        'status': 'in_progress',
         'startedAt': FieldValue.serverTimestamp(),
       });
 
