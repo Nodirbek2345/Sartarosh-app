@@ -222,6 +222,11 @@ class HomeController extends GetxController {
       return;
     }
 
+    // Add Firestore-level location filter for REGION mode
+    if (mode == 'REGION' && targetRegion.isNotEmpty) {
+      query = query.where('location', isEqualTo: targetRegion);
+    }
+
     _barberSub?.cancel();
     _barberSub = query.snapshots().listen(
       (snapshot) {

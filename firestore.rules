@@ -96,7 +96,7 @@ service cloud.firestore {
                     && incomingData().service is string
                     && incomingData().service.size() > 0
                     && incomingData().price is number
-                    && incomingData().price > 0
+                    && incomingData().price >= 0
                     && incomingData().date is string
                     && incomingData().date.size() == 10
                     && incomingData().time is string

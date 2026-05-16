@@ -39,7 +39,7 @@ class NavbatController extends GetxController {
 
     FirebaseFirestore.instance
         .collection('bookings')
-        .where('clientId', isEqualTo: uid)
+        .where('clientUid', isEqualTo: uid)
         .where('date', isEqualTo: todayStr)
         .where('status', whereIn: ['pending', 'in_progress'])
         .snapshots()

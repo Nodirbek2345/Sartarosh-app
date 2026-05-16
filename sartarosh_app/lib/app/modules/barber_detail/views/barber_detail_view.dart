@@ -17,9 +17,7 @@ class BarberDetailView extends StatelessWidget {
     final barber = Get.arguments as Map<String, dynamic>? ?? {};
     final userService = Get.find<UserService>();
     // Xavfsizlik: sartarosh o'zini-o'zi bron qila olmasligi kerak
-    final bool isSelf =
-        barber['uid'] == userService.currentUid ||
-        barber['name'] == userService.name.value;
+    final bool isSelf = barber['uid'] == userService.currentUid;
 
     return Scaffold(
       backgroundColor: AppTheme.background,
