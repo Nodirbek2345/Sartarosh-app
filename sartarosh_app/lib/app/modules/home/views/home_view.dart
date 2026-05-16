@@ -1244,6 +1244,9 @@ class HomeView extends GetView<HomeController> {
 
   // ─── BOTTOM NAV (fluffy soft style) ───
   Widget _buildBottomNav() {
+    final userService = Get.find<UserService>();
+    final isBarber = userService.userRole.value == 'barber';
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF5F0E8),
@@ -1275,12 +1278,11 @@ class HomeView extends GetView<HomeController> {
                 onTap: () => Get.toNamed('/services'),
               ),
               _navItem(
-                Icons.calendar_month_rounded,
-                "Bronlar",
+                isBarber ? Icons.cut_rounded : Icons.calendar_month_rounded,
+                isBarber ? "Ustaxona" : "Bronlar",
                 false,
                 onTap: () {
-                  final userService = Get.find<UserService>();
-                  if (userService.userRole.value == 'barber') {
+                  if (isBarber) {
                     Get.toNamed('/barber-dashboard');
                   } else {
                     Get.toNamed('/my-bookings');

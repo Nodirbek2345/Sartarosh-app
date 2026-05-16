@@ -59,7 +59,10 @@ class SplashController extends GetxController {
       return;
     }
 
-    // Go straight to Home (barbers access dashboard via Bronlar tab)
-    Get.offAllNamed(Routes.home);
+    if (userService.userRole.value == 'barber') {
+      Get.offAllNamed(Routes.barberDashboard);
+    } else {
+      Get.offAllNamed(Routes.home);
+    }
   }
 }
