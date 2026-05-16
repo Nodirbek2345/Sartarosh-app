@@ -420,6 +420,10 @@ class UserService extends GetxService {
   void setUserRole(String role) async {
     userRole.value = role;
     await _write('user_role', role);
+    // Keep isBarberMode in sync with role
+    final isBrb = role == 'barber';
+    isBarberMode.value = isBrb;
+    await _writeBool('is_barber_mode', isBrb);
   }
 
   void updateUser(String rawName, String rawPhone) async {
@@ -467,6 +471,11 @@ class UserService extends GetxService {
   }
 
   Future<void> logout() async {
+    // Preserve region/location settings across logout/re-login
+    final savedRegion = selectedRegion.value;
+    final savedFilterMode = filterMode.value;
+    final savedGender = targetGender.value;
+
     try {
       await FirebaseAuth.instance.signOut();
     } catch (_) {}
@@ -479,14 +488,18 @@ class UserService extends GetxService {
     uid.value = '';
     avatarBase64.value = '';
     photoUrl.value = '';
-    targetGender.value = 'male';
     audienceProfile.value = '';
-    selectedRegion.value = '';
-    filterMode.value = 'REGION';
-    userLat.value = 0.0;
-    userLng.value = 0.0;
     favoriteBarberIds.clear();
 
+    // Clear all prefs then restore location settings
     await _prefs.clear();
+
+    // Restore preserved settings
+    selectedRegion.value = savedRegion;
+    filterMode.value = savedFilterMode;
+    targetGender.value = savedGender;
+    await _write('selected_region', savedRegion);
+    await _write('filter_mode', savedFilterMode);
+    await _write('target_gender', savedGender);
   }
 }

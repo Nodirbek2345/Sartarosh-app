@@ -202,9 +202,11 @@ class AuthController extends GetxController {
         userService.updateUser(finalName, finalPhone);
         userService.setUserRole(savedRole);
 
-        // Ensure Barber mode is off when initially logging in to prevent ghost states
-        if (userService.isBarberMode.value) {
-          userService.toggleBarberMode();
+        // Properly restore barber mode for returning barbers
+        if (savedRole == 'barber') {
+          userService.isBarberMode.value = true;
+        } else {
+          userService.isBarberMode.value = false;
         }
 
         // Upload FCM token for new user
