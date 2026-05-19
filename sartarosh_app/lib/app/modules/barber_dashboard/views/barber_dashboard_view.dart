@@ -176,7 +176,12 @@ class _DashboardTab extends StatelessWidget {
             ).animate().fadeIn(delay: 350.ms),
           ),
           if (controller.activeTodayBookings.isEmpty)
-            SliverToBoxAdapter(child: _buildEmptyState())
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: 80),
+                child: _buildEmptyState(),
+              ),
+            )
           else
             SliverPadding(
               padding: const EdgeInsets.symmetric(
@@ -1624,6 +1629,14 @@ class _BarberProfileTab extends StatelessWidget {
                   Icons.access_time_rounded,
                   "Ish vaqti sozlamalari",
                   () => _showWorkingHours(context),
+                ),
+                _profileMenuItem(
+                  Icons.person_outline_rounded,
+                  "Mijoz rejimiga o'tish",
+                  () {
+                    userService.setUserRole('client');
+                    Get.offAllNamed('/home');
+                  },
                 ),
                 _profileMenuItem(Icons.help_outline_rounded, "Yordam", () {
                   Get.toNamed('/support-chat');
