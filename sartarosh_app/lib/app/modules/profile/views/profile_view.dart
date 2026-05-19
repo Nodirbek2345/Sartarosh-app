@@ -232,24 +232,11 @@ class ProfileView extends StatelessWidget {
                           idx++,
                           () => Get.toNamed('/favorites'),
                         ),
-                        if (Get.find<UserService>().userRole.value != 'barber')
-                          _menuItem(
-                            Icons.content_cut_rounded,
-                            "Sartarosh bo'lish",
-                            idx++,
-                            () => _showBecomeBarber(),
-                          ),
                         _menuItem(
                           Icons.settings_rounded,
                           "Sozlamalar",
                           idx++,
                           () => _showSettings(),
-                        ),
-                        _menuItem(
-                          Icons.storefront_rounded,
-                          "Sartarosh sifatida qo'shilish",
-                          idx++,
-                          () => Get.toNamed('/add-barber'),
                         ),
                         _menuItem(
                           Icons.help_outline_rounded,
