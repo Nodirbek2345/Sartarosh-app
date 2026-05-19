@@ -59,10 +59,6 @@ class SplashController extends GetxController {
       return;
     }
 
-    if (userService.userRole.value == 'barber') {
-      Get.offAllNamed(Routes.barberDashboard);
-    } else {
-      Get.offAllNamed(Routes.home);
-    }
+    Get.offAllNamed(Routes.home);
   }
 }
