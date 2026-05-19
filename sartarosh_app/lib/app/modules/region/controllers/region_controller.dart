@@ -248,7 +248,7 @@ class RegionController extends GetxController {
   void showRegionFallbackDialog() {
     Get.bottomSheet(
       Container(
-        height: 480,
+        height: Get.height * 0.6,
         padding: EdgeInsets.symmetric(vertical: 20),
         decoration: BoxDecoration(
           color: Colors.white,

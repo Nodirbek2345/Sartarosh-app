@@ -55,11 +55,22 @@ class NavbatController extends GetxController {
                   .collection('queues')
                   .where('barberId', isEqualTo: barberId)
                   .where('status', isEqualTo: 'waiting')
-                  .orderBy('createdAt', descending: false)
+                  // bypassed orderBy to avoid missing composite index crash
                   .get();
 
+              final docs = queueShot.docs.toList();
+              // Sort locally to avoid Firebase index error
+              docs.sort((a, b) {
+                final aTime = a.data()['createdAt'] as Timestamp?;
+                final bTime = b.data()['createdAt'] as Timestamp?;
+                if (aTime == null && bTime == null) return 0;
+                if (aTime == null) return 1;
+                if (bTime == null) return -1;
+                return aTime.compareTo(bTime);
+              });
+
               int pos = 1;
-              for (var qDoc in queueShot.docs) {
+              for (var qDoc in docs) {
                 if (qDoc.id == doc.id) {
                   queuePosition = pos;
                   break;

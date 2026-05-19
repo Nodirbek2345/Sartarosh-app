@@ -41,7 +41,7 @@ class ClientAnalyticsController extends GetxController {
           .collection('bookings')
           .where('clientUid', isEqualTo: uid)
           .where('status', isEqualTo: 'completed')
-          .orderBy('createdAt', descending: true)
+          // By-passed orderBy to prevent composite index errors
           .get();
 
       historyList.clear();
@@ -120,6 +120,15 @@ class ClientAnalyticsController extends GetxController {
       } else {
         topBarberName("-");
       }
+
+      historyList.sort((a, b) {
+        final dateA = a['date'] as DateTime?;
+        final dateB = b['date'] as DateTime?;
+        if (dateA == null && dateB == null) return 0;
+        if (dateA == null) return 1;
+        if (dateB == null) return -1;
+        return dateB.compareTo(dateA);
+      });
 
       totalSpent(tSpent);
       monthlySpent(mSpent);
