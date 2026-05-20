@@ -824,6 +824,52 @@ class BarberDashboardController extends GetxController {
     }
   }
 
+  // ============== PROFILE EDITING ==============
+  Future<Map<String, dynamic>?> getBarberData() async {
+    if (_barberDocRef == null) return null;
+    final doc = await _barberDocRef!.get();
+    if (!doc.exists) return null;
+    return doc.data() as Map<String, dynamic>?;
+  }
+
+  Future<void> updateBarberProfile(
+    String name,
+    String phone,
+    String location,
+    String experience,
+    String about,
+  ) async {
+    if (_barberDocRef == null) return;
+    try {
+      await _barberDocRef!.update({
+        'name': name,
+        'phone': phone,
+        'location': location,
+        'experience': experience,
+        'about': about,
+      });
+
+      // Also update UserService cached name
+      final us = Get.find<UserService>();
+      us.updateUser(name, phone);
+
+      Get.back(); // close bottom sheet
+      Get.snackbar(
+        "Muvaffaqiyatli",
+        "Profil ma'lumotlari yangilandi",
+        backgroundColor: AppTheme.success,
+        colorText: Colors.white,
+      );
+    } catch (e) {
+      Get.snackbar(
+        "Xatolik",
+        "Ma'lumotlarni saqlashda xatolik: $e",
+        backgroundColor: AppTheme.danger,
+        colorText: Colors.white,
+      );
+    }
+  }
+
   // ============== PHOTO COMPRESSION & UPLOAD ==============
   final isUploadingPhoto = false.obs;
 

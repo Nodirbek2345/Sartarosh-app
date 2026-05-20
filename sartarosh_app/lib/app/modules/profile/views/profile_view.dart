@@ -223,6 +223,7 @@ class ProfileView extends StatelessWidget {
                 child: SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
                   child: Obx(() {
+                    final us = Get.find<UserService>();
                     int idx = 0;
                     return Column(
                       children: [
@@ -238,6 +239,15 @@ class ProfileView extends StatelessWidget {
                           idx++,
                           () => _showSettings(),
                         ),
+                        // Faqat erkak mijozlarga ko'rsatish — ayollar va sartaroshlar ko'rmaydi
+                        if (us.userRole.value != 'barber' &&
+                            us.targetGender.value == 'male')
+                          _menuItem(
+                            Icons.content_cut_rounded,
+                            "Sartarosh sifatida qo'shilish",
+                            idx++,
+                            () => Get.toNamed('/add-barber'),
+                          ),
                         _menuItem(
                           Icons.help_outline_rounded,
                           "Yordam",

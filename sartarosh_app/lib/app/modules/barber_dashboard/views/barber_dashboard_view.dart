@@ -1621,6 +1621,11 @@ class _BarberProfileTab extends StatelessWidget {
                 _buildPortfolioSection(controller),
                 const SizedBox(height: 16),
                 _profileMenuItem(
+                  Icons.edit_note_rounded,
+                  "Profilni tahrirlash",
+                  () => _showEditProfile(context),
+                ),
+                _profileMenuItem(
                   Icons.content_cut_rounded,
                   "Xizmatlarim va Narxlar",
                   () => Get.toNamed('/barber-services'),
@@ -2142,6 +2147,137 @@ class _BarberProfileTab extends StatelessWidget {
               ),
             ),
           ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showEditProfile(BuildContext context) async {
+    Get.dialog(
+      const Center(child: CircularProgressIndicator()),
+      barrierDismissible: false,
+    );
+    final data = await controller.getBarberData();
+    Get.back();
+
+    if (data == null) return;
+    if (!context.mounted) return;
+
+    final nameCtrl = TextEditingController(text: data['name'] ?? '');
+    final phoneCtrl = TextEditingController(text: data['phone'] ?? '');
+    final locationCtrl = TextEditingController(text: data['location'] ?? '');
+    final expCtrl = TextEditingController(text: data['experience'] ?? '');
+    final aboutCtrl = TextEditingController(text: data['about'] ?? '');
+
+    Get.bottomSheet(
+      Container(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade300,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                "Profilni tahrirlash",
+                style: GoogleFonts.poppins(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textDark,
+                ),
+              ),
+              const SizedBox(height: 20),
+              TextField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Ism",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Telefon raqam",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: locationCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Manzil (Region/Tuman)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: expCtrl,
+                decoration: const InputDecoration(
+                  labelText: "Tajriba (masalan: 5 yil)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: aboutCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: "O'zingiz haqingizda",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppTheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: () {
+                    controller.updateBarberProfile(
+                      nameCtrl.text,
+                      phoneCtrl.text,
+                      locationCtrl.text,
+                      expCtrl.text,
+                      aboutCtrl.text,
+                    );
+                  },
+                  child: Text(
+                    "Saqlash",
+                    style: GoogleFonts.poppins(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       isScrollControlled: true,

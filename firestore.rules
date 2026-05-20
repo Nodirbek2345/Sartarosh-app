@@ -39,9 +39,11 @@ service cloud.firestore {
                     && incomingData().name.size() > 0
                     && incomingData().name.size() <= 100;
       
-      // Role ni o'zgartirish taqiqlangan (faqat merge allowed)
+      // Role o'zgartirish: faqat client → barber ga ruxsat (barber → client bloklangan)
       allow update: if isSignedIn() && isOwner(userId)
-                    && (!incomingData().keys().hasAny(['role']) || incomingData().role == existingData().role);
+                    && (!incomingData().keys().hasAny(['role']) 
+                        || incomingData().role == existingData().role
+                        || (existingData().role == 'client' && incomingData().role == 'barber'));
       
       allow delete: if false;
     }
