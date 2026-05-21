@@ -101,7 +101,32 @@ class UserService extends GetxService {
       await _write('user_uid', firebaseUser.uid);
     }
 
-    // ─── Auto-restore profile from Firestore ───
+    // ─── STEP 1: Check barbers collection FIRST (source of truth) ───
+    if (currentUid.isNotEmpty) {
+      try {
+        final barberCheck = await FirebaseFirestore.instance
+            .collection('barbers')
+            .where('uid', isEqualTo: currentUid)
+            .limit(1)
+            .get();
+        if (barberCheck.docs.isNotEmpty) {
+          // User IS a barber — force set role regardless of other data
+          userRole.value = 'barber';
+          isBarberMode.value = true;
+          await _write('user_role', 'barber');
+          await _writeBool('is_barber_mode', true);
+          // Also sync to users collection
+          try {
+            await FirebaseFirestore.instance
+                .collection('users')
+                .doc(currentUid)
+                .set({'role': 'barber'}, SetOptions(merge: true));
+          } catch (_) {}
+        }
+      } catch (_) {}
+    }
+
+    // ─── STEP 2: Auto-restore profile from Firestore users doc ───
     if (currentUid.isNotEmpty) {
       try {
         final userDoc = await FirebaseFirestore.instance
@@ -127,13 +152,16 @@ class UserService extends GetxService {
             phone.value = serverPhone;
             await _write('user_phone', serverPhone);
           }
-          if (serverRole.isNotEmpty) {
-            userRole.value = serverRole;
-            await _write('user_role', serverRole);
+          // ⚠️ MUHIM: Agar lokal role allaqachon 'barber' bo'lsa,
+          //    serverdan kelgan 'client' bilan QAYTA YOZILMASIN!
+          if (userRole.value != 'barber') {
             if (serverRole == 'barber') {
+              userRole.value = 'barber';
               isBarberMode.value = true;
+              await _write('user_role', 'barber');
               await _writeBool('is_barber_mode', true);
             }
+            // Agar server ham 'client' va lokal ham 'client' — hech narsa o'zgarmaydi
           }
           if (serverAvatar.isNotEmpty) {
             avatarBase64.value = serverAvatar;
@@ -161,29 +189,6 @@ class UserService extends GetxService {
 
           isLogged.value = true;
           await _writeBool('is_logged', true);
-        }
-      } catch (_) {}
-    }
-
-    // ─── Auto role-recovery ───
-    if (currentUid.isNotEmpty && userRole.value == 'client') {
-      try {
-        final barberCheck = await FirebaseFirestore.instance
-            .collection('barbers')
-            .where('uid', isEqualTo: currentUid)
-            .limit(1)
-            .get();
-        if (barberCheck.docs.isNotEmpty) {
-          userRole.value = 'barber';
-          isBarberMode.value = true;
-          await _write('user_role', 'barber');
-          await _writeBool('is_barber_mode', true);
-          try {
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(currentUid)
-                .set({'role': 'barber'}, SetOptions(merge: true));
-          } catch (_) {}
         }
       } catch (_) {}
     }
@@ -424,6 +429,15 @@ class UserService extends GetxService {
     final isBrb = role == 'barber';
     isBarberMode.value = isBrb;
     await _writeBool('is_barber_mode', isBrb);
+    // ✅ Firestore users hujjatiga ham yozish — restart'da yo'qolmasligi uchun
+    if (currentUid.isNotEmpty) {
+      try {
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUid)
+            .set({'role': role}, SetOptions(merge: true));
+      } catch (_) {}
+    }
   }
 
   void updateUser(String rawName, String rawPhone) async {
