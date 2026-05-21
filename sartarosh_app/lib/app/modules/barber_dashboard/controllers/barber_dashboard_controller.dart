@@ -37,6 +37,9 @@ class BarberDashboardController extends GetxController {
   final currentClient = Rxn<Map<String, dynamic>>();
   final nextClient = Rxn<Map<String, dynamic>>();
 
+  // Navigation
+  DateTime? lastBackPressTime;
+
   // Stream subscriptions for proper cleanup
   StreamSubscription? _bookingsSub;
   StreamSubscription? _allBookingsSub;
