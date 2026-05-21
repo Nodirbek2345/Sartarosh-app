@@ -1766,6 +1766,38 @@ class _BarberProfileTab extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 24),
+                // Version display box
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppTheme.textLight.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Sartarosh v${Get.find<UpdateService>().currentVersion}",
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.textMedium,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
               ],
             ),
           ),
