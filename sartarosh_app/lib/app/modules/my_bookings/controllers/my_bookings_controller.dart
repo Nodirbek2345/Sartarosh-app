@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import '../../../../core/services/user_service.dart';
 import '../../../../core/utils/booking_slot_lock.dart';
 
+/// MyBookingsController — FAQAT MIJOZ uchun.
+/// Barber logikasi BarberDashboardController'da.
 class MyBookingsController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
@@ -21,30 +23,6 @@ class MyBookingsController extends GetxController {
   // Total waiting for same barber/date
   final queueTotals = <String, int>{}.obs;
 
-  late final RxBool forceClientMode;
-
-  // Real source of truth for UI toggle
-  final hasBarberProfile = false.obs;
-
-  // Barber states
-  bool get isBarberMode =>
-      Get.find<UserService>().userRole.value == 'barber' &&
-      !forceClientMode.value;
-
-  final barberAll = <Map<String, dynamic>>[].obs;
-  final barberPending = <Map<String, dynamic>>[].obs;
-  final barberConfirmed = <Map<String, dynamic>>[].obs;
-  final barberInProgress = <Map<String, dynamic>>[].obs;
-  final barberCompleted = <Map<String, dynamic>>[].obs;
-  final barberCancelled = <Map<String, dynamic>>[].obs;
-
-  // Dashboard Stats
-  final todayClientsCount = 0.obs;
-  final completedCount = 0.obs;
-  final todayEarnings = 0.obs;
-  final weeklyEarnings = 0.obs;
-  final monthlyEarnings = 0.obs;
-
   StreamSubscription? _bookingsSub;
 
   // Track queue subscriptions per barber/date pair
@@ -53,35 +31,13 @@ class MyBookingsController extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    final args = Get.arguments as Map<String, dynamic>?;
-    forceClientMode = (args?['forceClient'] == true).obs;
-
     _fetchBookings();
-    _checkIfBarber();
-  }
-
-  Future<void> _checkIfBarber() async {
-    final uid = Get.find<UserService>().currentUid;
-    if (uid.isEmpty) return;
-    final docs = await _firestore
-        .collection('barbers')
-        .where('uid', isEqualTo: uid)
-        .get();
-    if (docs.docs.isNotEmpty) {
-      hasBarberProfile.value = true;
-      _barberDocRef = docs.docs.first.reference;
-
-      _listenBarberBookings();
-      _listenBarberStatus();
-      _listenQueues();
-    }
   }
 
   void _fetchBookings() {
     final userService = Get.find<UserService>();
     final uid = userService.currentUid;
 
-    // Use UID for secure queries, fallback to name for backward compat
     final query = uid.isNotEmpty
         ? _firestore.collection('bookings').where('clientUid', isEqualTo: uid)
         : _firestore
@@ -110,35 +66,29 @@ class MyBookingsController extends GetxController {
         final s = b['status'];
         final clientDeleted = b['clientDeleted'] ?? false;
         if (clientDeleted) return false;
-
         return s == 'completed' ||
             s == 'cancelled' ||
             s == 'no-show' ||
             s == 'penalty';
       }).toList();
 
-      // All bookings for filter-based UI (excluding client-deleted)
       allClientBookings.value = docs.where((b) {
         final clientDeleted = b['clientDeleted'] ?? false;
         return !clientDeleted;
       }).toList();
 
       isLoading.value = false;
-
-      // Calculate queue positions for all active bookings
       _updateQueuePositions();
     });
   }
 
-  /// Real-time queue position: listen to all bookings for same barber & date
+  /// Navbat pozitsiyasini real-time yangilash
   void _updateQueuePositions() {
-    // Cancel old queue subscriptions
     for (var sub in _queueSubs.values) {
       sub.cancel();
     }
     _queueSubs.clear();
 
-    // Group active bookings by barber+date
     final Map<String, List<Map<String, dynamic>>> grouped = {};
     for (var b in activeBookings) {
       final key = '${b['barberId'] ?? ''}_${b['date'] ?? ''}';
@@ -166,7 +116,6 @@ class MyBookingsController extends GetxController {
               return data;
             }).toList();
 
-            // Sort by time
             allBookings.sort(
               (a, b) => (a['time'] ?? '').compareTo(b['time'] ?? ''),
             );
@@ -192,7 +141,7 @@ class MyBookingsController extends GetxController {
     }
   }
 
-  /// Get estimated wait time for a booking based on queue position
+  /// Kutish vaqtini hisoblash
   String getEstimatedWait(Map<String, dynamic> booking) {
     final id = booking['id'] as String? ?? '';
     final pos = queuePositions[id] ?? 0;
@@ -205,6 +154,7 @@ class MyBookingsController extends GetxController {
     return "~$hours soat $mins daqiqa";
   }
 
+  /// Bronni bekor qilish (mijoz tomonidan)
   Future<void> cancelBooking(String id, String dateStr, String timeStr) async {
     try {
       final bookingSnap = await _firestore.collection('bookings').doc(id).get();
@@ -216,7 +166,6 @@ class MyBookingsController extends GetxController {
           'yyyy-MM-dd HH:mm',
         ).parse('$dateStr $timeStr');
         final now = DateTime.now();
-        // If cancellation is less than 30 mins before, it's late cancellation -> penalty
         if (bookingTime.difference(now).inMinutes < 30) {
           newStatus = 'penalty';
         }
@@ -231,7 +180,7 @@ class MyBookingsController extends GetxController {
         await BookingSlotLock.releaseFromBookingData(_firestore, before);
       }
 
-      // Send notification to barber
+      // Ustaga bildirishnoma
       try {
         final bookingDoc = await _firestore
             .collection('bookings')
@@ -273,6 +222,7 @@ class MyBookingsController extends GetxController {
     }
   }
 
+  /// Qayta bron qilish
   void rebook(Map<String, dynamic> b) {
     final barberId = b['barberId'] as String?;
     if (barberId == null || barberId.isEmpty) {
@@ -298,395 +248,7 @@ class MyBookingsController extends GetxController {
     });
   }
 
-  // ============== BARBER STATUS & QUEUE CONTROLS ==============
-  final isActive = true.obs;
-  final queueLimit = 1.obs;
-  final currentClient = Rxn<Map<String, dynamic>>();
-  final nextClient = Rxn<Map<String, dynamic>>();
-  DocumentReference? _barberDocRef;
-  StreamSubscription? _barberBookingsSub;
-  StreamSubscription? _statusSub;
-  StreamSubscription? _queuesSub;
-  final todayQueues = <Map<String, dynamic>>[].obs;
-
-  void _listenBarberStatus() {
-    if (_barberDocRef == null) return;
-    _statusSub = _barberDocRef!.snapshots().listen((snap) {
-      if (snap.exists) {
-        final data = snap.data() as Map<String, dynamic>?;
-        if (data != null) {
-          isActive.value = data['isActive'] ?? true;
-          queueLimit.value = data['queueLimit'] ?? 1;
-        }
-      }
-    });
-  }
-
-  void _listenQueues() {
-    final uid = Get.find<UserService>().currentUid;
-    if (uid.isEmpty) return;
-
-    _queuesSub = _firestore
-        .collection('queues')
-        .where('barberId', isEqualTo: uid)
-        .where('status', whereIn: ['waiting', 'in_progress'])
-        .snapshots()
-        .listen((snapshot) {
-          final list = snapshot.docs.map((doc) {
-            final data = doc.data();
-            data['docId'] = doc.id;
-            data['id'] = doc.id;
-            data['isQueue'] = true;
-            return data;
-          }).toList();
-
-          list.sort((a, b) {
-            final aTime = a['createdAt'] as Timestamp?;
-            final bTime = b['createdAt'] as Timestamp?;
-            if (aTime == null && bTime == null) return 0;
-            if (aTime == null) return 1;
-            if (bTime == null) return -1;
-            return aTime.compareTo(bTime);
-          });
-          todayQueues.value = list;
-          _updateCombinedQueue();
-        });
-  }
-
-  void _updateCombinedQueue() {
-    final activeBooking = barberInProgress.isNotEmpty
-        ? barberInProgress.first
-        : null;
-    final activeQueue = todayQueues.firstWhereOrNull(
-      (q) => q['status'] == 'in_progress',
-    );
-
-    if (activeBooking != null) {
-      currentClient.value = activeBooking;
-    } else if (activeQueue != null) {
-      currentClient.value = activeQueue;
-    } else {
-      currentClient.value = null;
-    }
-
-    final nextBooking = barberConfirmed.isNotEmpty
-        ? barberConfirmed.first
-        : null;
-    final pendingBooking = barberPending.isNotEmpty
-        ? barberPending.first
-        : null;
-
-    if (nextBooking != null) {
-      nextClient.value = nextBooking;
-    } else if (todayQueues.isNotEmpty &&
-        todayQueues.first['status'] == 'waiting') {
-      nextClient.value = todayQueues.first;
-    } else if (pendingBooking != null) {
-      nextClient.value = pendingBooking;
-    } else {
-      nextClient.value = null;
-    }
-  }
-
-  Future<void> toggleActiveStatus() async {
-    if (!isActive.value && todayQueues.length >= queueLimit.value) {
-      Get.snackbar(
-        "Navbat to'la",
-        "Sizda navbat limiti to'lgan. Limitni oshiring yoki ishlarni yakunlang.",
-        backgroundColor: AppTheme.danger,
-        colorText: Colors.white,
-      );
-      return;
-    }
-    if (_barberDocRef != null) {
-      await _barberDocRef!.update({'isActive': !isActive.value});
-    }
-  }
-
-  void incrementLimit() {
-    if (queueLimit.value < 99) {
-      queueLimit.value++;
-      if (_barberDocRef != null) {
-        _barberDocRef!.update({'queueLimit': queueLimit.value});
-      }
-    }
-  }
-
-  void decrementLimit() {
-    if (queueLimit.value > 1) {
-      queueLimit.value--;
-      if (_barberDocRef != null) {
-        _barberDocRef!.update({'queueLimit': queueLimit.value});
-      }
-    }
-  }
-
-  // ---- BARBER STATE ----
-
-  void _listenBarberBookings() {
-    final userService = Get.find<UserService>();
-    final uid = userService.currentUid;
-    if (uid.isEmpty) return;
-
-    // Usta statusidagi bronlarni olish
-    _barberBookingsSub?.cancel();
-    _barberBookingsSub = _firestore
-        .collection('bookings')
-        .where('barberId', isEqualTo: uid)
-        .snapshots()
-        .listen((snap) {
-          final docs = snap.docs.map((d) {
-            final data = d.data();
-            data['id'] = d.id; // docId
-            return data;
-          }).toList();
-
-          docs.sort((a, b) {
-            final dateA = '${a['date'] ?? ''} ${a['time'] ?? ''}';
-            final dateB = '${b['date'] ?? ''} ${b['time'] ?? ''}';
-            return dateB.compareTo(dateA);
-          });
-
-          barberAll.value = docs;
-          barberPending.value = docs
-              .where((b) => b['status'] == 'pending')
-              .toList();
-          barberConfirmed.value = docs
-              .where((b) => b['status'] == 'confirmed')
-              .toList();
-          barberInProgress.value = docs
-              .where((b) => b['status'] == 'in-progress')
-              .toList();
-          barberCompleted.value = docs
-              .where((b) => b['status'] == 'completed')
-              .toList();
-          barberCancelled.value = docs.where((b) {
-            final s = b['status'];
-            return s == 'cancelled' || s == 'no-show' || s == 'penalty';
-          }).toList();
-
-          // ── 🔥 Stats Computation ──
-          final today = DateFormat('yyyy-MM-dd').format(DateTime.now());
-          final now = DateTime.now();
-          final weekStart = now.subtract(Duration(days: now.weekday - 1));
-          final monthStart = DateTime(now.year, now.month, 1);
-
-          final todayDocs = docs.where((b) => b['date'] == today).toList();
-          todayClientsCount.value = todayDocs.length;
-          completedCount.value = todayDocs
-              .where((b) => b['status'] == 'completed')
-              .length;
-          todayEarnings.value = todayDocs
-              .where((b) => b['status'] == 'completed')
-              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
-
-          final completedDocs = docs
-              .where((b) => b['status'] == 'completed')
-              .toList();
-          weeklyEarnings.value = completedDocs
-              .where((b) {
-                try {
-                  final d = DateTime.parse(b['date'] ?? '');
-                  return d.isAfter(weekStart.subtract(const Duration(days: 1)));
-                } catch (_) {
-                  return false;
-                }
-              })
-              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
-
-          monthlyEarnings.value = completedDocs
-              .where((b) {
-                try {
-                  final d = DateTime.parse(b['date'] ?? '');
-                  return d.isAfter(
-                    monthStart.subtract(const Duration(days: 1)),
-                  );
-                } catch (_) {
-                  return false;
-                }
-              })
-              .fold<int>(0, (t, b) => t + ((b['price'] as num?)?.toInt() ?? 0));
-
-          _updateCombinedQueue();
-        });
-  }
-
-  // ============== STATE MACHINE HELPERS ==============
-  static const _allowedTransitions = {
-    'pending': ['confirmed', 'cancelled'],
-    'confirmed': ['in-progress', 'cancelled', 'no-show'],
-    'in-progress': ['completed'],
-  };
-
-  bool _canTransition(String from, String to) {
-    return _allowedTransitions[from]?.contains(to) ?? false;
-  }
-
-  Future<void> acceptBooking(String docId) async {
-    try {
-      final snapshot = await _firestore.collection('bookings').doc(docId).get();
-      if (!snapshot.exists) return;
-      final data = snapshot.data()!;
-      if (!_canTransition(data['status'] ?? '', 'confirmed')) {
-        Get.snackbar(
-          "Xatolik",
-          "Holatini o'zgartirish mumkin emas",
-          backgroundColor: Colors.red,
-          colorText: Colors.white,
-        );
-        return;
-      }
-      // Smart Accept: Auto-reject overlapping bookings
-      final overlaps = await _firestore
-          .collection('bookings')
-          .where('barberId', isEqualTo: Get.find<UserService>().currentUid)
-          .where('date', isEqualTo: data['date'])
-          .where('time', isEqualTo: data['time'])
-          .where('status', isEqualTo: 'pending')
-          .get();
-
-      for (var doc in overlaps.docs) {
-        if (doc.id != docId) {
-          await doc.reference.update({'status': 'cancelled'});
-          await BookingSlotLock.releaseFromBookingData(_firestore, doc.data());
-        }
-      }
-
-      await _firestore.collection('bookings').doc(docId).update({
-        'status': 'confirmed',
-      });
-      final clientUid = data['clientUid'] ?? '';
-      if (clientUid.isNotEmpty) {
-        await _firestore.collection('notifications').add({
-          'userId': clientUid,
-          'title': 'Bron tasdiqlandi!',
-          'message': 'Usta broningizni tasdiqladi.',
-          'type': 'booking_confirmed',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      Get.snackbar(
-        "Zo'r",
-        "Bron qabul qilindi",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar("Xato", "Xatolik yuz berdi");
-    }
-  }
-
-  Future<void> rejectBooking(String docId) async {
-    try {
-      final snapshot = await _firestore.collection('bookings').doc(docId).get();
-      if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'cancelled')) {
-        return;
-      }
-
-      await _firestore.collection('bookings').doc(docId).update({
-        'status': 'cancelled',
-      });
-      await BookingSlotLock.releaseFromBookingData(
-        _firestore,
-        snapshot.data()!,
-      );
-      final clientUid = snapshot.data()!['clientUid'] ?? '';
-      if (clientUid.isNotEmpty) {
-        await _firestore.collection('notifications').add({
-          'userId': clientUid,
-          'title': 'Bron bekor qilindi',
-          'message': 'Usta bronni bekor qildi.',
-          'type': 'booking_cancelled',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      Get.snackbar(
-        "Rad etildi",
-        "Bron rad etildi",
-        backgroundColor: Colors.orange,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar("Xato", "Xatolik yuz berdi");
-    }
-  }
-
-  Future<void> startClient(String docId) async {
-    try {
-      final snapshot = await _firestore.collection('bookings').doc(docId).get();
-      if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'in-progress')) {
-        return;
-      }
-
-      await _firestore.collection('bookings').doc(docId).update({
-        'status': 'in-progress',
-        'startedAt': FieldValue.serverTimestamp(),
-      });
-      final clientUid = snapshot.data()!['clientUid'] ?? '';
-      if (clientUid.isNotEmpty) {
-        await _firestore.collection('notifications').add({
-          'userId': clientUid,
-          'title': 'Sizning navbatingiz! 🔥',
-          'message': 'Xizmatingiz boshlandi.',
-          'type': 'your_turn',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      Get.snackbar(
-        "Boshlandi",
-        "Xizmat boshlandi",
-        backgroundColor: Colors.blue,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar("Xato", "Xatolik yuz berdi");
-    }
-  }
-
-  Future<void> completeClient(String docId) async {
-    try {
-      final snapshot = await _firestore.collection('bookings').doc(docId).get();
-      if (!snapshot.exists) return;
-      if (!_canTransition(snapshot.data()!['status'] ?? '', 'completed')) {
-        return;
-      }
-
-      await _firestore.collection('bookings').doc(docId).update({
-        'status': 'completed',
-        'paymentStatus': 'paid',
-        'completedAt': FieldValue.serverTimestamp(),
-      });
-      await BookingSlotLock.releaseFromBookingData(
-        _firestore,
-        snapshot.data()!,
-      );
-      final clientUid = snapshot.data()!['clientUid'] ?? '';
-      if (clientUid.isNotEmpty) {
-        await _firestore.collection('notifications').add({
-          'userId': clientUid,
-          'title': 'Xizmat yakunlandi ✅',
-          'message': 'Rahmat!',
-          'type': 'service_completed',
-          'isRead': false,
-          'createdAt': FieldValue.serverTimestamp(),
-        });
-      }
-      Get.snackbar(
-        "Tugallandi",
-        "Xizmat yakunlandi",
-        backgroundColor: Colors.green,
-        colorText: Colors.white,
-      );
-    } catch (e) {
-      Get.snackbar("Xato", "Xatolik yuz berdi");
-    }
-  }
-
+  /// Tarixdan o'chirish (faqat mijoz visibility)
   Future<void> deleteHistoryItem(String id) async {
     try {
       await _firestore.collection('bookings').doc(id).update({
@@ -706,9 +268,6 @@ class MyBookingsController extends GetxController {
   @override
   void onClose() {
     _bookingsSub?.cancel();
-    _barberBookingsSub?.cancel();
-    _statusSub?.cancel();
-    _queuesSub?.cancel();
     for (var sub in _queueSubs.values) {
       sub.cancel();
     }
