@@ -56,10 +56,9 @@ jobs:
             Yangi versiya tayyor!
             
             ### O'zgarishlar:
-            - Haqiqiy Bildirishnomalar Markazi (Notification Center) qo'shildi
-            - Premium Haptic Feedback (vibratsiya vositalari) joriy etildi
-            - SARTAROSH logosi uchun Shimmer jilo qo'shildi
-            - "Mening bronlarim" menyusiga Pull-to-refresh tortib yangilash mexanizmi qo'shildi
+            - Sartarosh va Mijoz rollari to'liq ajratildi (Pro dizayn)
+            - Sartaroshlar uchun "Sartarosh paneli" avtomatik ochilishi to'g'irlandi
+            - Ilova tezligi oshirildi va koddagi ortiqcha mantiqlar olib tashlandi
           files: |
             build/app/outputs/flutter-apk/app-release.apk
             update_manifest.json
