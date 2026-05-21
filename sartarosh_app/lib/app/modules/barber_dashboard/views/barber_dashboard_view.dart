@@ -1636,10 +1636,11 @@ class _BarberProfileTab extends StatelessWidget {
                   () => _showWorkingHours(context),
                 ),
                 _profileMenuItem(
-                  Icons.person_outline_rounded,
-                  "Mijoz rejimiga o'tish",
+                  Icons.exit_to_app_rounded,
+                  "Usta rejimidan chiqish",
                   () {
                     userService.setUserRole('client');
+                    userService.isBarberMode.value = false;
                     Get.offAllNamed('/home');
                   },
                 ),

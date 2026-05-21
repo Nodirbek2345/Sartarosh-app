@@ -53,9 +53,16 @@ class SplashController extends GetxController {
       return;
     }
 
-    // Force Location Selection if empty
-    if (!userService.hasLocation) {
+    // Force Location Selection if empty (only for clients)
+    if (!userService.hasLocation && userService.userRole.value != 'barber') {
       Get.offAllNamed(Routes.region);
+      return;
+    }
+
+    // Redirect to Barber Dashboard if in Barber Mode
+    if (userService.isBarberMode.value &&
+        userService.userRole.value == 'barber') {
+      Get.offAllNamed(Routes.barberDashboard);
       return;
     }
 
