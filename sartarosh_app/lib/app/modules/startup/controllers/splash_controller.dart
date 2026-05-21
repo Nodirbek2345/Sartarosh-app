@@ -59,9 +59,9 @@ class SplashController extends GetxController {
       return;
     }
 
-    // Redirect to Barber Dashboard if in Barber Mode
-    if (userService.isBarberMode.value &&
-        userService.userRole.value == 'barber') {
+    // Redirect to Barber Dashboard if the user is a Barber
+    if (userService.userRole.value == 'barber') {
+      userService.isBarberMode.value = true;
       Get.offAllNamed(Routes.barberDashboard);
       return;
     }

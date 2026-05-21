@@ -87,6 +87,11 @@ class UserService extends GetxService {
     targetGender.value = _read('target_gender') ?? 'male';
     audienceProfile.value = _read('audience_profile') ?? '';
     userRole.value = _read('user_role') ?? 'client';
+
+    // STRICT MODE: Agar role barber bolsa isBarberMode ham doim true bolishi kerak
+    if (userRole.value == 'barber') {
+      isBarberMode.value = true;
+    }
     uid.value = _read('user_uid') ?? '';
 
     filterMode.value = _read('filter_mode') ?? 'REGION';
@@ -152,16 +157,22 @@ class UserService extends GetxService {
             phone.value = serverPhone;
             await _write('user_phone', serverPhone);
           }
-          // ⚠️ MUHIM: Agar lokal role allaqachon 'barber' bo'lsa,
-          //    serverdan kelgan 'client' bilan QAYTA YOZILMASIN!
           if (userRole.value != 'barber') {
             if (serverRole == 'barber') {
               userRole.value = 'barber';
               isBarberMode.value = true;
               await _write('user_role', 'barber');
               await _writeBool('is_barber_mode', true);
+            } else {
+              // Must ensure it is explicitly client mode
+              userRole.value = 'client';
+              isBarberMode.value = false;
+              await _write('user_role', 'client');
+              await _writeBool('is_barber_mode', false);
             }
-            // Agar server ham 'client' va lokal ham 'client' — hech narsa o'zgarmaydi
+          } else {
+            // If local role is barber, ensure isBarberMode is true
+            isBarberMode.value = true;
           }
           if (serverAvatar.isNotEmpty) {
             avatarBase64.value = serverAvatar;
