@@ -24,23 +24,7 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (currentTab.value == 0) {
-            final now = DateTime.now();
-            if (controller.lastBackPressTime == null ||
-                now.difference(controller.lastBackPressTime!) >
-                    const Duration(seconds: 2)) {
-              controller.lastBackPressTime = now;
-              Get.snackbar(
-                "Chiqish",
-                "Ilovadan chiqish uchun yana bir marta bosing",
-                snackPosition: SnackPosition.BOTTOM,
-                backgroundColor: const Color(0xFFC9A96E),
-                colorText: Colors.white,
-                margin: const EdgeInsets.all(16),
-                duration: const Duration(seconds: 2),
-              );
-            } else {
-              SystemNavigator.pop();
-            }
+            SystemNavigator.pop();
           } else {
             pageController.jumpToPage(0);
             currentTab.value = 0;
