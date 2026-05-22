@@ -238,7 +238,18 @@ class ProfileView extends StatelessWidget {
                           idx++,
                           () => _showSettings(),
                         ),
-                        // (Removed "Sartarosh sifatida qo'shilish" option completely to separate Barber and Client)
+                        if (Get.find<UserService>().userRole.value == 'barber')
+                          _menuItem(
+                            Icons.swap_horiz_rounded,
+                            "Usta paneliga kirish",
+                            idx++,
+                            () {
+                              final us = Get.find<UserService>();
+                              us.isBarberMode.value = true;
+                              Get.offAllNamed('/barber-dashboard');
+                            },
+                          ),
+                        // Client ones
                         _menuItem(
                           Icons.help_outline_rounded,
                           "Yordam",

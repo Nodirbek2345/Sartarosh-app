@@ -24,7 +24,9 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (currentTab.value == 0) {
-            SystemNavigator.pop();
+            final userService = Get.find<UserService>();
+            userService.isBarberMode.value = false;
+            Get.offAllNamed('/home');
           } else {
             pageController.jumpToPage(0);
             currentTab.value = 0;
