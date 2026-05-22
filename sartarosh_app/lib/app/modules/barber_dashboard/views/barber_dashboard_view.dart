@@ -1,4 +1,5 @@
 ﻿import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,9 +24,7 @@ class BarberDashboardView extends GetView<BarberDashboardController> {
       onPopInvokedWithResult: (didPop, result) {
         if (!didPop) {
           if (currentTab.value == 0) {
-            final userService = Get.find<UserService>();
-            userService.isBarberMode.value = false;
-            Get.offAllNamed('/home');
+            SystemNavigator.pop();
           } else {
             pageController.jumpToPage(0);
             currentTab.value = 0;

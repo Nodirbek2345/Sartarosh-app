@@ -1501,19 +1501,6 @@ class HomeView extends GetView<HomeController> {
                   ],
 
                   // Menu system completely simplified, 'Rol almashish' logic has been abolished.
-                  // But barbers can still switch to their panel
-                  if (role == 'barber')
-                    _menuItem(
-                      icon: Icons.swap_horiz_rounded,
-                      title: "Usta paneliga kirish",
-                      color: AppTheme.gold,
-                      onTap: () {
-                        Get.back();
-                        userService.isBarberMode.value = true;
-                        Get.offAllNamed('/barber-dashboard');
-                      },
-                    ),
-
                   _menuItem(
                     icon: Icons.logout_rounded,
                     title: "Tizimdan chiqish",

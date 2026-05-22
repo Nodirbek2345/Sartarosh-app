@@ -238,18 +238,13 @@ class ProfileView extends StatelessWidget {
                           idx++,
                           () => _showSettings(),
                         ),
-                        if (Get.find<UserService>().userRole.value == 'barber')
+                        if (Get.find<UserService>().userRole.value != 'barber')
                           _menuItem(
-                            Icons.swap_horiz_rounded,
-                            "Usta paneliga kirish",
+                            Icons.content_cut_rounded,
+                            "Sartarosh sifatida qo'shilish",
                             idx++,
-                            () {
-                              final us = Get.find<UserService>();
-                              us.isBarberMode.value = true;
-                              Get.offAllNamed('/barber-dashboard');
-                            },
+                            () => Get.toNamed('/add-barber'),
                           ),
-                        // Client ones
                         _menuItem(
                           Icons.help_outline_rounded,
                           "Yordam",
