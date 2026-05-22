@@ -127,6 +127,37 @@ class UserService extends GetxService {
                 .doc(currentUid)
                 .set({'role': 'barber'}, SetOptions(merge: true));
           } catch (_) {}
+        } else {
+          // UID bilan topilmadi — telefon orqali ham tekshiramiz (fallback)
+          final currentPhone = phone.value.replaceAll(RegExp(r'[\s\-]'), '');
+          if (currentPhone.isNotEmpty && currentPhone != '+998') {
+            try {
+              final phoneCheck = await FirebaseFirestore.instance
+                  .collection('barbers')
+                  .where('phone', isEqualTo: currentPhone)
+                  .limit(1)
+                  .get();
+              if (phoneCheck.docs.isNotEmpty) {
+                userRole.value = 'barber';
+                isBarberMode.value = true;
+                await _write('user_role', 'barber');
+                await _writeBool('is_barber_mode', true);
+                // Fix uid in barber doc for future queries
+                try {
+                  await phoneCheck.docs.first.reference.update({
+                    'uid': currentUid,
+                  });
+                } catch (_) {}
+                // Sync to users collection
+                try {
+                  await FirebaseFirestore.instance
+                      .collection('users')
+                      .doc(currentUid)
+                      .set({'role': 'barber'}, SetOptions(merge: true));
+                } catch (_) {}
+              }
+            } catch (_) {}
+          }
         }
       } catch (_) {}
     }
