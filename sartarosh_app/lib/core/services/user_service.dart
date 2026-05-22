@@ -115,12 +115,8 @@ class UserService extends GetxService {
             .limit(1)
             .get();
         if (barberCheck.docs.isNotEmpty) {
-          // User IS a barber — force set role regardless of other data
-          userRole.value = 'barber';
-          isBarberMode.value = true;
-          await _write('user_role', 'barber');
-          await _writeBool('is_barber_mode', true);
-          // Also sync to users collection
+          // Do not forcefully override role here to respect user's Registration choice.
+          // Just sync to users collection if needed
           try {
             await FirebaseFirestore.instance
                 .collection('users')
@@ -138,10 +134,6 @@ class UserService extends GetxService {
                   .limit(1)
                   .get();
               if (phoneCheck.docs.isNotEmpty) {
-                userRole.value = 'barber';
-                isBarberMode.value = true;
-                await _write('user_role', 'barber');
-                await _writeBool('is_barber_mode', true);
                 // Fix uid in barber doc for future queries
                 try {
                   await phoneCheck.docs.first.reference.update({
