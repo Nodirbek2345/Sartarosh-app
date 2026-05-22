@@ -650,7 +650,12 @@ class BarberDetailView extends StatelessWidget {
 
     Get.bottomSheet(
       Container(
-        padding: EdgeInsets.all(24),
+        padding: EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: MediaQuery.paddingOf(context).bottom + 24,
+        ),
         decoration: BoxDecoration(
           color: AppTheme.background,
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
