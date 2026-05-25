@@ -239,18 +239,10 @@ class ProfileView extends StatelessWidget {
                           () => _showSettings(),
                         ),
                         _menuItem(
-                          Get.find<UserService>().userRole.value == 'barber'
-                              ? Icons.dashboard_customize_rounded
-                              : Icons.content_cut_rounded,
-                          Get.find<UserService>().userRole.value == 'barber'
-                              ? "Sartarosh boshqaruv paneli"
-                              : "Sartarosh sifatida qo'shilish",
+                          Icons.content_cut_rounded,
+                          "Sartarosh sifatida qo'shilish",
                           idx++,
-                          () => Get.toNamed(
-                            Get.find<UserService>().userRole.value == 'barber'
-                                ? '/barber-dashboard'
-                                : '/add-barber',
-                          ),
+                          () => Get.toNamed('/add-barber'),
                         ),
                         _menuItem(
                           Icons.help_outline_rounded,
