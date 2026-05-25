@@ -238,13 +238,12 @@ class ProfileView extends StatelessWidget {
                           idx++,
                           () => _showSettings(),
                         ),
-                        if (Get.find<UserService>().userRole.value != 'barber')
-                          _menuItem(
-                            Icons.content_cut_rounded,
-                            "Sartarosh sifatida qo'shilish",
-                            idx++,
-                            () => Get.toNamed('/add-barber'),
-                          ),
+                        _menuItem(
+                          Icons.content_cut_rounded,
+                          "Sartarosh sifatida qo'shilish",
+                          idx++,
+                          () => Get.toNamed('/add-barber'),
+                        ),
                         _menuItem(
                           Icons.help_outline_rounded,
                           "Yordam",

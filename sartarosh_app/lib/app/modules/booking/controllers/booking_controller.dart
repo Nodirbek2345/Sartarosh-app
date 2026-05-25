@@ -196,14 +196,11 @@ class BookingController extends GetxController {
     }
 
     _barbersSub = query.snapshots().listen((snapshot) {
-      var list = snapshot.docs
-          .map((doc) {
-            final data = doc.data();
-            data['id'] = doc.id;
-            return data;
-          })
-          .where((b) => b['uid'] != userService.currentUid)
-          .toList();
+      var list = snapshot.docs.map((doc) {
+        final data = doc.data();
+        data['id'] = doc.id;
+        return data;
+      }).toList();
 
       final hasGps =
           userService.userLat.value != 0.0 && userService.userLng.value != 0.0;
@@ -283,9 +280,7 @@ class BookingController extends GetxController {
             data['id'] = doc.id;
             return data;
           })
-          .where(
-            (b) => b['isActive'] != false && b['uid'] != userService.currentUid,
-          )
+          .where((b) => b['isActive'] != false)
           .toList();
 
       if (mode == 'REGION' && region.isNotEmpty) {

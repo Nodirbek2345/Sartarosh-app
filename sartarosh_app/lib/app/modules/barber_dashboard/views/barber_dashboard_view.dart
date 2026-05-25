@@ -1,5 +1,4 @@
 ﻿import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -1703,90 +1702,7 @@ class _BarberProfileTab extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(height: 12),
 
-                // Logout
-                GestureDetector(
-                  onTap: () {
-                    Get.dialog(
-                      AlertDialog(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        title: const Text("Chiqish"),
-                        content: const Text(
-                          "Rostdan ham tizimdan chiqmoqchimisiz?",
-                        ),
-                        actions: [
-                          TextButton(
-                            onPressed: () => Get.back(),
-                            child: const Text("Yo'q"),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              userService.logout();
-                              Get.back();
-                              Get.offAllNamed('/onboarding');
-                            },
-                            child: const Text(
-                              "Ha, chiqish",
-                              style: TextStyle(color: AppTheme.danger),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFEE2E2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Center(
-                      child: Text(
-                        "Tizimdan chiqish",
-                        style: GoogleFonts.poppins(
-                          color: const Color(0xFFDC2626),
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Version display box
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: AppTheme.textLight.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Sartarosh v${Get.find<UpdateService>().currentVersion}",
-                      style: GoogleFonts.poppins(
-                        color: AppTheme.textMedium,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 32),
               ],
             ),
