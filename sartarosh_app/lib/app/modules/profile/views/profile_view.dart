@@ -239,10 +239,18 @@ class ProfileView extends StatelessWidget {
                           () => _showSettings(),
                         ),
                         _menuItem(
-                          Icons.content_cut_rounded,
-                          "Sartarosh sifatida qo'shilish",
+                          Get.find<UserService>().userRole.value == 'barber'
+                              ? Icons.dashboard_customize_rounded
+                              : Icons.content_cut_rounded,
+                          Get.find<UserService>().userRole.value == 'barber'
+                              ? "Sartarosh boshqaruv paneli"
+                              : "Sartarosh sifatida qo'shilish",
                           idx++,
-                          () => Get.toNamed('/add-barber'),
+                          () => Get.toNamed(
+                            Get.find<UserService>().userRole.value == 'barber'
+                                ? '/barber-dashboard'
+                                : '/add-barber',
+                          ),
                         ),
                         _menuItem(
                           Icons.help_outline_rounded,
@@ -774,6 +782,7 @@ class ProfileView extends StatelessWidget {
   }
 
   // ─── BONUS CARD ───
+  // ─── BONUS CARD ───
   Widget _buildBonusCard() {
     final userService = Get.find<UserService>();
     return Obx(() {
@@ -804,32 +813,32 @@ class ProfileView extends StatelessWidget {
           if (visitsLeft <= 0) visitsLeft = 0; // If 5, next is free
 
           String visitsLeftText = visitsLeft == 0
-              ? "Sizning navbatdagi tashrifingiz BEPUL!"
+              ? "Sizning navbatdagi tashrifingiz BEPUL! 🎁"
               : "Yana $visitsLeft ta tashrif qoldi";
 
           return Container(
             margin: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            padding: EdgeInsets.all(18),
+            padding: EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 colors: [
-                  AppTheme.primary.withValues(alpha: 0.07),
+                  AppTheme.primary.withValues(alpha: 0.05),
                   Colors.white,
                 ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(22),
+              borderRadius: BorderRadius.circular(24),
               border: Border.all(
-                color: AppTheme.gold.withValues(alpha: 0.35),
-                width: 1.2,
+                color: AppTheme.gold.withValues(alpha: 0.3),
+                width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: AppTheme.gold.withValues(alpha: 0.12),
-                  blurRadius: 20,
-                  spreadRadius: -4,
-                  offset: Offset(0, 8),
+                  color: AppTheme.gold.withValues(alpha: 0.08),
+                  blurRadius: 24,
+                  spreadRadius: -2,
+                  offset: Offset(0, 10),
                 ),
               ],
             ),
@@ -842,18 +851,25 @@ class ProfileView extends StatelessWidget {
                     Row(
                       children: [
                         Container(
-                          padding: EdgeInsets.all(8),
+                          padding: EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: AppTheme.gold.withValues(alpha: 0.15),
+                            gradient: AppTheme.goldGradient,
                             shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppTheme.gold.withValues(alpha: 0.3),
+                                blurRadius: 8,
+                                offset: Offset(0, 3),
+                              ),
+                            ],
                           ),
                           child: Icon(
                             Icons.star_rounded,
-                            color: AppTheme.gold,
-                            size: 20,
+                            color: Colors.white,
+                            size: 22,
                           ),
                         ),
-                        SizedBox(width: 12),
+                        SizedBox(width: 14),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -861,15 +877,15 @@ class ProfileView extends StatelessWidget {
                               "Sizning bonusingiz",
                               style: GoogleFonts.poppins(
                                 color: AppTheme.textMedium,
-                                fontSize: 12,
+                                fontSize: 13,
                               ),
                             ),
                             Text(
                               "$points ball",
                               style: GoogleFonts.poppins(
                                 color: AppTheme.textDark,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
+                                fontSize: 20,
+                                fontWeight: FontWeight.w800,
                               ),
                             ),
                           ],
@@ -878,18 +894,21 @@ class ProfileView extends StatelessWidget {
                     ),
                     Container(
                       padding: EdgeInsets.symmetric(
-                        horizontal: 12,
+                        horizontal: 14,
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        gradient: AppTheme.goldGradient,
+                        color: AppTheme.gold.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppTheme.gold.withValues(alpha: 0.2),
+                        ),
                       ),
                       child: Text(
                         "Premium",
                         style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 10,
+                          color: AppTheme.gold,
+                          fontSize: 11,
                           fontWeight: FontWeight.w700,
                           letterSpacing: 0.5,
                         ),
@@ -897,42 +916,86 @@ class ProfileView extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
-                Text(
-                  "5 marta keling → 6-marta BEPUL!",
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.textDark,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                  ),
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "5 marta keling → 6-marta BEPUL!",
+                      style: GoogleFonts.poppins(
+                        color: AppTheme.textDark,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Icon(
+                      Icons.card_giftcard_rounded,
+                      color: AppTheme.gold,
+                      size: 18,
+                    ),
+                  ],
                 ),
-                SizedBox(height: 10),
+                SizedBox(height: 12),
                 Row(
                   children: List.generate(6, (index) {
                     final isCompleted = index < currentCycle;
+                    final isGift = index == 5; // 6th slot
                     return Expanded(
-                      child: Container(
-                        margin: EdgeInsets.only(right: index == 5 ? 0 : 6),
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: isCompleted
-                              ? AppTheme.gold
-                              : AppTheme.textMedium.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                      ),
+                      child:
+                          Container(
+                                margin: EdgeInsets.only(right: isGift ? 0 : 6),
+                                height: isGift ? 24 : 8,
+                                decoration: isGift
+                                    ? BoxDecoration(
+                                        color: isCompleted
+                                            ? AppTheme.success
+                                            : AppTheme.textLight.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                        borderRadius: BorderRadius.circular(12),
+                                      )
+                                    : BoxDecoration(
+                                        color: isCompleted
+                                            ? AppTheme.gold
+                                            : AppTheme.textLight.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                        borderRadius: BorderRadius.circular(4),
+                                      ),
+                                child: isGift
+                                    ? Icon(
+                                        Icons.card_giftcard_rounded,
+                                        size: 14,
+                                        color: isCompleted
+                                            ? Colors.white
+                                            : AppTheme.textMedium,
+                                      )
+                                    : null,
+                              )
+                              .animate(target: isCompleted ? 1 : 0)
+                              .shimmer(
+                                duration: 1000.ms,
+                                color: Colors.white54,
+                              ),
                     );
                   }),
                 ),
-                SizedBox(height: 8),
+                SizedBox(height: 12),
                 Text(
-                  visitsLeftText,
-                  style: GoogleFonts.poppins(
-                    color: AppTheme.textMedium,
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
+                      visitsLeftText,
+                      style: GoogleFonts.poppins(
+                        color: visitsLeft == 0
+                            ? AppTheme.success
+                            : AppTheme.textMedium,
+                        fontSize: 12,
+                        fontWeight: visitsLeft == 0
+                            ? FontWeight.w600
+                            : FontWeight.w400,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    )
+                    .animate(target: visitsLeft == 0 ? 1 : 0)
+                    .shake(hz: 3, duration: 800.ms),
               ],
             ),
           ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.05);
