@@ -124,9 +124,9 @@ class WelcomeView extends GetView<AuthController> {
                 color: Color(0xFFC9A96E),
                 onTap: () {
                   userService.setUserRole('barber');
-                  // Save role to Firestore
                   _updateFirestoreRole('barber');
-                  currentStep.value = 1;
+                  // Sartarosh uchun gender tanlash kerak emas — to'g'ridan-to'g'ri Home ga
+                  Get.find<AuthController>().goToHome();
                 },
               ),
             ),
