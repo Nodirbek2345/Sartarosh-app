@@ -233,16 +233,49 @@ export default function BookingsPage() {
                 </div>
             </div>
 
-            <div className="filter-pills">
-                {statusFilters.map((s) => (
+            <div className="filter-pills" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+                <div>
+                    {statusFilters.map((s) => (
+                        <button
+                            key={s.key}
+                            className={`filter-pill ${filter === s.key ? "active" : ""}`}
+                            onClick={() => setFilter(s.key)}
+                        >
+                            {s.label}
+                        </button>
+                    ))}
+                </div>
+                {filtered.length > 0 && (
                     <button
-                        key={s.key}
-                        className={`filter-pill ${filter === s.key ? "active" : ""}`}
-                        onClick={() => setFilter(s.key)}
+                        onClick={async () => {
+                            if (window.confirm(`Haqiqatan ham hamma ${filtered.length} ta jadvaldagi oynadagi bronlarni o'chirmoqchimisiz? BU QAYTARIB BO'LMAYDIGAN JARAYON!`)) {
+                                try {
+                                    setLoading(true);
+                                    await Promise.all(filtered.map(b => deleteBooking(b.id)));
+                                } catch (error) {
+                                    console.error("Xatolik:", error);
+                                    alert("Xatolik yuz berdi");
+                                } finally {
+                                    setLoading(false);
+                                }
+                            }
+                        }}
+                        style={{
+                            background: "rgba(239, 68, 68, 0.1)",
+                            color: "#EF4444",
+                            border: "none",
+                            padding: "8px 16px",
+                            borderRadius: "12px",
+                            cursor: "pointer",
+                            fontWeight: 600,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 8
+                        }}
                     >
-                        {s.label}
+                        <FaTrash /> Barchasini o'chirish
                     </button>
-                ))}
+                )}
             </div>
 
             <div className="dash-card">

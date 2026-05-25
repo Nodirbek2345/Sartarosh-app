@@ -97,10 +97,10 @@ export default function LoginPage() {
                         <div style={{ position: "relative" }}>
                             <FaEnvelope style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "#64748B" }} />
                             <input
-                                type="email"
+                                type="text"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="admin@sartarosh.uz"
+                                placeholder="admin123"
                                 required
                                 style={{
                                     width: "100%", padding: "14px 14px 14px 40px",

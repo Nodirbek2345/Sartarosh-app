@@ -151,8 +151,7 @@ service cloud.firestore {
                         && incomingData().isRated == true)
                     );
                     
-      allow delete: if false; // Bronni o'chirish mumkin emas
-    }
+      allow delete: if isAdmin() || (isSignedIn() && existingData().barberUid == request.auth.uid);
 
     // ═══════════════════════════════════════════════════════
     // 4.5. NAVBATLAR (Queues - Jonli Navbat)
@@ -170,14 +169,29 @@ service cloud.firestore {
         && incomingData().keys().hasAll(['clientUid', 'barberId', 'barberUid', 'status'])
         && incomingData().status == 'waiting';
         
-      // Yangilash: faqat sartarosh maqomni in_progress yoki completed/cancelled ga o'zgartiroladi
-      allow update: if isSignedIn() && existingData().barberUid == request.auth.uid;
+      // Yangilash: sartarosh — faqat state machine orqali
+      // waiting → in_progress → completed/cancelled
+      allow update: if isSignedIn() && existingData().barberUid == request.auth.uid
+        && incomingData().clientUid == existingData().clientUid
+        && incomingData().barberUid == existingData().barberUid
+        && incomingData().barberId == existingData().barberId
+        && (
+          // waiting → in_progress
+          (existingData().status == 'waiting' && incomingData().status == 'in_progress')
+          // waiting → cancelled
+          || (existingData().status == 'waiting' && incomingData().status == 'cancelled')
+          // in_progress → completed
+          || (existingData().status == 'in_progress' && incomingData().status == 'completed')
+          // in_progress → cancelled
+          || (existingData().status == 'in_progress' && incomingData().status == 'cancelled')
+        );
       
       // Mijoz o'z navbatidan chiqa olishini ta'minlash (maqomni bekor qilish)
       allow update: if isSignedIn() 
         && existingData().clientUid == request.auth.uid 
         && incomingData().clientUid == request.auth.uid
-        && incomingData().status == 'cancelled';
+        && incomingData().status == 'cancelled'
+        && existingData().status in ['waiting', 'in_progress'];
         
       allow delete: if false;
     }
