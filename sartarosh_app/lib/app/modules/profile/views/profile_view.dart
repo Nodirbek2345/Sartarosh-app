@@ -774,7 +774,6 @@ class ProfileView extends StatelessWidget {
   }
 
   // ─── BONUS CARD ───
-  // ─── BONUS CARD ───
   Widget _buildBonusCard() {
     final userService = Get.find<UserService>();
     return Obx(() {

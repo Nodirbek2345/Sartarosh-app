@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 /// Usta + sana + vaqt bo'yicha atomik band (Firestore transaksiyasi bilan).
 /// `booking_time_locks` hujjati — bron bekor/yakun bo'lganda o'chiriladi.
@@ -14,9 +15,9 @@ abstract final class BookingSlotLock {
     String dateStr,
     String timeVal,
   ) {
-    return fs.collection('booking_time_locks').doc(
-          docId(barberId, dateStr, timeVal),
-        );
+    return fs
+        .collection('booking_time_locks')
+        .doc(docId(barberId, dateStr, timeVal));
   }
 
   static Future<void> release(
@@ -28,7 +29,9 @@ abstract final class BookingSlotLock {
     if (barberId.isEmpty || dateStr.isEmpty || timeVal.isEmpty) return;
     try {
       await ref(fs, barberId, dateStr, timeVal).delete();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('⚠️ Slot lock release error: $e');
+    }
   }
 
   static Future<void> releaseFromBookingData(

@@ -83,15 +83,18 @@ class InputSanitizer {
   }
 
   /// Rate limiter check - returns true if action is allowed
-  static DateTime? _lastAction;
+  /// Uses per-action cooldowns so different actions don't block each other
+  static final Map<String, DateTime> _lastActions = {};
   static bool canPerformAction({
+    String actionKey = 'default',
     Duration cooldown = const Duration(seconds: 3),
   }) {
     final now = DateTime.now();
-    if (_lastAction != null && now.difference(_lastAction!) < cooldown) {
+    final last = _lastActions[actionKey];
+    if (last != null && now.difference(last) < cooldown) {
       return false;
     }
-    _lastAction = now;
+    _lastActions[actionKey] = now;
     return true;
   }
 }

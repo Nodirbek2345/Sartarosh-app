@@ -43,6 +43,8 @@ class BarberMiddleware extends GetMiddleware {
     // Auto-enable barber mode when accessing barber dashboard
     if (!userService.isBarberMode.value) {
       userService.isBarberMode.value = true;
+      // Persist this change so it survives app restarts
+      userService.setUserRole('barber');
     }
 
     // Security passed, allow access to dashboard

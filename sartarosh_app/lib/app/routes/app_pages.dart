@@ -157,6 +157,7 @@ class AppPages {
       page: () => RegionView(),
       binding: RegionBinding(),
       transition: Transition.rightToLeftWithFade,
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: Routes.barberServices,
@@ -170,6 +171,7 @@ class AppPages {
       page: () => NotificationsView(),
       binding: NotificationsBinding(),
       transition: Transition.fadeIn,
+      middlewares: [AuthMiddleware()],
     ),
     GetPage(
       name: Routes.clientAnalytics,
@@ -183,7 +185,10 @@ class AppPages {
       page: () => AdminAnalyticsView(),
       binding: AdminAnalyticsBinding(),
       transition: Transition.fadeIn,
-      middlewares: [AuthMiddleware()], // Requires login
+      middlewares: [
+        AuthMiddleware(),
+        BarberMiddleware(),
+      ], // Admin-level: requires barber role
     ),
     GetPage(
       name: Routes.forceUpdate,

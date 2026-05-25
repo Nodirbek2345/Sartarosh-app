@@ -15,10 +15,13 @@ void main() async {
   // Barcha Flutter Xatolarini ushlash (Release uchun)
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
+    debugPrint('⚠️ FlutterError: ${details.exceptionAsString()}');
   };
 
   // Barcha Dart Asinxron xatolarini ushlash (App qulashini oldini oladi)
   PlatformDispatcher.instance.onError = (error, stack) {
+    debugPrint('⚠️ PlatformError: $error');
+    debugPrint('$stack');
     return true;
   };
 
@@ -36,7 +39,9 @@ void main() async {
     // OTA orqali (GitHub Releases) o'rnatilganda Play Integrity ishlamaydi va
     // "permission-denied" xatosini beradi. Shuning uchun App Check vaqtincha olib tushildi.
     // await FirebaseAppCheck.instance.activate();
-  } catch (_) {}
+  } catch (e) {
+    debugPrint('⚠️ Firebase init error: $e');
+  }
 
   await Get.putAsync(() => UserService().init());
   await Get.putAsync(() => UpdateService().init());

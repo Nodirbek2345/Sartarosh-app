@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -78,7 +79,8 @@ class UserService extends GetxService {
     if (favListString != null && favListString.isNotEmpty) {
       try {
         favoriteBarberIds.value = List<String>.from(jsonDecode(favListString));
-      } catch (_) {
+      } catch (e) {
+        debugPrint('⚠️ Favorites parse error: $e');
         favoriteBarberIds.value = [];
       }
     }
@@ -125,12 +127,18 @@ class UserService extends GetxService {
                   await phoneCheck.docs.first.reference.update({
                     'uid': currentUid,
                   });
-                } catch (_) {}
+                } catch (e) {
+                  debugPrint('⚠️ Barber UID link error: $e');
+                }
               }
-            } catch (_) {}
+            } catch (e) {
+              debugPrint('⚠️ Phone barber check error: $e');
+            }
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Barber UID check error: $e');
+      }
     }
 
     // ─── STEP 2: Auto-restore profile from Firestore users doc ───
@@ -192,7 +200,9 @@ class UserService extends GetxService {
           isLogged.value = true;
           await _writeBool('is_logged', true);
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Profile restore error: $e');
+      }
     }
 
     // ─── Restore favorites from Firestore if local empty ───
@@ -212,7 +222,9 @@ class UserService extends GetxService {
             );
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Favorites restore error: $e');
+      }
     }
 
     // ─── One-time profile sync to Firestore ───
@@ -238,7 +250,9 @@ class UserService extends GetxService {
                 .set(syncData, SetOptions(merge: true));
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Profile sync error: $e');
+      }
     }
 
     return this;
@@ -260,7 +274,9 @@ class UserService extends GetxService {
             .set({
               'favorites': favoriteBarberIds.toList(),
             }, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Favorites sync error: $e');
+      }
     }
   }
 
@@ -293,7 +309,9 @@ class UserService extends GetxService {
             });
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Avatar update error: $e');
+      }
     }
   }
 
@@ -322,7 +340,9 @@ class UserService extends GetxService {
             .collection('users')
             .doc(uidToUpdate)
             .set({'targetGender': gender}, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Gender sync error: $e');
+      }
     }
   }
 
@@ -342,7 +362,9 @@ class UserService extends GetxService {
               'audienceProfile': 'male_classic',
               'exploreHint': 'nearby_barbers',
             }, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Male audience sync error: $e');
+      }
     }
   }
 
@@ -362,7 +384,9 @@ class UserService extends GetxService {
               'audienceProfile': 'female_beauty',
               'exploreHint': 'salon_categories_priority',
             }, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Female audience sync error: $e');
+      }
     }
   }
 
@@ -378,7 +402,9 @@ class UserService extends GetxService {
             .collection('users')
             .doc(currentUid)
             .set({'region': region}, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Region sync error: $e');
+      }
     }
   }
 
@@ -399,7 +425,9 @@ class UserService extends GetxService {
             .collection('users')
             .doc(currentUid)
             .set({'lat': lat, 'lng': lng}, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ GPS sync error: $e');
+      }
     }
   }
 
@@ -420,7 +448,9 @@ class UserService extends GetxService {
             .collection('users')
             .doc(currentUid)
             .set({'region': region}, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Region mode sync error: $e');
+      }
     }
   }
 
@@ -438,7 +468,9 @@ class UserService extends GetxService {
             .collection('users')
             .doc(currentUid)
             .set({'role': role}, SetOptions(merge: true));
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ Role sync error: $e');
+      }
     }
   }
 
@@ -482,7 +514,9 @@ class UserService extends GetxService {
             }
           }
         }
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('⚠️ User update sync error: $e');
+      }
     }
   }
 
@@ -494,7 +528,9 @@ class UserService extends GetxService {
 
     try {
       await FirebaseAuth.instance.signOut();
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('⚠️ Sign out error: $e');
+    }
 
     name.value = "Mijoz";
     phone.value = "+998 -- --- -- --";
