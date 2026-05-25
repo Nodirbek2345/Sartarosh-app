@@ -87,11 +87,6 @@ class UserService extends GetxService {
     targetGender.value = _read('target_gender') ?? 'male';
     audienceProfile.value = _read('audience_profile') ?? '';
     userRole.value = _read('user_role') ?? 'client';
-
-    // STRICT MODE: Agar role barber bolsa isBarberMode ham doim true bolishi kerak
-    if (userRole.value == 'barber') {
-      isBarberMode.value = true;
-    }
     uid.value = _read('user_uid') ?? '';
 
     filterMode.value = _read('filter_mode') ?? 'REGION';
@@ -106,7 +101,7 @@ class UserService extends GetxService {
       await _write('user_uid', firebaseUser.uid);
     }
 
-    // ─── STEP 1: Check barbers collection FIRST (source of truth) ───
+    // ─── STEP 1: Barber UID linkni tekshirish (faqat uid bog'lash, role o'zgartirmaslik) ───
     if (currentUid.isNotEmpty) {
       try {
         final barberCheck = await FirebaseFirestore.instance
@@ -114,17 +109,8 @@ class UserService extends GetxService {
             .where('uid', isEqualTo: currentUid)
             .limit(1)
             .get();
-        if (barberCheck.docs.isNotEmpty) {
-          // Do not forcefully override role here to respect user's Registration choice.
-          // Just sync to users collection if needed
-          try {
-            await FirebaseFirestore.instance
-                .collection('users')
-                .doc(currentUid)
-                .set({'role': 'barber'}, SetOptions(merge: true));
-          } catch (_) {}
-        } else {
-          // UID bilan topilmadi — telefon orqali ham tekshiramiz (fallback)
+        if (barberCheck.docs.isEmpty) {
+          // UID bilan topilmadi — telefon orqali ham tekshiramiz (faqat uid bog'lash)
           final currentPhone = phone.value.replaceAll(RegExp(r'[\s\-]'), '');
           if (currentPhone.isNotEmpty && currentPhone != '+998') {
             try {
@@ -134,18 +120,11 @@ class UserService extends GetxService {
                   .limit(1)
                   .get();
               if (phoneCheck.docs.isNotEmpty) {
-                // Fix uid in barber doc for future queries
+                // Faqat uid ni bog'laymiz, role ga tegmaymiz
                 try {
                   await phoneCheck.docs.first.reference.update({
                     'uid': currentUid,
                   });
-                } catch (_) {}
-                // Sync to users collection
-                try {
-                  await FirebaseFirestore.instance
-                      .collection('users')
-                      .doc(currentUid)
-                      .set({'role': 'barber'}, SetOptions(merge: true));
                 } catch (_) {}
               }
             } catch (_) {}
@@ -180,23 +159,12 @@ class UserService extends GetxService {
             phone.value = serverPhone;
             await _write('user_phone', serverPhone);
           }
-          if (userRole.value != 'barber') {
-            if (serverRole == 'barber') {
-              userRole.value = 'barber';
-              isBarberMode.value = true;
-              await _write('user_role', 'barber');
-              await _writeBool('is_barber_mode', true);
-            } else {
-              // Must ensure it is explicitly client mode
-              userRole.value = 'client';
-              isBarberMode.value = false;
-              await _write('user_role', 'client');
-              await _writeBool('is_barber_mode', false);
-            }
-          } else {
-            // If local role is barber, ensure isBarberMode is true
-            isBarberMode.value = true;
-          }
+          // Firestore users doc — role uchun yagona manba (source of truth)
+          userRole.value = serverRole;
+          await _write('user_role', serverRole);
+          final isBrb = serverRole == 'barber';
+          isBarberMode.value = isBrb;
+          await _writeBool('is_barber_mode', isBrb);
           if (serverAvatar.isNotEmpty) {
             avatarBase64.value = serverAvatar;
             await _write('user_avatar', serverAvatar);
